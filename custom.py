@@ -21,6 +21,12 @@ def load_data(symbol, start, end, interval):
     return data
 
 df = load_data(symbol, start_date, end_date, interval)
+# Fix for multi-level columns from yfinance
+if isinstance(df.columns, pd.MultiIndex):
+    df.columns = df.columns.get_level_values(0)
+
+df.reset_index(inplace=True)
+
 st.subheader("📊 Raw Data Preview")
 st.write(df.tail())  # Check the last rows
 st.write("Data Shape:", df.shape)

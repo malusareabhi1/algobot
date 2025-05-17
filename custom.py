@@ -27,9 +27,9 @@ if isinstance(df.columns, pd.MultiIndex):
 
 df.reset_index(inplace=True)
 
-st.subheader("📊 Raw Data Preview")
-st.write(df.tail())  # Check the last rows
-st.write("Data Shape:", df.shape)
+#st.subheader("📊 Raw Data Preview")
+#st.write(df.tail())  # Check the last rows
+#st.write("Data Shape:", df.shape)
 
 
 # --- Step 2: Indicator selection ---

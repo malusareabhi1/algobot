@@ -165,6 +165,26 @@ cumulative_returns = (1 + df["Strategy"]).cumprod()
 
 st.line_chart(cumulative_returns, use_container_width=True)
 
+# --- Trade Log ---
+st.subheader("📄 Trade Log")
+
+trade_log = df[df["Signal"] != 0][["Datetime", "Close", "Signal"]].copy()
+trade_log["Action"] = trade_log["Signal"].apply(lambda x: "Buy" if x == 1 else "Sell")
+trade_log.rename(columns={"Datetime": "Time", "Close": "Price"}, inplace=True)
+trade_log = trade_log[["Time", "Action", "Price"]]
+
+st.dataframe(trade_log, use_container_width=True)
+
+# --- Download Button ---
+csv = trade_log.to_csv(index=False).encode('utf-8')
+st.download_button(
+    label="📥 Download Trade Log as CSV",
+    data=csv,
+    file_name=f"{symbol}_trade_log.csv",
+    mime='text/csv'
+)
+
+
 #---
 
 ## 🚀 What You Can Build Next

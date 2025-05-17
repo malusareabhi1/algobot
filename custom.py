@@ -37,6 +37,33 @@ st.sidebar.header("Select Indicators")
 use_ema = st.sidebar.checkbox("EMA")
 use_rsi = st.sidebar.checkbox("RSI")
 use_bbands = st.sidebar.checkbox("Bollinger Bands")
+use_macd = st.sidebar.checkbox("MACD")
+use_supertrend = st.sidebar.checkbox("Supertrend")
+use_atr = st.sidebar.checkbox("ATR")
+use_adx = st.sidebar.checkbox("ADX")
+use_volume = st.sidebar.checkbox("Volume")
+st.sidebar.header("Risk Management")
+use_risk = st.sidebar.checkbox("Enable SL/Target")
+stop_loss = st.sidebar.number_input("Stop Loss (%)", min_value=0.5, max_value=20.0, value=2.0)
+target = st.sidebar.number_input("Target (%)", min_value=0.5, max_value=20.0, value=4.0)
+
+
+if use_macd:
+    macd = ta.trend.macd_diff(df["Close"])
+    df["MACD"] = macd
+
+if use_supertrend:
+    supertrend = ta.trend.stc(df["Close"])
+    df["Supertrend"] = supertrend  # STC is a close alternative in `ta`
+
+if use_atr:
+    df["ATR"] = ta.volatility.AverageTrueRange(df["High"], df["Low"], df["Close"]).average_true_range()
+
+if use_adx:
+    df["ADX"] = ta.trend.adx(df["High"], df["Low"], df["Close"])
+
+if use_volume:
+    df["Volume_MA"] = df["Volume"].rolling(window=20).mean()
 
 if use_ema:
     ema_period = st.sidebar.slider("EMA Period", 5, 100, 20)
@@ -58,17 +85,39 @@ st.sidebar.header("Set Entry/Exit Rules")
 entry_condition = st.sidebar.selectbox("Buy When", [
     "Close > EMA",
     "RSI < 30",
-    "Close < BB_Low"
+    "Close < BB_Low",
+    "MACD > 0",
+    "Supertrend Rising",
+    "Volume > 20MA"
 ])
 
 exit_condition = st.sidebar.selectbox("Sell When", [
     "Close < EMA",
     "RSI > 70",
-    "Close > BB_High"
+    "Close > BB_High",
+    "MACD < 0",
+    "Supertrend Falling",
+    "Volume < 20MA"
 ])
 
 # --- Strategy Logic ---
 df["Signal"] = 0
+
+# Entry logic
+if entry_condition == "MACD > 0" and "MACD" in df:
+    df.loc[df["MACD"] > 0, "Signal"] = 1
+elif entry_condition == "Supertrend Rising" and "Supertrend" in df:
+    df.loc[df["Supertrend"] > df["Supertrend"].shift(1), "Signal"] = 1
+elif entry_condition == "Volume > 20MA" and "Volume_MA" in df:
+    df.loc[df["Volume"] > df["Volume_MA"], "Signal"] = 1
+
+# Exit logic
+if exit_condition == "MACD < 0" and "MACD" in df:
+    df.loc[df["MACD"] < 0, "Signal"] = -1
+elif exit_condition == "Supertrend Falling" and "Supertrend" in df:
+    df.loc[df["Supertrend"] < df["Supertrend"].shift(1), "Signal"] = -1
+elif exit_condition == "Volume < 20MA" and "Volume_MA" in df:
+    df.loc[df["Volume"] < df["Volume_MA"], "Signal"] = -1
 
 if entry_condition == "Close > EMA" and "EMA" in df:
     df.loc[df["Close"] > df["EMA"], "Signal"] = 1

@@ -1,7 +1,7 @@
 import streamlit as st
-from strategies import doctor_strategy
-from utils import telegram_alert, trade_logger
-from broker import zerodha_api
+import doctor_strategy
+import telegram_alert, trade_logger
+import zerodha_api
 
 st.set_page_config(layout="wide", page_title="Algo Trading MVP")
 

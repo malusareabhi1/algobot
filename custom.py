@@ -21,6 +21,10 @@ def load_data(symbol, start, end, interval):
     return data
 
 df = load_data(symbol, start_date, end_date, interval)
+st.subheader("📊 Raw Data Preview")
+st.write(df.tail())  # Check the last rows
+st.write("Data Shape:", df.shape)
+
 
 # --- Step 2: Indicator selection ---
 st.sidebar.header("Select Indicators")

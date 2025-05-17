@@ -110,17 +110,17 @@ st.line_chart(cumulative_returns, use_container_width=True)
 
 ## 🚀 What You Can Build Next
 
-- Add strategy saving/loading
-- Multi-condition builder (e.g., EMA crossover + RSI)
-- Add Telegram alerts
-- Integrate with broker API for live trading
-- Use advanced indicators (ATR, Supertrend, etc.)
+#---- Add strategy saving/loading
+#---- Multi-condition builder (e.g., EMA crossover + RSI)
+#---- Add Telegram alerts
+#---- Integrate with broker API for live trading
+#---- Use advanced indicators (ATR, Supertrend, etc.)
 
 #---
 
-Would you like me to:
-- Extend this with multi-condition logic?
-- Add broker execution logic?
-- Translate this to React + FastAPI format?
+#---Would you like me to:
+#---- Extend this with multi-condition logic?
+#---- Add broker execution logic?
+#---- Translate this to React + FastAPI format?
 
-Let me know your next goal!
+#---Let me know your next goal!

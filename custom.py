@@ -35,11 +35,7 @@ elif 'index' in df.columns:
 elif 'Datetime' not in df.columns:
     df.insert(0, "Datetime", pd.to_datetime(df.index))  # fallback if index is datetime
 
-# Now create trade log
-trade_log = df[df["Signal"] != 0][["Datetime", "Close", "Signal"]].copy()
-trade_log["Action"] = trade_log["Signal"].apply(lambda x: "Buy" if x == 1 else "Sell")
-trade_log.rename(columns={"Datetime": "Time", "Close": "Price"}, inplace=True)
-trade_log = trade_log[["Time", "Action", "Price"]]
+
 
 
 

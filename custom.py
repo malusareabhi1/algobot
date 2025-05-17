@@ -106,7 +106,7 @@ cumulative_returns = (1 + df["Strategy"]).cumprod()
 
 st.line_chart(cumulative_returns, use_container_width=True)
 
----
+#---
 
 ## 🚀 What You Can Build Next
 
@@ -116,7 +116,7 @@ st.line_chart(cumulative_returns, use_container_width=True)
 - Integrate with broker API for live trading
 - Use advanced indicators (ATR, Supertrend, etc.)
 
----
+#---
 
 Would you like me to:
 - Extend this with multi-condition logic?

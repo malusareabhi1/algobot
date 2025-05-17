@@ -26,6 +26,8 @@ if isinstance(df.columns, pd.MultiIndex):
     df.columns = df.columns.get_level_values(0)
 
 df.reset_index(inplace=True)
+df.rename(columns={"index": "Datetime"}, inplace=True)  # if needed
+
 
 #st.subheader("📊 Raw Data Preview")
 #st.write(df.tail())  # Check the last rows

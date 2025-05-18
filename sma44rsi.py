@@ -58,6 +58,8 @@ interval = st.selectbox("Interval", ["1d", "1h", "30m", "15m"], index=0)
 
 if st.button("Run Strategy"):
     df = yf.download(symbol, start=start, end=end, interval=interval)
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
 
     if df.empty:
         st.error("No data found. Please check the stock symbol.")

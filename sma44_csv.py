@@ -3,6 +3,17 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+# RSI calculation
+def calculate_rsi(data, period=14):
+    delta = data['Close'].diff()
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+    avg_gain = gain.rolling(window=period).mean()
+    avg_loss = loss.rolling(window=period).mean()
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
+    
 def generate_signals(data):
     data['MA44'] = data['Close'].rolling(window=44).mean()
     data['RSI'] = calculate_rsi(data)

@@ -19,22 +19,22 @@ def calculate_rsi(data, period=14):
 def generate_signals(data):
     data['MA44'] = data['Close'].rolling(window=44).mean()
     data['RSI'] = calculate_rsi(data)
-
     data['Signal'] = ''
+
     for i in range(1, len(data)):
-        if (
-            data['Close'].iloc[i] > data['MA44'].iloc[i]
-            and data['RSI'].iloc[i] > 50
-            and data['Close'].iloc[i - 1] <= data['MA44'].iloc[i - 1]
-        ):
+        current_close = data['Close'].iloc[i]
+        prev_close = data['Close'].iloc[i - 1]
+        current_ma = data['MA44'].iloc[i]
+        prev_ma = data['MA44'].iloc[i - 1]
+        current_rsi = data['RSI'].iloc[i]
+
+        if current_close > current_ma and current_rsi > 50 and prev_close <= prev_ma:
             data.at[data.index[i], 'Signal'] = 'Buy'
-        elif (
-            data['Close'].iloc[i] < data['MA44'].iloc[i]
-            and data['RSI'].iloc[i] < 50
-            and data['Close'].iloc[i - 1] >= data['MA44'].iloc[i - 1]
-        ):
+        elif current_close < current_ma and current_rsi < 50 and prev_close >= prev_ma:
             data.at[data.index[i], 'Signal'] = 'Sell'
+
     return data
+
 
 # === Streamlit UI ===
 st.title("📈 MA44 + RSI Swing Trade Strategy")

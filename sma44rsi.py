@@ -22,27 +22,31 @@ def generate_signals(data):
     data['Signal'] = np.nan
 
     for i in range(1, len(data)):
-        curr_close = data['Close'].iloc[i]
-        prev_close = data['Close'].iloc[i - 1]
-        curr_ma = data['MA44'].iloc[i]
-        prev_ma = data['MA44'].iloc[i - 1]
-        curr_rsi = data['RSI'].iloc[i]
+        try:
+            curr_close = data['Close'].iloc[i]
+            prev_close = data['Close'].iloc[i - 1]
+            curr_ma = data['MA44'].iloc[i]
+            prev_ma = data['MA44'].iloc[i - 1]
+            curr_rsi = data['RSI'].iloc[i]
 
-        if (
-            not pd.isna(curr_ma) and
-            curr_close > curr_ma and
-            curr_rsi > 50 and
-            prev_close <= prev_ma
-        ):
-            data.at[data.index[i], 'Signal'] = 'Buy'
-        elif (
-            not pd.isna(curr_ma) and
-            curr_close < curr_ma and
-            curr_rsi < 50 and
-            prev_close >= prev_ma
-        ):
-            data.at[data.index[i], 'Signal'] = 'Sell'
+            if pd.notna(curr_ma) and pd.notna(prev_ma) and pd.notna(curr_rsi):
+                if (
+                    curr_close > curr_ma and
+                    curr_rsi > 50 and
+                    prev_close <= prev_ma
+                ):
+                    data.at[data.index[i], 'Signal'] = 'Buy'
+
+                elif (
+                    curr_close < curr_ma and
+                    curr_rsi < 50 and
+                    prev_close >= prev_ma
+                ):
+                    data.at[data.index[i], 'Signal'] = 'Sell'
+        except Exception as e:
+            print(f"Error at index {i}: {e}")
     return data
+
 
 # Streamlit UI
 st.title("📊 MA44 + RSI Swing Trading Strategy")

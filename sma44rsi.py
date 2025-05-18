@@ -89,4 +89,5 @@ if st.button("Run Strategy"):
 
         # Signal Table
         st.subheader("Signal Table")
+        st.write(df)
         st.write(df[df['Signal'].notna()][['Close', 'MA44', 'RSI', 'Signal']])

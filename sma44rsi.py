@@ -15,6 +15,14 @@ def calculate_rsi(data, period=14):
     rsi = 100 - (100 / (1 + rs))
     return rsi
 
+def backtest_strategy(data, initial_capital=100000):
+    data['Returns'] = data['Close'].pct_change()
+    data['Strategy_Returns'] = data['Returns'] * data['Position'].shift(1)
+    data['Equity_Curve'] = (1 + data['Strategy_Returns']).cumprod() * initial_capital
+    data['Strategy_PnL'] = data['Equity_Curve'].diff().fillna(0)
+    return data
+
+
 # Signal generation
 def generate_signals(data):
     data['MA44'] = data['Close'].rolling(window=44).mean()
@@ -93,3 +101,23 @@ if st.button("Run Strategy"):
         st.subheader("Signal Table")
         st.write(df)
         st.write(df[df['Signal'].notna()][['Close', 'MA44', 'RSI', 'Signal']])
+        df = backtest_strategy(df)
+
+        st.subheader("Sample Data with Signals")
+        st.write(df.tail())
+    
+        st.subheader("Equity Curve")
+        fig, ax = plt.subplots()
+        ax.plot(df['Equity_Curve'], label='Equity Curve')
+        ax.set_title('Equity Curve')
+        ax.set_xlabel('Date')
+        ax.set_ylabel('Portfolio Value')
+        ax.legend()
+        st.pyplot(fig)
+    
+        total_return = df['Equity_Curve'].iloc[-1] - df['Equity_Curve'].iloc[0]
+        st.metric("Total Profit/Loss", f"₹ {total_return:,.2f}")
+
+
+
+

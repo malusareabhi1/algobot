@@ -14,28 +14,6 @@ nifty_100 = [
     'RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 'SBIN', 'LT', 'AXISBANK',
     'KOTAKBANK', 'HCLTECH', 'WIPRO', 'ITC', 'ULTRACEMCO', 'BAJFINANCE', 'ASIANPAINT'
 ]
-nifty_100 = [
-    'RELIANCE.NS', 'TCS.NS', 'INFY.NS', 'HDFCBANK.NS', 'ICICIBANK.NS',
-    'KOTAKBANK.NS', 'ITC.NS', 'LT.NS', 'SBIN.NS', 'BHARTIARTL.NS',
-    'ASIANPAINT.NS', 'HINDUNILVR.NS', 'BAJFINANCE.NS', 'AXISBANK.NS', 'HCLTECH.NS',
-    'MARUTI.NS', 'SUNPHARMA.NS', 'TITAN.NS', 'WIPRO.NS', 'ULTRACEMCO.NS',
-    'NTPC.NS', 'POWERGRID.NS', 'NESTLEIND.NS', 'TECHM.NS', 'BAJAJFINSV.NS',
-    'ONGC.NS', 'TATAMOTORS.NS', 'JSWSTEEL.NS', 'COALINDIA.NS', 'HDFCLIFE.NS',
-    'GRASIM.NS', 'ADANIENT.NS', 'ADANIPORTS.NS', 'CIPLA.NS', 'DIVISLAB.NS',
-    'BAJAJ-AUTO.NS', 'DRREDDY.NS', 'BPCL.NS', 'EICHERMOT.NS', 'SHREECEM.NS',
-    'SBILIFE.NS', 'IOC.NS', 'HEROMOTOCO.NS', 'BRITANNIA.NS', 'INDUSINDBK.NS',
-    'TATACONSUM.NS', 'PIDILITIND.NS', 'HINDALCO.NS', 'GAIL.NS', 'DABUR.NS',
-    'ICICIPRULI.NS', 'HAVELLS.NS', 'AMBUJACEM.NS', 'VEDL.NS', 'UPL.NS',
-    'DLF.NS', 'SIEMENS.NS', 'SRF.NS', 'M&M.NS', 'SBICARD.NS',
-    'BERGEPAINT.NS', 'BIOCON.NS', 'LUPIN.NS', 'AUROPHARMA.NS', 'TATAPOWER.NS',
-    'MUTHOOTFIN.NS', 'BOSCHLTD.NS', 'COLPAL.NS', 'INDIGO.NS', 'MARICO.NS',
-    'ICICIGI.NS', 'GODREJCP.NS', 'PEL.NS', 'TORNTPHARM.NS', 'HINDPETRO.NS',
-    'BANKBARODA.NS', 'IDFCFIRSTB.NS', 'PNB.NS', 'CANBK.NS', 'UNIONBANK.NS',
-    'RECLTD.NS', 'PFC.NS', 'NHPC.NS', 'NMDC.NS', 'SJVN.NS',
-    'IRCTC.NS', 'ABB.NS', 'ADANIGREEN.NS', 'ADANITRANS.NS', 'ZOMATO.NS',
-    'PAYTM.NS', 'POLYCAB.NS', 'LTTS.NS', 'LTI.NS', 'MINDTREE.NS',
-    'MPHASIS.NS', 'COFORGE.NS', 'TATAELXSI.NS', 'NAVINFLUOR.NS', 'ALKEM.NS'
-]
 
 # Multiselect
 selected_stocks = st.multiselect("Select Stocks to Scan", nifty_100, default=nifty_100[:5])
@@ -45,8 +23,8 @@ def screen_stocks(stock_list, sma_period, volume_lookback):
     results = []
 
     for symbol in stock_list:
-        try:   #+ ".NS"
-            df = yf.download(symbol , period="6mo", interval="1d")
+        try:
+            df = yf.download(symbol + ".NS", period="6mo", interval="1d")
             df.dropna(inplace=True)
 
             # Calculate SMA manually
@@ -55,19 +33,29 @@ def screen_stocks(stock_list, sma_period, volume_lookback):
             # Calculate volume average manually
             df['volume_avg'] = df['Volume'].rolling(window=volume_lookback).mean()
 
-            df = df.dropna()  # Ensure no NaN values in comparison rows
+            df = df.dropna()
 
             latest = df.iloc[-1]
             prev = df.iloc[-2]
 
             if float(latest['Close']) > float(latest['sma']) and float(prev['Close']) < float(prev['sma']):
                 if float(latest['Volume']) > float(latest['volume_avg']):
+                    entry_price = round(float(latest['Close']), 2)
+                    stop_loss = round(float(prev['Low']), 2)
+                    risk = entry_price - stop_loss
+                    target1 = round(entry_price + 1.5 * risk, 2)
+                    target2 = round(entry_price + 2.5 * risk, 2)
+
                     results.append({
                         'Symbol': symbol,
-                        'Close': round(float(latest['Close']), 2),
+                        'Close': entry_price,
                         f'SMA{sma_period}': round(float(latest['sma']), 2),
                         'Volume': int(latest['Volume']),
-                        f'VolumeAvg{volume_lookback}': int(latest['volume_avg'])
+                        f'VolumeAvg{volume_lookback}': int(latest['volume_avg']),
+                        'Entry': entry_price,
+                        'Stop Loss': stop_loss,
+                        'Target 1': target1,
+                        'Target 2': target2
                     })
         except Exception as e:
             st.warning(f"Error loading {symbol}: {e}")

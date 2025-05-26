@@ -1,7 +1,6 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import ta
 
 # Title
 st.title("📈 Swing Trade Stock Screener (NIFTY 100)")
@@ -20,7 +19,6 @@ nifty_100 = [
 selected_stocks = st.multiselect("Select Stocks to Scan", nifty_100, default=nifty_100[:5])
 
 @st.cache_data
-
 def screen_stocks(stock_list, sma_period, volume_lookback):
     results = []
 
@@ -29,8 +27,11 @@ def screen_stocks(stock_list, sma_period, volume_lookback):
             df = yf.download(symbol + ".NS", period="6mo", interval="1d")
             df.dropna(inplace=True)
 
-            df['sma'] = ta.trend.sma_indicator(close=df['Close'], window=sma_period).fillna(0)
-            df['volume_avg'] = df['Volume'].rolling(volume_lookback).mean().fillna(0)
+            # Calculate SMA manually
+            df['sma'] = df['Close'].rolling(window=sma_period).mean().fillna(0)
+
+            # Calculate volume average manually
+            df['volume_avg'] = df['Volume'].rolling(window=volume_lookback).mean().fillna(0)
 
             latest = df.iloc[-1]
             prev = df.iloc[-2]

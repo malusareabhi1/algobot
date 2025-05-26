@@ -28,20 +28,22 @@ def screen_stocks(stock_list, sma_period, volume_lookback):
             df.dropna(inplace=True)
 
             # Calculate SMA manually
-            df['sma'] = df['Close'].rolling(window=sma_period).mean().fillna(0)
+            df['sma'] = df['Close'].rolling(window=sma_period).mean()
 
             # Calculate volume average manually
-            df['volume_avg'] = df['Volume'].rolling(window=volume_lookback).mean().fillna(0)
+            df['volume_avg'] = df['Volume'].rolling(window=volume_lookback).mean()
+
+            df = df.dropna()  # Ensure no NaN values in comparison rows
 
             latest = df.iloc[-1]
             prev = df.iloc[-2]
 
-            if latest['Close'] > latest['sma'] and prev['Close'] < prev['sma']:
-                if latest['Volume'] > latest['volume_avg']:
+            if float(latest['Close']) > float(latest['sma']) and float(prev['Close']) < float(prev['sma']):
+                if float(latest['Volume']) > float(latest['volume_avg']):
                     results.append({
                         'Symbol': symbol,
-                        'Close': round(latest['Close'], 2),
-                        f'SMA{sma_period}': round(latest['sma'], 2),
+                        'Close': round(float(latest['Close']), 2),
+                        f'SMA{sma_period}': round(float(latest['sma']), 2),
                         'Volume': int(latest['Volume']),
                         f'VolumeAvg{volume_lookback}': int(latest['volume_avg'])
                     })

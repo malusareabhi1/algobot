@@ -29,8 +29,8 @@ def screen_stocks(stock_list, sma_period, volume_lookback):
             df = yf.download(symbol + ".NS", period="6mo", interval="1d")
             df.dropna(inplace=True)
 
-            df['sma'] = ta.trend.sma_indicator(df['Close'], window=sma_period)
-            df['volume_avg'] = df['Volume'].rolling(volume_lookback).mean()
+            df['sma'] = ta.trend.sma_indicator(close=df['Close'], window=sma_period).fillna(0)
+            df['volume_avg'] = df['Volume'].rolling(volume_lookback).mean().fillna(0)
 
             latest = df.iloc[-1]
             prev = df.iloc[-2]

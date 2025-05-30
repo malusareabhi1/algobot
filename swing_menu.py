@@ -12,6 +12,7 @@ def sma_crossover(df):
     df['SMA50'] = df['Close'].rolling(50).mean()
     df['SMA200'] = df['Close'].rolling(200).mean()
     df['Signal'] = np.where(df['SMA50'] > df['SMA200'], 1, 0)
+    df['Signal'] = df['Signal'].ffill().fillna(0)
     return df
 
 def ema_crossover(df):

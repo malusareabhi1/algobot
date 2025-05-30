@@ -24,11 +24,20 @@ def ema_crossover(df):
     return df
 
 def rsi_strategy(df):
-    close_series = df['Close']  # This is 1D
+    # Ensure 'Close' is a 1D Series
+    close_series = df['Close']
+
+    # Compute RSI using 1D series
     rsi = RSIIndicator(close=close_series, window=14).rsi()
     df['RSI'] = rsi
-    df['Signal'] = np.where(df['RSI'] < 30, 1, np.where(df['RSI'] > 70, 0, np.nan))
+
+    # Generate buy/sell signals
+    df['Signal'] = np.where(df['RSI'] < 30, 1,
+                    np.where(df['RSI'] > 70, 0, np.nan))
+
+    # Fill missing signals forward, then default to no position
     df['Signal'] = df['Signal'].ffill().fillna(0)
+
     return df
 
 def macd_strategy(df):

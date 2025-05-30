@@ -81,8 +81,10 @@ def atr_trend_follow(df):
 # ========== BACKTESTING FUNCTION ==========
 
 def backtest(df):
-    df['Position'] = df['Signal'].shift(1)
-    df['Return'] = df['Close'].pct_change()
+    if 'Signal' not in df.columns:
+        raise ValueError("No Signal column found.")
+    df['Position'] = df['Signal'].shift(1).fillna(0)
+    df['Return'] = df['Close'].pct_change().fillna(0)
     df['Strategy'] = df['Position'] * df['Return']
     df['Cumulative'] = (1 + df['Strategy']).cumprod()
     return df

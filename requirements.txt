@@ -23,3 +23,4 @@ nsetools
 mysql-connector-python
 psycopg2-binary
 SQLAlchemy
+numpy==1.26.4

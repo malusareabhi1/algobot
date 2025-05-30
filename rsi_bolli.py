@@ -3,7 +3,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-import ta
+import pandas_ta as ta  # <-- Use pandas_ta instead of ta
 
 st.title("RSI + Bollinger Bands Swing Trading Dashboard")
 
@@ -25,12 +25,12 @@ if data.empty:
     st.error("No data found for this symbol and date range.")
     st.stop()
 
-# Indicator Calculation
-data['RSI'] = ta.momentum.RSIIndicator(data['Close'], window=rsi_period).rsi()
-bb = ta.volatility.BollingerBands(data['Close'], window=bb_period, window_dev=bb_std)
-data['BB_upper'] = bb.bollinger_hband()
-data['BB_lower'] = bb.bollinger_lband()
-data['BB_mid'] = bb.bollinger_mavg()
+# Indicator Calculation using pandas_ta
+data['RSI'] = ta.rsi(data['Close'], length=rsi_period)
+bb = ta.bbands(data['Close'], length=bb_period, std=bb_std)
+data['BB_upper'] = bb['BBU_{}_{}'.format(bb_period, bb_std)]
+data['BB_lower'] = bb['BBL_{}_{}'.format(bb_period, bb_std)]
+data['BB_mid'] = bb['BBM_{}_{}'.format(bb_period, bb_std)]
 
 # Signal Generation
 data['Signal'] = 0
@@ -90,7 +90,6 @@ if not trade_log.empty:
 # P&L Curve
 data['Position'] = 0
 if not trade_log.empty:
-    # Set position based on trade log
     for idx, trade in trade_log.iterrows():
         if trade['Type'] == 'Buy':
             data.loc[data.index >= trade['Date'], 'Position'] = 1

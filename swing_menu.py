@@ -24,7 +24,9 @@ def ema_crossover(df):
     return df
 
 def rsi_strategy(df):
-    df['RSI'] = RSIIndicator(close=df['Close'], window=14).rsi()
+    close_series = df['Close']  # This is 1D
+    rsi = RSIIndicator(close=close_series, window=14).rsi()
+    df['RSI'] = rsi
     df['Signal'] = np.where(df['RSI'] < 30, 1, np.where(df['RSI'] > 70, 0, np.nan))
     df['Signal'] = df['Signal'].ffill().fillna(0)
     return df

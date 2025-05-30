@@ -12,8 +12,9 @@ def sma_crossover(df):
     df['SMA50'] = df['Close'].rolling(50).mean()
     df['SMA200'] = df['Close'].rolling(200).mean()
     df['Signal'] = np.where(df['SMA50'] > df['SMA200'], 1, 0)
-    df['Signal'] = df['Signal'].ffill().fillna(0)
+    df['Signal'] = df['Signal'].fillna(0)  # Ensures no NaNs
     return df
+
 
 def ema_crossover(df):
     df['EMA20'] = df['Close'].ewm(span=20).mean()

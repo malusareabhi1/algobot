@@ -123,10 +123,15 @@ if st.button("Run Backtests"):
                 strat_df = backtest(strat_df)
                 final_return = strat_df['Cumulative'].iloc[-1] if 'Cumulative' in strat_df else 1
                 results[name] = final_return
-                st.line_chart(strat_df[['Cumulative']].dropna(), height=200, use_container_width=True)
+                if 'Cumulative' in strat_df.columns:
+                    st.subheader(f"📉 {name}")
+                    st.line_chart(strat_df['Cumulative'].dropna(), height=200, use_container_width=True)
+                else:
+                    st.warning(f"{name} did not return cumulative results.")
             except Exception as e:
                 results[name] = np.nan
                 st.error(f"{name} failed: {e}")
+
 
         result_df = pd.DataFrame.from_dict(results, orient='index', columns=['Cumulative Return'])
         result_df = result_df.sort_values(by='Cumulative Return', ascending=False)

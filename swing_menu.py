@@ -5,6 +5,7 @@ import numpy as np
 import plotly.graph_objects as go
 from ta import trend, momentum, volatility
 from datetime import date, timedelta
+from ta.momentum import RSIIndicator
 
 # ========== STRATEGY DEFINITIONS ==========
 
@@ -23,9 +24,9 @@ def ema_crossover(df):
     return df
 
 def rsi_strategy(df):
-    df['RSI'] = momentum.RSIIndicator(df['Close'], window=14).rsi()
+    df['RSI'] = RSIIndicator(close=df['Close'], window=14).rsi()
     df['Signal'] = np.where(df['RSI'] < 30, 1, np.where(df['RSI'] > 70, 0, np.nan))
-    df['Signal'] = df['Signal'].ffill()
+    df['Signal'] = df['Signal'].ffill().fillna(0)
     return df
 
 def macd_strategy(df):

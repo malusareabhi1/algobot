@@ -206,10 +206,20 @@ if selected == "Dashboard":
         st.warning("Please login to Kite Connect first.")
 
 elif selected == "NIFTY PCR":
+
+    # -------------------------------
+    index_map = {
+        "NIFTY 50": "^NSEI",
+        "BANKNIFTY": "^NSEBANK",
+        "SENSEX": "^BSESN"
+    }
+    selected_index = st.selectbox("Select Index", options=list(index_map.keys()), index=0)
+    ticker = index_map[selected_index]
+
     
 
         # Fetch last 30 trading days of NIFTY data
-    nifty = yf.download("^NSEI", period="1mo", interval="1d")
+    nifty = yf.download(ticker, period="1mo", interval="1d")
     nifty = nifty[["Close"]].dropna().reset_index()
     nifty.rename(columns={"Date": "date", "Close": "nifty_close"}, inplace=True)
     

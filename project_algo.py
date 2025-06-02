@@ -244,44 +244,44 @@ elif selected == "NIFTY PCR":
         st.dataframe(nifty)
 
      st.markdown("""
-    ## 📘 What is NIFTY PCR (Put-Call Ratio)?
-    
-    The **Put-Call Ratio (PCR)** is a popular sentiment indicator used in options trading. It helps understand the **overall mood of the market**, especially for indexes like **NIFTY**.
-    
-    ---
-    
-    ### 🔢 How is PCR Calculated?
-    
-    **PCR = Total Open Interest of Puts / Total Open Interest of Calls**
-    
-    - **Open Interest (OI):** Total number of outstanding contracts that are not settled.
-    - A PCR > 1 means more PUTs are open → bearish sentiment
-    - A PCR < 1 means more CALLs are open → bullish sentiment
-    
-    ---
-    
-    ### 📊 How to Interpret NIFTY PCR?
-    
-    | PCR Value | Market Sentiment | Interpretation                        |
-    |-----------|------------------|----------------------------------------|
-    | > 1.2     | Bearish          | Traders are hedging or expecting fall |
-    | ~1.0      | Neutral          | Balanced OI, indecision               |
-    | < 0.8     | Bullish          | More call writing, bullish bets       |
-    
-    ---
-    
-    ### 🧠 Why is PCR Important?
-    
-    - Helps identify **market sentiment**
-    - Aids in **contrarian strategies** — e.g., extremely high PCR could indicate oversold conditions
-    - Useful for **NIFTY and BANKNIFTY option traders**
-    
-    ---
-    
-    ### 📌 Notes:
-    - PCR should not be used alone — combine with technical/fundamental indicators
-    - Look at **historical PCR trends** along with current data for better decisions
-    """)
+        ## 📘 What is NIFTY PCR (Put-Call Ratio)?
+        
+        The **Put-Call Ratio (PCR)** is a popular sentiment indicator used in options trading. It helps understand the **overall mood of the market**, especially for indexes like **NIFTY**.
+        
+        ---
+        
+        ### 🔢 How is PCR Calculated?
+        
+        **PCR = Total Open Interest of Puts / Total Open Interest of Calls**
+        
+        - **Open Interest (OI):** Total number of outstanding contracts that are not settled.
+        - A PCR > 1 means more PUTs are open → bearish sentiment
+        - A PCR < 1 means more CALLs are open → bullish sentiment
+        
+        ---
+        
+        ### 📊 How to Interpret NIFTY PCR?
+        
+        | PCR Value | Market Sentiment | Interpretation                        |
+        |-----------|------------------|----------------------------------------|
+        | > 1.2     | Bearish          | Traders are hedging or expecting fall |
+        | ~1.0      | Neutral          | Balanced OI, indecision               |
+        | < 0.8     | Bullish          | More call writing, bullish bets       |
+        
+        ---
+        
+        ### 🧠 Why is PCR Important?
+        
+        - Helps identify **market sentiment**
+        - Aids in **contrarian strategies** — e.g., extremely high PCR could indicate oversold conditions
+        - Useful for **NIFTY and BANKNIFTY option traders**
+        
+        ---
+        
+        ### 📌 Notes:
+        - PCR should not be used alone — combine with technical/fundamental indicators
+        - Look at **historical PCR trends** along with current data for better decisions
+        """)
 
 
 

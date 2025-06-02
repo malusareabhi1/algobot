@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import streamlit as st
 
 def fetch_nse_option_chain(symbol="NIFTY"):
     url = f"https://www.nseindia.com/api/option-chain-indices?symbol={symbol}"
@@ -36,8 +37,12 @@ if __name__ == "__main__":
         pe_oi, ce_oi, pcr = calculate_pcr(option_chain_data)
 
         print(f"Symbol: {symbol}")
+        st.write(f"Symbol: {symbol}")
         print(f"Total PUT OI: {pe_oi}")
+        st.write(f"Total PUT OI: {pe_oi}")
         print(f"Total CALL OI: {ce_oi}")
+        st.write(f"Total CALL OI: {ce_oi}")
         print(f"Put-Call Ratio (PCR): {pcr}")
+        st.write(f"Put-Call Ratio (PCR): {pcr}")
     except Exception as e:
         print(f"Error: {e}")

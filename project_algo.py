@@ -243,7 +243,7 @@ elif selected == "NIFTY PCR":
     with st.expander("📋 View Data Table"):
         st.dataframe(nifty)
 
-     st.markdown("""
+    st.markdown("""
         ## 📘 What is NIFTY PCR (Put-Call Ratio)?
         
         The **Put-Call Ratio (PCR)** is a popular sentiment indicator used in options trading. It helps understand the **overall mood of the market**, especially for indexes like **NIFTY**.

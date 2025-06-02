@@ -32,11 +32,11 @@ with st.sidebar:
     menu_title="ALGO BOT  ",
     options=[
         "Dashboard", "Get Stock Data", "Doctor Strategy","Doctor1.0 Strategy","Doctor2.0 Strategy","Doctor3.0 Strategy", "Swing Trade Strategy", "Swing SMA44 Strategy","New Nifty Strategy",
-        "Intraday Stock Finder","ORB Strategy","ORB Screener", "Trade Log", "Account Info", "Candle Chart", "Strategy Detail","Strategy2.0 Detail", "Project Detail", "KITE API", "API","Alpha Vantage API","Live Algo Trading","Paper Trade","Volatility Scanner","TradingView","Telegram Demo"
+        "Intraday Stock Finder","ORB Strategy","ORB Screener", "Trade Log", "Account Info", "Candle Chart", "Strategy Detail","Strategy2.0 Detail", "Project Detail", "KITE API", "API","Alpha Vantage API","Live Algo Trading","Paper Trade","Volatility Scanner","TradingView","Telegram Demo","NIFTY PCR"
     ],
     icons=[
         "bar-chart", "search", "cpu", "cpu","cpu", "cpu","cpu","cpu","cpu", "arrow-repeat",
-        "search", "clipboard-data", "wallet2", "graph-up", "info-circle", "search","file-earmark","file-earmark", "code-slash", "code-slash", "code-slash","journal-text","search", "bar-chart", "bar-chart","file-earmark"
+        "search", "clipboard-data", "wallet2", "graph-up", "info-circle", "search","file-earmark","file-earmark", "code-slash", "code-slash", "code-slash","journal-text","search", "bar-chart", "bar-chart","file-earmark", "bar-chart"
     ],
     menu_icon="cast",
     default_index=0,
@@ -203,7 +203,12 @@ if selected == "Dashboard":
 
     else:
         st.warning("Please login to Kite Connect first.")
-        
+
+elif selected == "NIFTY PCR":
+    
+    
+
+    
 
 elif selected == "Telegram Demo":
     # --- Streamlit App ---

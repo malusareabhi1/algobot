@@ -1691,6 +1691,52 @@ elif selected == "ORB Strategy":
         # Display candlestick chart
         st.plotly_chart(plot_candles_with_sma(df), use_container_width=True)
         st.divider()
+        import streamlit as st
+
+        markdown_content = """
+        # Opening Range Breakout (ORB)
+        
+        ## What is Opening Range Breakout?
+        
+        Opening Range Breakout (ORB) is a popular trading strategy used mainly in intraday trading. It focuses on the price movement during the initial minutes after the market opens to identify potential breakout opportunities.
+        
+        ## How Does ORB Work?
+        
+        - **Opening Range**: The price range formed in the first few minutes after market open (e.g., first 5, 15, or 30 minutes).
+        - **Breakout**: When the price moves above the high or below the low of the opening range, it signals a potential breakout.
+        - **Trade Setup**:
+          - Buy when price breaks above the opening range high.
+          - Sell (or short) when price breaks below the opening range low.
+        - **Stop Loss**: Usually placed just inside the opening range (below the breakout low for long trades, above the breakout high for short trades).
+        - **Profit Target**: Can be based on a fixed multiple of risk, previous support/resistance, or trailing stop.
+        
+        ## Why Use ORB?
+        
+        - Captures early market momentum.
+        - Simple and effective for intraday trading.
+        - Helps traders identify clear entry and exit points.
+        
+        ## Example
+        
+        If the stock price from 9:15 AM to 9:30 AM ranges between 100 and 102:
+        
+        - A breakout above 102 could trigger a long buy.
+        - A breakout below 100 could trigger a short sell.
+        
+        ## Considerations
+        
+        - Timeframe for the opening range varies by trader preference.
+        - False breakouts can occur, so volume and other confirmations are recommended.
+        - Risk management is crucial to avoid losses.
+        
+        ---
+        
+        **Summary:**  
+        ORB is a strategy that uses the initial price range after market open as a reference to trade breakouts with defined entry, stop loss, and profit targets.
+        """
+        
+        st.markdown(markdown_content)
+
     
         
     

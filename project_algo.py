@@ -486,7 +486,7 @@ elif selected == "Telegram Demo":
         except Exception as e:
             return f"Error fetching data: {e}"
 
-    from telegram import Bot
+   # from telegram import Bot
 
     def send_to_telegram(message, bot_token, channel_id):
         bot = Bot(token=bot_token)

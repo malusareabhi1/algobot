@@ -10,7 +10,8 @@ st.title("📈 Intraday Volume Breakout Strategy (NIFTY 200)")
 
 # --- SIDEBAR ---
 st.sidebar.header("Strategy Settings")
-nifty200_tickers = pd.read_csv("https://archives.nseindia.com/content/indices/ind_nifty200list.csv")
+#nifty200_tickers = pd.read_csv("https://archives.nseindia.com/content/indices/ind_nifty200list.csv")
+nifty200_tickers = pd.read_csv("ind_nifty200list.csv")
 selected_stocks = st.sidebar.multiselect("Select Stocks", options=nifty200_tickers['Symbol'], default=nifty200_tickers['Symbol'][:5])
 from_time = st.sidebar.time_input("From Time", value=datetime.time(9, 30))
 to_time = st.sidebar.time_input("To Time", value=datetime.time(15, 15))

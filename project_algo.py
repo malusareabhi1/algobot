@@ -461,7 +461,7 @@ elif selected == "Telegram Demo":
     #st.dataframe(df_display.style.apply(row_color, axis=1))
     # Display styled dataframe in Streamlit with colored text
     st.dataframe(df_display.style.apply(text_color, axis=1))
-    
+    send_telegram_message(message)
     # Refresh every 5 minutes
     st_autorefresh(interval=5 * 60 * 1000, key="datarefresh")
     import yfinance as yf
@@ -476,7 +476,7 @@ elif selected == "Telegram Demo":
     🔹 MIDCAP 50: {midcap}
     """
     
-    send_telegram_message(message)
+    #send_telegram_message(message)
     def get_index_data(ticker_symbol, name):
         ticker = yf.Ticker(ticker_symbol)
         data = ticker.history(period="2d", interval="1d")
@@ -530,7 +530,7 @@ elif selected == "Telegram Demo":
 
     
     # Send update to Telegram
-    send_telegram_message(message)
+    
     # Display in Streamlit
     #st.table(market_data)
     

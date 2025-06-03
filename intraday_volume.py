@@ -54,7 +54,12 @@ stocks_with_signals = []
 for stock in selected_stocks:
     try:
         df = fetch_data(stock)
-        df = df.between_time(str(from_time), str(to_time))
+        df = df.copy()
+        df.index = pd.to_datetime(df.index)  # ensure datetime index
+        df = df[(df.index.time >= from_time) & (df.index.time <= to_time)]
+        if df.empty:
+            st.warning(f"No data available for {stock} in the selected time window.")
+            continue
         df = apply_strategy(df, volume_multiplier)
         signals = df[df['Signal'] == 'BUY']
         if not signals.empty:

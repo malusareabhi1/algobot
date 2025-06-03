@@ -25,3 +25,4 @@ psycopg2-binary
 SQLAlchemy
 floor
 telegram 
+python-telegram-bot==13.15

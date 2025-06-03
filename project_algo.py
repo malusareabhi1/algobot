@@ -477,6 +477,39 @@ elif selected == "Telegram Demo":
     """
     
     send_telegram_message(message)
+    def get_index_data(ticker_symbol, name):
+        ticker = yf.Ticker(ticker_symbol)
+        data = ticker.history(period="2d", interval="1d")
+        if len(data) < 2:
+            return f"{name}: Data not available"
+    
+        latest = data.iloc[-1]
+        prev = data.iloc[-2]
+    
+        current = latest["Close"]
+        change = current - prev["Close"]
+        pct_change = (change / prev["Close"]) * 100
+        volume = int(latest["Volume"])
+    
+        return f"{name}: ₹{current:,.2f} ({change:+.2f}, {pct_change:+.2f}%), Vol: {volume}"
+
+    # --- Indices to Monitor ---
+    index_list = [
+        ("^NSEI", "NIFTY 50"),
+        ("^NSEBANK", "BANK NIFTY"),
+        ("^CNXIT", "NIFTY IT"),
+        ("^NSEMDCP50", "MIDCAP 50"),
+    ]
+    
+    # --- Prepare message ---
+    message = "*📊 NIFTY Index Snapshot*\n\n"
+    for symbol, name in index_list:
+        line = get_index_data(symbol, name)
+        message += line + "\n"
+    
+    # --- Send to Telegram ---
+    #send_to_telegram(message, BOT_TOKEN, CHAT_ID)
+    send_telegram_message(message)
 
    # from telegram import Bot
 

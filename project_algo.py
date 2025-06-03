@@ -464,6 +464,45 @@ elif selected == "Telegram Demo":
     
     # Refresh every 5 minutes
     st_autorefresh(interval=5 * 60 * 1000, key="datarefresh")
+    def get_nifty_indices():
+        url = "https://www.nseindia.com/api/allIndices"
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
+        try:
+            response = requests.get(url, headers=headers)
+            data = response.json()['data']
+    
+            summary = "📊 *Nifty Index Status* 🇮🇳\n\n"
+            for item in data:
+                name = item['indexName']
+                last = item['last']
+                chng = item['change']
+                pchg = item['pChange']
+                emoji = "🔼" if chng > 0 else "🔽"
+                summary += f"*{name}*: {last:.2f} {emoji} ({chng:.2f}, {pchg:.2f}%)\n"
+            
+            return summary
+        except Exception as e:
+            return f"Error fetching data: {e}"
+
+    from telegram import Bot
+
+    def send_to_telegram(message, bot_token, channel_id):
+        bot = Bot(token=bot_token)
+        bot.send_message(chat_id=channel_id, text=message, parse_mode='Markdown')
+
+    #BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN_demo")
+    #CHAT_ID = os.getenv("TELEGRAM_CHAT_ID_demo")
+
+    message = get_nifty_indices()
+    send_to_telegram(message, BOT_TOKEN, CHAT_ID)
+
+    
+
+
+
+    
     # Send update to Telegram
     send_telegram_message(message)
     # Display in Streamlit

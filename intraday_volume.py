@@ -35,14 +35,19 @@ def apply_strategy(df, volume_multiplier):
     df['VWAP'] = (df['Volume'] * (df['High'] + df['Low'] + df['Close']) / 3).cumsum() / df['Volume'].cumsum()
     df['VolumeAvg'] = df['Volume'].rolling(window=10).mean()
 
+    # Drop rows with any NaN values before applying logic
+    df.dropna(subset=['Close', 'EMA20', 'VWAP', 'VolumeAvg', 'High'], inplace=True)
+
     conditions = (
         (df['Close'] > df['EMA20']) &
         (df['Close'] > df['VWAP']) &
         (df['Volume'] > volume_multiplier * df['VolumeAvg']) &
         (df['Close'] > df['High'].shift(1))
     )
+
     df['Signal'] = np.where(conditions, 'BUY', '')
     return df
+
 
 # --- MAIN LOOP ---
 stocks_with_signals = []

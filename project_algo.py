@@ -488,16 +488,17 @@ elif selected == "Telegram Demo":
 
    # from telegram import Bot
 
-    def send_to_telegram(message, bot_token, channel_id):
-        bot = Bot(token=bot_token)
-        bot.send_message(chat_id=channel_id, text=message, parse_mode='Markdown')
+    #def send_to_telegram(message, bot_token, channel_id):
+        #bot = Bot(token=bot_token)
+        #bot.send_message(chat_id=channel_id, text=message, parse_mode='Markdown')
+    #send_to_telegram(message, BOT_TOKEN, CHAT_ID)
 
     #BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN_demo")
     #CHAT_ID = os.getenv("TELEGRAM_CHAT_ID_demo")
 
     message = get_nifty_indices()
-    send_to_telegram(message, BOT_TOKEN, CHAT_ID)
-
+    #send_to_telegram(message, BOT_TOKEN, CHAT_ID)
+    send_telegram_message(message)
     
 
 

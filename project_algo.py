@@ -3511,10 +3511,10 @@ elif selected == "PaperTrade":
         st.plotly_chart(fig, use_container_width=True)
 
 elif selected == "Live Algo Trading":
-    st.title("🤖 Live Algo Trading (Paper/Real Mode)")
+    st.title("🤖 Live Algo Trading")
     from dotenv import load_dotenv
     #_____________________________________________________________________________________________________________________________
-    st.title("📊 Live NIFTY 5‑Minute Candle")
+    st.write("📊 Live NIFTY 5‑Minute Candle")
 
     # Trend Calculation
     def get_trend(df):

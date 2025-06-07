@@ -29,7 +29,16 @@ pause_button = st.sidebar.button("⏸ Pause")
 # Load CSV
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
-    df['DateTime'] = pd.to_datetime(df['DateTime'])
+
+    # Attempt to auto-detect datetime column
+    possible_dt_cols = ['DateTime', 'datetime', 'date', 'timestamp']
+    for col in possible_dt_cols:
+        if col in df.columns:
+            df['DateTime'] = pd.to_datetime(df[col])
+            break
+    else:
+        st.error("❌ Could not find a datetime column. Please include 'DateTime' or similar column.")
+
     st.session_state.df = df
 
 # Start or Pause
@@ -88,7 +97,7 @@ if st.session_state.df is not None:
             chart_area.plotly_chart(fig, use_container_width=True)
 
             st.session_state.index += 1
-            time.sleep(2)
+            time.sleep(0.1)  # Faster runtime (previously 2 seconds)
 
     # Run live simulation in thread
     if st.session_state.running:

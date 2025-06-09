@@ -29,10 +29,17 @@ def compute_indicators(df):
     df['MA20'] = df['Close'].rolling(window=20).mean()
     df['MA50'] = df['Close'].rolling(window=50).mean()
 
+    # Ensure std_dev is a Series (not a DataFrame)
     std_dev = df['Close'].rolling(window=20).std()
-    df['UpperBB'] = df['MA20'] + (2 * std_dev)
-    df['LowerBB'] = df['MA20'] - (2 * std_dev)
 
+    # Confirm shapes before assignment
+    if std_dev.ndim == 1 and df['MA20'].ndim == 1:
+        df['UpperBB'] = df['MA20'] + (2 * std_dev)
+        df['LowerBB'] = df['MA20'] - (2 * std_dev)
+    else:
+        st.error("Rolling STD or MA20 has unexpected shape.")
+
+    # RSI calculation
     delta = df['Close'].diff()
     gain = np.where(delta > 0, delta, 0)
     loss = np.where(delta < 0, -delta, 0)
@@ -44,7 +51,9 @@ def compute_indicators(df):
     df['RSI'] = 100 - (100 / (1 + rs))
 
     df['Volatility'] = df['Close'].rolling(window=10).std()
+
     return df
+
 
 
 df = compute_indicators(df)

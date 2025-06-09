@@ -28,14 +28,19 @@ df = get_data(symbol, interval, period)
 def compute_indicators(df):
     df['MA20'] = df['Close'].rolling(window=20).mean()
     df['MA50'] = df['Close'].rolling(window=50).mean()
+
     delta = df['Close'].diff()
     gain = np.where(delta > 0, delta, 0)
     loss = np.where(delta < 0, -delta, 0)
-    avg_gain = pd.Series(gain).rolling(window=14).mean()
-    avg_loss = pd.Series(loss).rolling(window=14).mean()
+
+    # ✅ FIX: Specify the index to match df
+    avg_gain = pd.Series(gain, index=df.index).rolling(window=14).mean()
+    avg_loss = pd.Series(loss, index=df.index).rolling(window=14).mean()
+
     rs = avg_gain / avg_loss
     df['RSI'] = 100 - (100 / (1 + rs))
     return df
+
 
 df = compute_indicators(df)
 

@@ -29,21 +29,16 @@ def compute_indicators(df):
     df['MA20'] = df['Close'].rolling(window=20).mean()
     df['MA50'] = df['Close'].rolling(window=50).mean()
 
-    # Ensure std_dev is a Series (not a DataFrame)
     std_dev = df['Close'].rolling(window=20).std()
+    df['UpperBB'] = df['MA20'] + (2 * std_dev)
+    df['LowerBB'] = df['MA20'] - (2 * std_dev)
 
-    # Confirm shapes before assignment
-    if std_dev.ndim == 1 and df['MA20'].ndim == 1:
-        df['UpperBB'] = df['MA20'] + (2 * std_dev)
-        df['LowerBB'] = df['MA20'] - (2 * std_dev)
-    else:
-        st.error("Rolling STD or MA20 has unexpected shape.")
-
-    # RSI calculation
+    # RSI Calculation
     delta = df['Close'].diff()
-    gain = np.where(delta > 0, delta, 0)
-    loss = np.where(delta < 0, -delta, 0)
+    gain = np.where(delta > 0, delta, 0).flatten()
+    loss = np.where(delta < 0, -delta, 0).flatten()
 
+    # Flatten gain/loss before creating Series
     avg_gain = pd.Series(gain, index=df.index).rolling(window=14).mean()
     avg_loss = pd.Series(loss, index=df.index).rolling(window=14).mean()
 
@@ -53,6 +48,7 @@ def compute_indicators(df):
     df['Volatility'] = df['Close'].rolling(window=10).std()
 
     return df
+
 
 
 

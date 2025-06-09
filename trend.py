@@ -33,9 +33,8 @@ def compute_indicators(df):
     gain = np.where(delta > 0, delta, 0)
     loss = np.where(delta < 0, -delta, 0)
 
-    # ✅ FIX: Specify the index to match df
-    avg_gain = pd.Series(gain, index=df.index).rolling(window=14).mean()
-    avg_loss = pd.Series(loss, index=df.index).rolling(window=14).mean()
+    avg_gain = pd.Series(gain.flatten(), index=df.index).rolling(window=14).mean()
+    avg_loss = pd.Series(loss.flatten(), index=df.index).rolling(window=14).mean()
 
     rs = avg_gain / avg_loss
     df['RSI'] = 100 - (100 / (1 + rs))

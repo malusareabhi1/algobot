@@ -26,19 +26,26 @@ df = get_data(symbol, interval, period)
 
 # Indicators Calculation
 def compute_indicators(df):
-    df['MA20'] = df['Close'].rolling(20).mean()
-    df['MA50'] = df['Close'].rolling(50).mean()
-    df['UpperBB'] = df['MA20'] + 2 * df['Close'].rolling(20).std()
-    df['LowerBB'] = df['MA20'] - 2 * df['Close'].rolling(20).std()
+    df['MA20'] = df['Close'].rolling(window=20).mean()
+    df['MA50'] = df['Close'].rolling(window=50).mean()
+
+    std_dev = df['Close'].rolling(window=20).std()
+    df['UpperBB'] = df['MA20'] + (2 * std_dev)
+    df['LowerBB'] = df['MA20'] - (2 * std_dev)
+
     delta = df['Close'].diff()
     gain = np.where(delta > 0, delta, 0)
     loss = np.where(delta < 0, -delta, 0)
-    avg_gain = pd.Series(gain, index=df.index).rolling(14).mean()
-    avg_loss = pd.Series(loss, index=df.index).rolling(14).mean()
+
+    avg_gain = pd.Series(gain, index=df.index).rolling(window=14).mean()
+    avg_loss = pd.Series(loss, index=df.index).rolling(window=14).mean()
+
     rs = avg_gain / avg_loss
     df['RSI'] = 100 - (100 / (1 + rs))
-    df['Volatility'] = df['Close'].rolling(10).std()
+
+    df['Volatility'] = df['Close'].rolling(window=10).std()
     return df
+
 
 df = compute_indicators(df)
 

@@ -30,15 +30,18 @@ def compute_indicators(df):
     df['MA50'] = df['Close'].rolling(window=50).mean()
 
     std_dev = df['Close'].rolling(window=20).std()
-    df['UpperBB'] = df['MA20'] + (2 * std_dev)
-    df['LowerBB'] = df['MA20'] - (2 * std_dev)
 
-    # RSI Calculation
+    # Fill NaNs in MA20 and std_dev so addition won't fail (or skip first 19 rows)
+    ma20_filled = df['MA20'].fillna(method='bfill')
+    std_dev_filled = std_dev.fillna(method='bfill')
+
+    df['UpperBB'] = ma20_filled + (2 * std_dev_filled)
+    df['LowerBB'] = ma20_filled - (2 * std_dev_filled)
+
     delta = df['Close'].diff()
     gain = np.where(delta > 0, delta, 0).flatten()
     loss = np.where(delta < 0, -delta, 0).flatten()
 
-    # Flatten gain/loss before creating Series
     avg_gain = pd.Series(gain, index=df.index).rolling(window=14).mean()
     avg_loss = pd.Series(loss, index=df.index).rolling(window=14).mean()
 
@@ -48,6 +51,7 @@ def compute_indicators(df):
     df['Volatility'] = df['Close'].rolling(window=10).std()
 
     return df
+
 
 
 

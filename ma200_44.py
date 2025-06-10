@@ -2,6 +2,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
+import numpy as np
 
 st.set_page_config(page_title="📉 200MA + 44MA Crossover Strategy", layout="wide")
 

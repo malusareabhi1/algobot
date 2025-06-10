@@ -86,13 +86,13 @@ if not signal_df.empty:
     ))
 
 fig.update_layout(
+    template="plotly_dark",  # Better on dark Streamlit themes
     title=f"{symbol} - TRAP Strategy Candlestick Signals",
     xaxis_title='Date',
     yaxis_title='Price',
     xaxis_rangeslider_visible=False,
     height=650
 )
-
 # Show Chart
 st.plotly_chart(fig, use_container_width=True)
 

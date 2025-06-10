@@ -28,17 +28,26 @@ df['20Low'] = df['Low'].rolling(window=20).min()
 # Detect TRAPs
 signals = []
 
-for i in range(21, len(df)-1):
-    today = df.iloc[i]
-    next_day = df.iloc[i+1]
-    
-    # False Breakout Above
-    if today['High'] > df['20High'].iloc[i-1] and next_day['Close'] < today['Close']:
-        signals.append((df.index[i+1], next_day['Close'], 'SELL TRAP'))
-    
-    # False Breakdown Below
-    elif today['Low'] < df['20Low'].iloc[i-1] and next_day['Close'] > today['Close']:
-        signals.append((df.index[i+1], next_day['Close'], 'BUY TRAP'))
+for i in range(21, len(df) - 1):
+    try:
+        today_high = float(df['High'].iloc[i])
+        today_low = float(df['Low'].iloc[i])
+        today_close = float(df['Close'].iloc[i])
+        prior_20high = float(df['20High'].iloc[i - 1])
+        prior_20low = float(df['20Low'].iloc[i - 1])
+        next_close = float(df['Close'].iloc[i + 1])
+        next_date = df.index[i + 1]
+
+        # False Breakout Above (SELL TRAP)
+        if today_high > prior_20high and next_close < today_close:
+            signals.append((next_date, next_close, 'SELL TRAP'))
+
+        # False Breakdown Below (BUY TRAP)
+        elif today_low < prior_20low and next_close > today_close:
+            signals.append((next_date, next_close, 'BUY TRAP'))
+    except:
+        continue
+
 
 # Create Signal DataFrame
 signal_df = pd.DataFrame(signals, columns=['Date', 'Price', 'Signal']).set_index('Date')

@@ -59,9 +59,14 @@ fig.add_trace(go.Candlestick(
     low=df['Low'],
     close=df['Close'],
     name='Price',
-    increasing_line_color='green',
-    decreasing_line_color='red'
+    increasing_line_color='lime',
+    decreasing_line_color='red',
+    increasing_fillcolor='lime',
+    decreasing_fillcolor='red',
+    line=dict(width=2),  # Thicker candles
+    opacity=0.8
 ))
+
 
 # Signal Markers
 if not signal_df.empty:

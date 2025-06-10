@@ -66,7 +66,17 @@ fig.update_layout(title=f"{symbol} - 44MA vs 200MA", xaxis_rangeslider_visible=F
 st.plotly_chart(fig, use_container_width=True)
 
 col1, col2, col3 = st.columns(3)
-col1.metric("Last Close", f"₹{df['Close'].iloc[-1]:.2f}")
+#col1.metric("Last Close", f"₹{df['Close'].iloc[-1]:.2f}")
+try:
+    last_close = df['Close'].iloc[-1]
+    if pd.notna(last_close):
+        col1.metric("Last Close", f"₹{last_close:.2f}")
+    else:
+        col1.metric("Last Close", "N/A")
+except Exception as e:
+    col1.metric("Last Close", "Error")
+    st.error(f"Error in displaying last close: {e}")
+
 col2.metric("Trend", trend)
 col3.metric("Signal", signal_text)
 

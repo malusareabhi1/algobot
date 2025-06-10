@@ -71,3 +71,62 @@ except:
 
 col2.metric("Trend", trend_text)
 col3.metric("Signal", signal_text)
+# ------------------- BACKTEST MODULE -------------------
+st.subheader("📊 Strategy Backtest Summary")
+
+# Prepare signal dataframe
+trades = []
+position = None
+entry_price = 0
+
+for i in range(1, len(df)):
+    if df['Crossover'].iloc[i] == 2:  # BUY
+        if position is None:
+            entry_price = df['Close'].iloc[i]
+            entry_date = df.index[i]
+            position = 'LONG'
+    elif df['Crossover'].iloc[i] == -2:  # SELL
+        if position == 'LONG':
+            exit_price = df['Close'].iloc[i]
+            exit_date = df.index[i]
+            profit = (exit_price - entry_price) / entry_price * 100
+            trades.append({
+                "Entry Date": entry_date,
+                "Exit Date": exit_date,
+                "Entry Price": entry_price,
+                "Exit Price": exit_price,
+                "Profit (%)": round(profit, 2)
+            })
+            position = None
+
+# Convert to DataFrame
+bt_df = pd.DataFrame(trades)
+
+if not bt_df.empty:
+    total_trades = len(bt_df)
+    winning_trades = bt_df[bt_df['Profit (%)'] > 0]
+    win_rate = (len(winning_trades) / total_trades) * 100
+    total_profit = bt_df['Profit (%)'].sum()
+    avg_profit = bt_df['Profit (%)'].mean()
+
+    # Metrics
+    colbt1, colbt2, colbt3, colbt4 = st.columns(4)
+    colbt1.metric("Total Trades", total_trades)
+    colbt2.metric("Win Rate", f"{win_rate:.2f}%")
+    colbt3.metric("Total Return", f"{total_profit:.2f}%")
+    colbt4.metric("Avg Profit/Trade", f"{avg_profit:.2f}%")
+
+    # Equity Curve (Cumulative Return)
+    bt_df['Cumulative Return'] = bt_df['Profit (%)'].cumsum()
+    fig2 = go.Figure()
+    fig2.add_trace(go.Scatter(x=bt_df['Exit Date'], y=bt_df['Cumulative Return'],
+                              mode='lines+markers', name='Cumulative Return', line=dict(color='green')))
+    fig2.update_layout(title="📈 Cumulative Return Curve", xaxis_title="Date", yaxis_title="Cumulative Profit (%)")
+    st.plotly_chart(fig2, use_container_width=True)
+
+    with st.expander("🔍 Show Trade Log"):
+        st.dataframe(bt_df)
+
+else:
+    st.warning("⚠️ Not enough crossover signals for backtest during selected date range.")
+

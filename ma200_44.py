@@ -1,91 +1,73 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import numpy as np
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="200MA + 44MA Strategy", layout="wide")
+st.set_page_config("📈 200MA + 44MA Crossover Strategy", layout="wide")
 st.title("📈 200 MA + 44 MA Crossover Strategy Dashboard")
 
-# Sidebar input
-symbol = st.sidebar.text_input("Enter NSE Symbol (e.g. RELIANCE.NS)", "RELIANCE.NS")
+# Sidebar
+symbol = st.sidebar.text_input("Enter NSE Symbol (e.g. RELIANCE.NS)", value="RELIANCE.NS")
 start_date = st.sidebar.date_input("Start Date", pd.to_datetime("2023-01-01"))
-end_date = st.sidebar.date_input("End Date", pd.to_datetime("today"))
+end_date = st.sidebar.date_input("End Date", pd.to_datetime("2025-06-10"))
+show_signals = st.sidebar.checkbox("✅ Show Crossover Signal Dates")
 
-# Fetch data
+# Data Fetch
 @st.cache_data
-def fetch_data(symbol, start, end):
-    df = yf.download(symbol, start=start, end=end)
-    df.dropna(inplace=True)
-    return df
+def get_data(symbol, start, end):
+    data = yf.download(symbol, start=start, end=end)
+    data.dropna(inplace=True)
+    return data
 
-df = fetch_data(symbol, start_date, end_date)
+df = get_data(symbol, start_date, end_date)
 
-# Ensure sufficient data
-if len(df) < 200:
-    st.warning("Not enough data to calculate 200 MA.")
-    st.stop()
-
-# Calculate Moving Averages
+# Compute MAs
 df['MA44'] = df['Close'].rolling(window=44).mean()
 df['MA200'] = df['Close'].rolling(window=200).mean()
 
-# Generate signals
+# Generate Signal
 df['Signal'] = 0
-df['Signal'] = np.where(df['MA44'] > df['MA200'], 1, 0)
+df.loc[df['MA44'] > df['MA200'], 'Signal'] = 1
+df.loc[df['MA44'] < df['MA200'], 'Signal'] = -1
 df['Crossover'] = df['Signal'].diff()
 
-# Get latest signal
+# Determine Trend and Signal
 last_signal = df['Signal'].iloc[-1]
-signal_text = "✅ BUY" if last_signal == 1 else "🔻 SELL"
-trend = "Bullish (MA44 > MA200)" if last_signal == 1 else "Bearish (MA44 < MA200)"
+if last_signal == 1:
+    trend_text = "📈 Bullish (MA44 > MA200)"
+    signal_text = "✅ BUY"
+elif last_signal == -1:
+    trend_text = "📉 Bearish (MA44 < MA200)"
+    signal_text = "🚫 SELL"
+else:
+    trend_text = "🔁 Neutral / No Clear Trend"
+    signal_text = "⏳ WAIT"
 
-# Plot
+# Candlestick + MA Chart
 fig = go.Figure()
-fig.add_trace(go.Candlestick(
-    x=df.index,
-    open=df['Open'],
-    high=df['High'],
-    low=df['Low'],
-    close=df['Close'],
-    name="Candles"
-))
-fig.add_trace(go.Scatter(
-    x=df.index, y=df['MA44'],
-    line=dict(color='blue', width=1),
-    name="44 MA"
-))
-fig.add_trace(go.Scatter(
-    x=df.index, y=df['MA200'],
-    line=dict(color='orange', width=1),
-    name="200 MA"
-))
-fig.update_layout(title=f"{symbol} - 44MA vs 200MA", xaxis_rangeslider_visible=False, height=600)
+fig.add_trace(go.Scatter(x=df.index, y=df['MA44'], mode='lines', name='44 MA', line=dict(color='blue')))
+fig.add_trace(go.Scatter(x=df.index, y=df['MA200'], mode='lines', name='200 MA', line=dict(color='orange')))
+fig.update_layout(title=f"{symbol} - 44MA vs 200MA", xaxis_title='Date', yaxis_title='Price', height=500)
 
-# Show output
+# Optional Signal Points
+if show_signals:
+    buy_signals = df[df['Crossover'] == 2]
+    sell_signals = df[df['Crossover'] == -2]
+    fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals['Close'], mode='markers', name='BUY Signal',
+                             marker=dict(color='green', size=8, symbol='arrow-up')))
+    fig.add_trace(go.Scatter(x=sell_signals.index, y=sell_signals['Close'], mode='markers', name='SELL Signal',
+                             marker=dict(color='red', size=8, symbol='arrow-down')))
+
 st.plotly_chart(fig, use_container_width=True)
 
+# Display Metrics
 col1, col2, col3 = st.columns(3)
-#col1.metric("Last Close", f"₹{df['Close'].iloc[-1]:.2f}")
+
 try:
-    last_close = df['Close'].iloc[-1]
-    if isinstance(last_close, (float, int)) and pd.notna(last_close):
-        col1.metric("Last Close", f"₹{last_close:.2f}")
-    else:
-        col1.metric("Last Close", "N/A")
-except Exception as e:
-    col1.metric("Last Close", "Error")
-    st.error(f"Error in displaying last close: {str(e)}")
+    last_close = float(df['Close'].iloc[-1])
+    col1.metric("Last Close", f"₹{last_close:.2f}")
+except:
+    col1.metric("Last Close", "N/A")
 
-
-col2.metric("Trend", trend)
+col2.metric("Trend", trend_text)
 col3.metric("Signal", signal_text)
-
-# Show crossover signals table
-show_table = st.sidebar.checkbox("Show Crossover Signal Dates")
-
-if show_table:
-    signal_dates = df[df['Crossover'].abs() == 1][['Close', 'MA44', 'MA200']]
-    signal_dates['Action'] = np.where(df['Crossover'] == 1, 'BUY', 'SELL')
-    st.subheader("📅 Crossover Signal History")
-    st.dataframe(signal_dates.tail(10))

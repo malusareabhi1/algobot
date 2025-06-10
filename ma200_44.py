@@ -45,18 +45,41 @@ else:
 
 # Candlestick + MA Chart
 fig = go.Figure()
+
+# Add candlestick trace
+fig.add_trace(go.Candlestick(
+    x=df.index,
+    open=df['Open'],
+    high=df['High'],
+    low=df['Low'],
+    close=df['Close'],
+    name='Price'
+))
+
+# Add moving averages
 fig.add_trace(go.Scatter(x=df.index, y=df['MA44'], mode='lines', name='44 MA', line=dict(color='blue')))
 fig.add_trace(go.Scatter(x=df.index, y=df['MA200'], mode='lines', name='200 MA', line=dict(color='orange')))
-fig.update_layout(title=f"{symbol} - 44MA vs 200MA", xaxis_title='Date', yaxis_title='Price', height=500)
 
 # Optional Signal Points
 if show_signals:
     buy_signals = df[df['Crossover'] == 2]
     sell_signals = df[df['Crossover'] == -2]
-    fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals['Close'], mode='markers', name='BUY Signal',
-                             marker=dict(color='green', size=8, symbol='arrow-up')))
-    fig.add_trace(go.Scatter(x=sell_signals.index, y=sell_signals['Close'], mode='markers', name='SELL Signal',
-                             marker=dict(color='red', size=8, symbol='arrow-down')))
+    fig.add_trace(go.Scatter(
+        x=buy_signals.index, y=buy_signals['Close'], mode='markers', name='BUY Signal',
+        marker=dict(color='green', size=10, symbol='triangle-up')
+    ))
+    fig.add_trace(go.Scatter(
+        x=sell_signals.index, y=sell_signals['Close'], mode='markers', name='SELL Signal',
+        marker=dict(color='red', size=10, symbol='triangle-down')
+    ))
+
+fig.update_layout(
+    title=f"{symbol} - Price with 44MA & 200MA",
+    xaxis_title='Date',
+    yaxis_title='Price',
+    height=600,
+    xaxis_rangeslider_visible=False
+)
 
 st.plotly_chart(fig, use_container_width=True)
 
@@ -71,6 +94,7 @@ except:
 
 col2.metric("Trend", trend_text)
 col3.metric("Signal", signal_text)
+
 # ------------------- BACKTEST MODULE -------------------
 st.subheader("📊 Strategy Backtest Summary")
 
@@ -132,4 +156,3 @@ if not bt_df.empty:
 
 else:
     st.warning("⚠️ Not enough crossover signals for backtest during selected date range.")
-

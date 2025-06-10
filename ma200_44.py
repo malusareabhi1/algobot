@@ -103,6 +103,9 @@ for i in range(1, len(df)):
 bt_df = pd.DataFrame(trades)
 
 if not bt_df.empty:
+    # Ensure column is numeric
+    bt_df['Profit (%)'] = pd.to_numeric(bt_df['Profit (%)'], errors='coerce').fillna(0)
+
     total_trades = len(bt_df)
     winning_trades = bt_df[bt_df['Profit (%)'] > 0]
     win_rate = (len(winning_trades) / total_trades) * 100
@@ -116,7 +119,7 @@ if not bt_df.empty:
     colbt3.metric("Total Return", f"{total_profit:.2f}%")
     colbt4.metric("Avg Profit/Trade", f"{avg_profit:.2f}%")
 
-    # Equity Curve (Cumulative Return)
+    # Equity Curve
     bt_df['Cumulative Return'] = bt_df['Profit (%)'].cumsum()
     fig2 = go.Figure()
     fig2.add_trace(go.Scatter(x=bt_df['Exit Date'], y=bt_df['Cumulative Return'],

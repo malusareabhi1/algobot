@@ -124,6 +124,12 @@ nifty_50 = ['RELIANCE.NS', 'INFY.NS', 'TCS.NS', 'HDFCBANK.NS', 'ICICIBANK.NS', '
 
 for symbol in nifty_50:
     df = fetch_data(symbol, interval=interval)
+    
+    # Safeguard check
+    if df is None or df.empty:
+        st.warning(f"Skipping {symbol} — No valid data.")
+        continue
+
     df = apply_strategy(df)
 
     if df['buy'].iloc[-1]:

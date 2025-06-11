@@ -18,8 +18,16 @@ def send_telegram_message(msg):
 
 def fetch_data(symbol, interval='1d', period='3mo'):
     df = yf.download(symbol, interval=interval, period=period)
-    df.dropna(inplace=True)
+
+    # Check if required columns exist
+    required_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
+    if not all(col in df.columns for col in required_cols):
+        st.warning(f"{symbol} missing required columns. Skipping.")
+        return None
+
+    df.dropna(subset=required_cols, inplace=True)
     return df
+
 
 def apply_strategy(df):
     df = df.copy()

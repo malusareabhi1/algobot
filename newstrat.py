@@ -19,15 +19,14 @@ def send_telegram_message(msg):
 def fetch_data(symbol, interval='1d', period='3mo'):
     try:
         df = yf.download(symbol, interval=interval, period=period)
-        required_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
-        if df is None or df.empty or not set(required_cols).issubset(df.columns):
+        if df.empty or not all(col in df.columns for col in ['Open', 'High', 'Low', 'Close']):
+            st.warning(f"Skipping {symbol} — No valid data.")
             return None
-        df.dropna(subset=required_cols, inplace=True)
+        df.dropna(subset=['Open', 'High', 'Low', 'Close'], inplace=True)
         return df
     except Exception as e:
-        print(f"Failed to fetch {symbol}: {e}")
+        st.error(f"{symbol}: Data fetch failed — {e}")
         return None
-
 
 
 

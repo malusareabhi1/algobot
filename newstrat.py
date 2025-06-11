@@ -17,16 +17,17 @@ def send_telegram_message(msg):
     requests.post(url, data=data)
 
 def fetch_data(symbol, interval='1d', period='3mo'):
-    df = yf.download(symbol, interval=interval, period=period)
-
-    required_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
-
-    # If data is None or columns are missing, return None
-    if df is None or df.empty or not set(required_cols).issubset(df.columns):
+    try:
+        df = yf.download(symbol, interval=interval, period=period)
+        required_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
+        if df is None or df.empty or not set(required_cols).issubset(df.columns):
+            return None
+        df.dropna(subset=required_cols, inplace=True)
+        return df
+    except Exception as e:
+        print(f"Failed to fetch {symbol}: {e}")
         return None
 
-    df.dropna(subset=required_cols, inplace=True)
-    return df
 
 
 

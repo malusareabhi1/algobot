@@ -21,19 +21,42 @@ def fetch_data(symbol, interval='1d', period='3mo'):
     df.dropna(inplace=True)
     return df
 
+from ta.trend import MACD
+from ta.momentum import RSIIndicator
+
 def apply_strategy(df):
+    # Drop rows with missing values first
+    df.dropna(subset=['Open', 'High', 'Low', 'Close', 'Volume'], inplace=True)
+    
+    # Ensure 'Close' is a 1D Series and has enough data
+    if df['Close'].isnull().sum() > 0 or len(df['Close']) < 50:
+        df['buy'] = False
+        return df
+
+    # Indicators
     df['20ema'] = df['Close'].ewm(span=20).mean()
     df['50ema'] = df['Close'].ewm(span=50).mean()
-    df['200sma'] = df['Close'].rolling(200).mean()
-    df['bb_mid'] = df['Close'].rolling(20).mean()
-    df['bb_std'] = df['Close'].rolling(20).std()
+    df['200sma'] = df['Close'].rolling(window=200).mean()
+    df['bb_mid'] = df['Close'].rolling(window=20).mean()
+    df['bb_std'] = df['Close'].rolling(window=20).std()
     df['bb_upper'] = df['bb_mid'] + 2 * df['bb_std']
     df['bb_lower'] = df['bb_mid'] - 2 * df['bb_std']
-    df['rsi'] = RSIIndicator(df['Close'], 14).rsi()
-    macd = MACD(df['Close'])
-    df['macd'] = macd.macd()
-    df['signal'] = macd.macd_signal()
 
+    # Handle potential RSI crash safely
+    try:
+        rsi = RSIIndicator(close=df['Close'], window=14)
+        df['rsi'] = rsi.rsi()
+    except Exception as e:
+        df['rsi'] = pd.Series([None] * len(df))
+
+    try:
+        macd = MACD(close=df['Close'])
+        df['macd'] = macd.macd()
+        df['signal'] = macd.macd_signal()
+    except Exception as e:
+        df['macd'] = df['signal'] = pd.Series([None] * len(df))
+
+    # Signal logic
     df['buy'] = (
         (df['Close'] > df['bb_upper']) &
         (df['Close'] > df['20ema']) &
@@ -42,7 +65,10 @@ def apply_strategy(df):
         (df['macd'] > df['signal']) &
         (df['rsi'] > 55) & (df['rsi'] < 70)
     )
+
+    df['buy'].fillna(False, inplace=True)
     return df
+
 
 def backtest(df):
     capital = 100000

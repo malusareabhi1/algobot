@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 
-# --- Candlestick pattern detection functions ---
+# Candlestick pattern detection functions
 def is_doji(df):
     body = abs(df['Close'] - df['Open'])
     range_ = df['High'] - df['Low']
@@ -35,18 +35,14 @@ def is_bearish_engulfing(df):
                 (df['Close'] < prev_open)
     return condition
 
-# Add more patterns if needed...
-
-# --- Load NIFTY 200 stocks list (sample, can be extended) ---
+# Sample NIFTY 200 list (extend as needed)
 nifty_200 = [
     'RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'INFY.NS', 'ICICIBANK.NS',
     'HINDUNILVR.NS', 'SBIN.NS', 'KOTAKBANK.NS', 'LT.NS', 'AXISBANK.NS'
-    # Add the full NIFTY 200 list here or load from a file
 ]
 
 st.title("NIFTY 200 Candlestick Pattern Detector")
 
-# Sidebar inputs
 selected_stocks = st.multiselect("Select Stocks (NIFTY 200)", nifty_200, default=nifty_200[:5])
 start_date = st.date_input("Start Date", pd.to_datetime("2023-01-01"))
 end_date = st.date_input("End Date", pd.to_datetime("today"))
@@ -56,6 +52,8 @@ if st.button("Run Pattern Detection"):
     all_results = []
     progress_bar = st.progress(0)
     total = len(selected_stocks)
+
+    stock_data = {}  # Store df with patterns for each stock
 
     for i, symbol in enumerate(selected_stocks):
         try:
@@ -72,7 +70,9 @@ if st.button("Run Pattern Detection"):
             df['Bullish_Engulfing'] = is_bullish_engulfing(df)
             df['Bearish_Engulfing'] = is_bearish_engulfing(df)
 
-            # Collect dates where patterns appeared
+            stock_data[symbol] = df
+
+            # Collect detected patterns
             for pattern in ['Doji', 'Hammer', 'Bullish_Engulfing', 'Bearish_Engulfing']:
                 pattern_dates = df[df[pattern]][['Date', 'Open', 'High', 'Low', 'Close']]
                 for idx, row in pattern_dates.iterrows():
@@ -86,36 +86,6 @@ if st.button("Run Pattern Detection"):
                         'Close': row['Close'],
                     })
 
-            # Show chart with pattern markers for last stock selected
-            if symbol == selected_stocks[-1]:
-                fig = go.Figure(data=[go.Candlestick(
-                    x=df['Date'],
-                    open=df['Open'],
-                    high=df['High'],
-                    low=df['Low'],
-                    close=df['Close'],
-                    name=symbol
-                )])
-
-                # Highlight patterns
-                for pattern in ['Doji', 'Hammer', 'Bullish_Engulfing', 'Bearish_Engulfing']:
-                    dates = df.loc[df[pattern], 'Date']
-                    prices = df.loc[df[pattern], 'Close']
-                    fig.add_trace(go.Scatter(
-                        x=dates,
-                        y=prices,
-                        mode='markers',
-                        marker=dict(size=10,
-                                    symbol='star',
-                                    line=dict(width=2, color='DarkSlateGrey')),
-                        name=pattern
-                    ))
-
-                fig.update_layout(title=f'Candlestick Chart with Patterns for {symbol}',
-                                  xaxis_title='Date',
-                                  yaxis_title='Price')
-                st.plotly_chart(fig)
-
         except Exception as e:
             st.error(f"Error processing {symbol}: {e}")
 
@@ -128,3 +98,34 @@ if st.button("Run Pattern Detection"):
 
     else:
         st.info("No patterns detected in selected stocks and date range.")
+
+    # Show candle charts for each stock with pattern markers
+    for symbol, df in stock_data.items():
+        with st.expander(f"Candlestick Chart for {symbol}"):
+            fig = go.Figure(data=[go.Candlestick(
+                x=df['Date'],
+                open=df['Open'],
+                high=df['High'],
+                low=df['Low'],
+                close=df['Close'],
+                name=symbol
+            )])
+
+            # Add markers for patterns
+            for pattern, color in zip(['Doji', 'Hammer', 'Bullish_Engulfing', 'Bearish_Engulfing'],
+                                      ['yellow', 'lime', 'cyan', 'magenta']):
+                pattern_dates = df.loc[df[pattern], 'Date']
+                pattern_prices = df.loc[df[pattern], 'Close']
+                fig.add_trace(go.Scatter(
+                    x=pattern_dates,
+                    y=pattern_prices,
+                    mode='markers',
+                    marker=dict(size=10, color=color, symbol='star'),
+                    name=pattern
+                ))
+
+            fig.update_layout(title=f'Candlestick Chart with Patterns for {symbol}',
+                              xaxis_title='Date',
+                              yaxis_title='Price',
+                              height=600)
+            st.plotly_chart(fig, use_container_width=True)

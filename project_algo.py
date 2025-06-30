@@ -1214,6 +1214,55 @@ Works well in strong uptrending stocks.
 Avoid in sideways or weakly trending stocks.
 
 Preferably used with volume confirmation or sector strength.""")
+elif selected == "Paper Trade":
+    def scan_ma44_200_strategy(stock):
+        df = yf.download(stock, period='250d', interval='1d')
+        if df.empty or len(df) < 200:
+            return None
+    
+        df['SMA44'] = df['Close'].rolling(window=44).mean()
+        df['SMA200'] = df['Close'].rolling(window=200).mean()
+        df.dropna(inplace=True)
+    
+        last_candle = df.iloc[-1]
+        prev_candle = df.iloc[-2]
+    
+        # Basic Conditions
+        close = last_candle['Close']
+        low = last_candle['Low']
+        high = last_candle['High']
+        sma44 = last_candle['SMA44']
+        sma200 = last_candle['SMA200']
+    
+        # Optional condition: slope check (can improve accuracy)
+        is_sma200_rising = last_candle['SMA200'] > prev_candle['SMA200']
+        is_sma44_rising = last_candle['SMA44'] > prev_candle['SMA44']
+    
+        # Entry condition
+        if (
+            low < sma44 < close and
+            sma44 > sma200 and
+            close > sma200 and
+            is_sma44_rising and
+            is_sma200_rising
+        ):
+            entry = float(high)
+            stoploss = float(low)
+            target1 = entry + (entry - stoploss) * 2
+            target2 = entry + (entry - stoploss) * 3
+    
+            return {
+                'symbol': stock,
+                'entry': round(entry, 2),
+                'stoploss': round(stoploss, 2),
+                'target_1_2': round(target1, 2),
+                'target_1_3': round(target2, 2),
+                'SMA44': round(sma44, 2),
+                'SMA200': round(sma200, 2)
+            }
+    
+        return None
+
 #_______________________________________________________________________________________________________________________________________________________________________________________________________
 elif selected == "Paper Trade":
     # ✅ MUST BE FIRST Streamlit command

@@ -1228,21 +1228,28 @@ elif selected == "SMA44+200MA Strategy":
         df['SMA200'] = df['Close'].rolling(window=200).mean()
         df.dropna(inplace=True)
     
+        # Ensure we have enough rows after dropna
+        if len(df) < 2:
+            return None
+    
+        # Use scalar values directly
         last_candle = df.iloc[-1]
         prev_candle = df.iloc[-2]
     
-        # Basic Conditions
-        close = last_candle['Close']
-        low = last_candle['Low']
-        high = last_candle['High']
-        sma44 = last_candle['SMA44']
-        sma200 = last_candle['SMA200']
+        close = float(last_candle['Close'])
+        low = float(last_candle['Low'])
+        high = float(last_candle['High'])
+        sma44 = float(last_candle['SMA44'])
+        sma200 = float(last_candle['SMA200'])
     
-        # Optional condition: slope check (can improve accuracy)
-        is_sma200_rising = last_candle['SMA200'] > prev_candle['SMA200']
-        is_sma44_rising = last_candle['SMA44'] > prev_candle['SMA44']
+        prev_sma44 = float(prev_candle['SMA44'])
+        prev_sma200 = float(prev_candle['SMA200'])
     
-        # Entry condition
+        # Slope Check (Optional but improves quality)
+        is_sma44_rising = sma44 > prev_sma44
+        is_sma200_rising = sma200 > prev_sma200
+    
+        # Main Condition
         if (
             low < sma44 < close and
             sma44 > sma200 and
@@ -1250,8 +1257,8 @@ elif selected == "SMA44+200MA Strategy":
             is_sma44_rising and
             is_sma200_rising
         ):
-            entry = float(high)
-            stoploss = float(low)
+            entry = high
+            stoploss = low
             target1 = entry + (entry - stoploss) * 2
             target2 = entry + (entry - stoploss) * 3
     
@@ -1266,6 +1273,7 @@ elif selected == "SMA44+200MA Strategy":
             }
     
         return None
+
 # Example usage with a list of NIFTY 100 stocks
     #nifty_100 = [
         

@@ -32,7 +32,7 @@ with st.sidebar:
     selected = option_menu(
     menu_title="ALGO BOT  ",
     options=[
-        "Dashboard", "Get Stock Data", "Doctor Strategy","Doctor1.0 Strategy","Doctor2.0 Strategy","Doctor3.0 Strategy", "Swing Trade Strategy", "Swing SMA44 Strategy","New Nifty Strategy",
+        "Dashboard", "Get Stock Data", "Doctor Strategy","Doctor1.0 Strategy","Doctor2.0 Strategy","Doctor3.0 Strategy", "Swing Trade Strategy", "Swing SMA44 Strategy","SMA44+200MA Strategy","New Nifty Strategy",
         "Intraday Stock Finder","ORB Strategy","ORB Screener", "Trade Log", "Account Info", "Candle Chart", "Strategy Detail","Strategy2.0 Detail", "Project Detail", "KITE API", "API","Alpha Vantage API","Live Algo Trading","Paper Trade","Volatility Scanner","TradingView","Telegram Demo","NIFTY PCR"
     ],
     icons=[
@@ -1214,7 +1214,7 @@ Works well in strong uptrending stocks.
 Avoid in sideways or weakly trending stocks.
 
 Preferably used with volume confirmation or sector strength.""")
-elif selected == "Paper Trade":
+elif selected == "SMA44+200MA Strategy":
     def scan_ma44_200_strategy(stock):
         df = yf.download(stock, period='250d', interval='1d')
         if df.empty or len(df) < 200:

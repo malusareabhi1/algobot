@@ -594,6 +594,8 @@ elif selected == "Swing SMA44 Strategy":
             }
     
         return None
+
+    
     
     # Example usage with a list of NIFTY 100 stocks
     #nifty_100 = [
@@ -1214,6 +1216,8 @@ Works well in strong uptrending stocks.
 Avoid in sideways or weakly trending stocks.
 
 Preferably used with volume confirmation or sector strength.""")
+
+
 elif selected == "SMA44+200MA Strategy":
     def scan_ma44_200_strategy(stock):
         df = yf.download(stock, period='250d', interval='1d')
@@ -1262,6 +1266,627 @@ elif selected == "SMA44+200MA Strategy":
             }
     
         return None
+# Example usage with a list of NIFTY 100 stocks
+    #nifty_100 = [
+        
+    nifty_100 = [
+    '360ONE.NS',
+    '3MINDIA.NS',
+    'ABB.NS',
+    'ACC.NS',
+    'ACMESOLAR.NS',
+    'AIAENG.NS',
+    'APLAPOLLO.NS',
+    'AUBANK.NS',
+    'AWL.NS',
+    'AADHARHFC.NS',
+    'AARTIIND.NS',
+    'AAVAS.NS',
+    'ABBOTINDIA.NS',
+    'ACE.NS',
+    'ADANIENSOL.NS',
+    'ADANIENT.NS',
+    'ADANIGREEN.NS',
+    'ADANIPORTS.NS',
+    'ADANIPOWER.NS',
+    'ATGL.NS',
+    'ABCAPITAL.NS',
+    'ABFRL.NS',
+    'ABREL.NS',
+    'ABSLAMC.NS',
+    'AEGISLOG.NS',
+    'AFCONS.NS',
+    'AFFLE.NS',
+    'AJANTPHARM.NS',
+    'AKUMS.NS',
+    'APLLTD.NS',
+    'ALIVUS.NS',
+    'ALKEM.NS',
+    'ALKYLAMINE.NS',
+    'ALOKINDS.NS',
+    'ARE&M.NS',
+    'AMBER.NS',
+    'AMBUJACEM.NS',
+    'ANANDRATHI.NS',
+    'ANANTRAJ.NS',
+    'ANGELONE.NS',
+    'APARINDS.NS',
+    'APOLLOHOSP.NS',
+    'APOLLOTYRE.NS',
+    'APTUS.NS',
+    'ASAHIINDIA.NS',
+    'ASHOKLEY.NS',
+    'ASIANPAINT.NS',
+    'ASTERDM.NS',
+    'ASTRAZEN.NS',
+    'ASTRAL.NS',
+    'ATUL.NS',
+    'AUROPHARMA.NS',
+    'AIIL.NS',
+    'DMART.NS',
+    'AXISBANK.NS',
+    'BASF.NS',
+    'BEML.NS',
+    'BLS.NS',
+    'BSE.NS',
+    'BAJAJ-AUTO.NS',
+    'BAJFINANCE.NS',
+    'BAJAJFINSV.NS',
+    'BAJAJHLDNG.NS',
+    'BAJAJHFL.NS',
+    'BALKRISIND.NS',
+    'BALRAMCHIN.NS',
+    'BANDHANBNK.NS',
+    'BANKBARODA.NS',
+    'BANKINDIA.NS',
+    'MAHABANK.NS',
+    'BATAINDIA.NS',
+    'BAYERCROP.NS',
+    'BERGEPAINT.NS',
+    'BDL.NS',
+    'BEL.NS',
+    'BHARATFORG.NS',
+    'BHEL.NS',
+    'BPCL.NS',
+    'BHARTIARTL.NS',
+    'BHARTIHEXA.NS',
+    'BIKAJI.NS',
+    'BIOCON.NS',
+    'BSOFT.NS',
+    'BLUEDART.NS',
+    'BLUESTARCO.NS',
+    'BBTC.NS',
+    'BOSCHLTD.NS',
+    'FIRSTCRY.NS',
+    'BRIGADE.NS',
+    'BRITANNIA.NS',
+    'MAPMYINDIA.NS',
+    'CCL.NS',
+    'CESC.NS',
+    'CGPOWER.NS',
+    'CRISIL.NS',
+    'CAMPUS.NS',
+    'CANFINHOME.NS',
+    'CANBK.NS',
+    'CAPLIPOINT.NS',
+    'CGCL.NS',
+    'CARBORUNIV.NS',
+    'CASTROLIND.NS',
+    'CEATLTD.NS',
+    'CENTRALBK.NS',
+    'CDSL.NS',
+    'CENTURYPLY.NS',
+    'CERA.NS',
+    'CHALET.NS',
+    'CHAMBLFERT.NS',
+    'CHENNPETRO.NS',
+    'CHOLAHLDNG.NS',
+    'CHOLAFIN.NS',
+    'CIPLA.NS',
+    'CUB.NS',
+    'CLEAN.NS',
+    'COALINDIA.NS',
+    'COCHINSHIP.NS',
+    'COFORGE.NS',
+    'COHANCE.NS',
+    'COLPAL.NS',
+    'CAMS.NS',
+    'CONCORDBIO.NS',
+    'CONCOR.NS',
+    'COROMANDEL.NS',
+    'CRAFTSMAN.NS',
+    'CREDITACC.NS',
+    'CROMPTON.NS',
+    'CUMMINSIND.NS',
+    'CYIENT.NS',
+    'DCMSHRIRAM.NS',
+    'DLF.NS',
+    'DOMS.NS',
+    'DABUR.NS',
+    'DALBHARAT.NS',
+    'DATAPATTNS.NS',
+    'DEEPAKFERT.NS',
+    'DEEPAKNTR.NS',
+    'DELHIVERY.NS',
+    'DEVYANI.NS',
+    'DIVISLAB.NS',
+    'DIXON.NS',
+    'LALPATHLAB.NS',
+    'DRREDDY.NS',
+    'DUMMYABFRL.NS',
+    'DUMMYSIEMS.NS',
+    'DUMMYRAYMN.NS',
+    'EIDPARRY.NS',
+    'EIHOTEL.NS',
+    'EICHERMOT.NS',
+    'ELECON.NS',
+    'ELGIEQUIP.NS',
+    'EMAMILTD.NS',
+    'EMCURE.NS',
+    'ENDURANCE.NS',
+    'ENGINERSIN.NS',
+    'ERIS.NS',
+    'ESCORTS.NS',
+    'ETERNAL.NS',
+    'EXIDEIND.NS',
+    'NYKAA.NS',
+    'FEDERALBNK.NS',
+    'FACT.NS',
+    'FINCABLES.NS',
+    'FINPIPE.NS',
+    'FSL.NS',
+    'FIVESTAR.NS',
+    'FORTIS.NS',
+    'GAIL.NS',
+    'GVT&D.NS',
+    'GMRAIRPORT.NS',
+    'GRSE.NS',
+    'GICRE.NS',
+    'GILLETTE.NS',
+    'GLAND.NS',
+    'GLAXO.NS',
+    'GLENMARK.NS',
+    'MEDANTA.NS',
+    'GODIGIT.NS',
+    'GPIL.NS',
+    'GODFRYPHLP.NS',
+    'GODREJAGRO.NS',
+    'GODREJCP.NS',
+    'GODREJIND.NS',
+    'GODREJPROP.NS',
+    'GRANULES.NS',
+    'GRAPHITE.NS',
+    'GRASIM.NS',
+    'GRAVITA.NS',
+    'GESHIP.NS',
+    'FLUOROCHEM.NS',
+    'GUJGASLTD.NS',
+    'GMDCLTD.NS',
+    'GNFC.NS',
+    'GPPL.NS',
+    'GSPL.NS',
+    'HEG.NS',
+    'HBLENGINE.NS',
+    'HCLTECH.NS',
+    'HDFCAMC.NS',
+    'HDFCBANK.NS',
+    'HDFCLIFE.NS',
+    'HFCL.NS',
+    'HAPPSTMNDS.NS',
+    'HAVELLS.NS',
+    'HEROMOTOCO.NS',
+    'HSCL.NS',
+    'HINDALCO.NS',
+    'HAL.NS',
+    'HINDCOPPER.NS',
+    'HINDPETRO.NS',
+    'HINDUNILVR.NS',
+    'HINDZINC.NS',
+    'POWERINDIA.NS',
+    'HOMEFIRST.NS',
+    'HONASA.NS',
+    'HONAUT.NS',
+    'HUDCO.NS',
+    'HYUNDAI.NS',
+    'ICICIBANK.NS',
+    'ICICIGI.NS',
+    'ICICIPRULI.NS',
+    'IDBI.NS',
+    'IDFCFIRSTB.NS',
+    'IFCI.NS',
+    'IIFL.NS',
+    'INOXINDIA.NS',
+    'IRB.NS',
+    'IRCON.NS',
+    'ITC.NS',
+    'ITI.NS',
+    'INDGN.NS',
+    'INDIACEM.NS',
+    'INDIAMART.NS',
+    'INDIANB.NS',
+    'IEX.NS',
+    'INDHOTEL.NS',
+    'IOC.NS',
+    'IOB.NS',
+    'IRCTC.NS',
+    'IRFC.NS',
+    'IREDA.NS',
+    'IGL.NS',
+    'INDUSTOWER.NS',
+    'INDUSINDBK.NS',
+    'NAUKRI.NS',
+    'INFY.NS',
+    'INOXWIND.NS',
+    'INTELLECT.NS',
+    'INDIGO.NS',
+    'IGIL.NS',
+    'IKS.NS',
+    'IPCALAB.NS',
+    'JBCHEPHARM.NS',
+    'JKCEMENT.NS',
+    'JBMA.NS',
+    'JKTYRE.NS',
+    'JMFINANCIL.NS',
+    'JSWENERGY.NS',
+    'JSWHL.NS',
+    'JSWINFRA.NS',
+    'JSWSTEEL.NS',
+    'JPPOWER.NS',
+    'J&KBANK.NS',
+    'JINDALSAW.NS',
+    'JSL.NS',
+    'JINDALSTEL.NS',
+    'JIOFIN.NS',
+    'JUBLFOOD.NS',
+    'JUBLINGREA.NS',
+    'JUBLPHARMA.NS',
+    'JWL.NS',
+    'JUSTDIAL.NS',
+    'JYOTHYLAB.NS',
+    'JYOTICNC.NS',
+    'KPRMILL.NS',
+    'KEI.NS',
+    'KNRCON.NS',
+    'KPITTECH.NS',
+    'KAJARIACER.NS',
+    'KPIL.NS',
+    'KALYANKJIL.NS',
+    'KANSAINER.NS',
+    'KARURVYSYA.NS',
+    'KAYNES.NS',
+    'KEC.NS',
+    'KFINTECH.NS',
+    'KIRLOSBROS.NS',
+    'KIRLOSENG.NS',
+    'KOTAKBANK.NS',
+    'KIMS.NS',
+    'LTF.NS',
+    'LTTS.NS',
+    'LICHSGFIN.NS',
+    'LTFOODS.NS',
+    'LTIM.NS',
+    'LT.NS',
+    'LATENTVIEW.NS',
+    'LAURUSLABS.NS',
+    'LEMONTREE.NS',
+    'LICI.NS',
+    'LINDEINDIA.NS',
+    'LLOYDSME.NS',
+    'LUPIN.NS',
+    'MMTC.NS',
+    'MRF.NS',
+    'LODHA.NS',
+    'MGL.NS',
+    'MAHSEAMLES.NS',
+    'M&MFIN.NS',
+    'M&M.NS',
+    'MANAPPURAM.NS',
+    'MRPL.NS',
+    'MANKIND.NS',
+    'MARICO.NS',
+    'MARUTI.NS',
+    'MASTEK.NS',
+    'MFSL.NS',
+    'MAXHEALTH.NS',
+    'MAZDOCK.NS',
+    'METROPOLIS.NS',
+    'MINDACORP.NS',
+    'MSUMI.NS',
+    'MOTILALOFS.NS',
+    'MPHASIS.NS',
+    'MCX.NS',
+    'MUTHOOTFIN.NS',
+    'NATCOPHARM.NS',
+    'NBCC.NS',
+    'NCC.NS',
+    'NHPC.NS',
+    'NLCINDIA.NS',
+    'NMDC.NS',
+    'NSLNISP.NS',
+    'NTPCGREEN.NS',
+    'NTPC.NS',
+    'NH.NS',
+    'NATIONALUM.NS',
+    'NAVA.NS',
+    'NAVINFLUOR.NS',
+    'NESTLEIND.NS',
+    'NETWEB.NS',
+    'NETWORK18.NS',
+    'NEULANDLAB.NS',
+    'NEWGEN.NS',
+    'NAM-INDIA.NS',
+    'NIVABUPA.NS',
+    'NUVAMA.NS',
+    'OBEROIRLTY.NS',
+    'ONGC.NS',
+    'OIL.NS',
+    'OLAELEC.NS',
+    'OLECTRA.NS',
+    'PAYTM.NS',
+    'OFSS.NS',
+    'POLICYBZR.NS',
+    'PCBL.NS',
+    'PGEL.NS',
+    'PIIND.NS',
+    'PNBHOUSING.NS',
+    'PNCINFRA.NS',
+    'PTCIL.NS',
+    'PVRINOX.NS',
+    'PAGEIND.NS',
+    'PATANJALI.NS',
+    'PERSISTENT.NS',
+    'PETRONET.NS',
+    'PFIZER.NS',
+    'PHOENIXLTD.NS',
+    'PIDILITIND.NS',
+    'PEL.NS',
+    'PPLPHARMA.NS',
+    'POLYMED.NS',
+    'POLYCAB.NS',
+    'POONAWALLA.NS',
+    'PFC.NS',
+    'POWERGRID.NS',
+    'PRAJIND.NS',
+    'PREMIERENE.NS',
+    'PRESTIGE.NS',
+    'PNB.NS',
+    'RRKABEL.NS',
+    'RBLBANK.NS',
+    'RECLTD.NS',
+    'RHIM.NS',
+    'RITES.NS',
+    'RADICO.NS',
+    'RVNL.NS',
+    'RAILTEL.NS',
+    'RAINBOW.NS',
+    'RKFORGE.NS',
+    'RCF.NS',
+    'RTNINDIA.NS',
+    'RAYMONDLSL.NS',
+    'RAYMOND.NS',
+    'REDINGTON.NS',
+    'RELIANCE.NS',
+    'RPOWER.NS',
+    'ROUTE.NS',
+    'SBFC.NS',
+    'SBICARD.NS',
+    'SBILIFE.NS',
+    'SJVN.NS',
+    'SKFINDIA.NS',
+    'SRF.NS',
+    'SAGILITY.NS',
+    'SAILIFE.NS',
+    'SAMMAANCAP.NS',
+    'MOTHERSON.NS',
+    'SAPPHIRE.NS',
+    'SARDAEN.NS',
+    'SAREGAMA.NS',
+    'SCHAEFFLER.NS',
+    'SCHNEIDER.NS',
+    'SCI.NS',
+    'SHREECEM.NS',
+    'RENUKA.NS',
+    'SHRIRAMFIN.NS',
+    'SHYAMMETL.NS',
+    'SIEMENS.NS',
+    'SIGNATURE.NS',
+    'SOBHA.NS',
+    'SOLARINDS.NS',
+    'SONACOMS.NS',
+    'SONATSOFTW.NS',
+    'STARHEALTH.NS',
+    'SBIN.NS',
+    'SAIL.NS',
+    'SWSOLAR.NS',
+    'SUMICHEM.NS',
+    'SUNPHARMA.NS',
+    'SUNTV.NS',
+    'SUNDARMFIN.NS',
+    'SUNDRMFAST.NS',
+    'SUPREMEIND.NS',
+    'SUZLON.NS',
+    'SWANENERGY.NS',
+    'SWIGGY.NS',
+    'SYNGENE.NS',
+    'SYRMA.NS',
+    'TBOTEK.NS',
+    'TVSMOTOR.NS',
+    'TANLA.NS',
+    'TATACHEM.NS',
+    'TATACOMM.NS',
+    'TCS.NS',
+    'TATACONSUM.NS',
+    'TATAELXSI.NS',
+    'TATAINVEST.NS',
+    'TATAMOTORS.NS',
+    'TATAPOWER.NS',
+    'TATASTEEL.NS',
+    'TATATECH.NS',
+    'TTML.NS',
+    'TECHM.NS',
+    'TECHNOE.NS',
+    'TEJASNET.NS',
+    'NIACL.NS',
+    'RAMCOCEM.NS',
+    'THERMAX.NS',
+    'TIMKEN.NS',
+    'TITAGARH.NS',
+    'TITAN.NS',
+    'TORNTPHARM.NS',
+    'TORNTPOWER.NS',
+    'TARIL.NS',
+    'TRENT.NS',
+    'TRIDENT.NS',
+    'TRIVENI.NS',
+    'TRITURBINE.NS',
+    'TIINDIA.NS',
+    'UCOBANK.NS',
+    'UNOMINDA.NS',
+    'UPL.NS',
+    'UTIAMC.NS',
+    'ULTRACEMCO.NS',
+    'UNIONBANK.NS',
+    'UBL.NS',
+    'UNITDSPR.NS',
+    'USHAMART.NS',
+    'VGUARD.NS',
+    'DBREALTY.NS',
+    'VTL.NS',
+    'VBL.NS',
+    'MANYAVAR.NS',
+    'VEDL.NS',
+    'VIJAYA.NS',
+    'VMM.NS',
+    'IDEA.NS',
+    'VOLTAS.NS',
+    'WAAREEENER.NS',
+    'WELCORP.NS',
+    'WELSPUNLIV.NS',
+    'WESTLIFE.NS',
+    'WHIRLPOOL.NS',
+    'WIPRO.NS',
+    'WOCKPHARMA.NS',
+    'YESBANK.NS',
+    'ZFCVINDIA.NS',
+    'ZEEL.NS',
+    'ZENTEC.NS',
+    'ZENSARTECH.NS',
+    'ZYDUSLIFE.NS',
+    'ECLERX.NS',
+]
+
+    
+    # Scan and collect results
+    results = []
+    for stock in nifty_100:
+        try:
+            res = scan_ma44_200_strategy(stock)
+            if res:
+                results.append(res)
+        except Exception as e:
+            st.write(f"Error with {stock}: {e}")
+    
+    # Create a DataFrame to display the results in table format
+    
+    
+    # Display results
+    if results:
+        df_results = pd.DataFrame(results)
+        st.dataframe(df_results)
+        #st.write(df_results)
+    
+        # Selection box
+        selected_stock = st.selectbox("Select a stock to view chart:", df_results['symbol'].tolist())
+    
+        # If a stock is selected, fetch its data and plot chart
+        if selected_stock:
+            stock_data = yf.download(selected_stock, period='60d', interval='1d')
+            if isinstance(stock_data.columns, pd.MultiIndex):
+                stock_data.columns = stock_data.columns.get_level_values(0)
+    
+            if stock_data.index.tz is None:
+                stock_data.index = stock_data.index.tz_localize("UTC").tz_convert("Asia/Kolkata")
+            else:
+                stock_data.index = stock_data.index.tz_convert("Asia/Kolkata")
+            #stock_data.index = stock_data.index.tz_convert("Asia/Kolkata")
+            stock_data.dropna(inplace=True)
+            stock_data = stock_data[['Open', 'High', 'Low', 'Close']]  # Make sure required columns exist
+            stock_data.reset_index(inplace=True)
+            #st.write("Sample stock data:", stock_data.tail())
+    
+            #stock_data.reset_index(inplace=True)
+    
+            # Get entry/SL/target from result
+            selected_row = df_results[df_results['symbol'] == selected_stock].iloc[0]
+            entry = selected_row['entry']
+            stoploss = selected_row['stoploss']
+            target1 = selected_row['target_1_2']
+            target2 = selected_row['target_1_3']
+    
+            # Create candlestick chart
+            fig = go.Figure(data=[
+                go.Candlestick(
+                    x=stock_data['Date'],
+                    open=stock_data['Open'],
+                    high=stock_data['High'],
+                    low=stock_data['Low'],
+                    close=stock_data['Close'],
+                    name='Candles'
+                ),
+                go.Scatter(x=stock_data['Date'], y=[entry]*len(stock_data), mode='lines', name='Entry', line=dict(color='blue', dash='dash')),
+                go.Scatter(x=stock_data['Date'], y=[stoploss]*len(stock_data), mode='lines', name='Stoploss', line=dict(color='red', dash='dash')),
+                go.Scatter(x=stock_data['Date'], y=[target1]*len(stock_data), mode='lines', name='Target 1:2', line=dict(color='green', dash='dot')),
+                go.Scatter(x=stock_data['Date'], y=[target2]*len(stock_data), mode='lines', name='Target 1:3', line=dict(color='darkgreen', dash='dot'))
+            ])
+            stock_data['SMA44'] = stock_data['Close'].rolling(window=44).mean()
+            fig.add_trace(go.Scatter(x=stock_data['Date'], y=stock_data['SMA44'], mode='lines', name='SMA44', line=dict(color='orange')))
+    
+    
+            fig.update_layout(title=f"{selected_stock} Chart with Entry, SL & Targets", xaxis_title="Date", yaxis_title="Price", height=600)
+            st.plotly_chart(fig, use_container_width=True)
+    
+    else:
+        st.info("No stocks meet the strategy criteria.")
+
+    st.markdown("""📘 SMA44 Strategy (a.k.a. Bhanushali Strategy)
+Objective:
+To identify bullish setups where the price pulls back toward the rising 44-period Simple Moving Average (SMA44) and shows strength by closing above it, suggesting potential continuation of the uptrend.
+
+📊 Core Criteria
+SMA44 Rising:
+The 44-day Simple Moving Average (SMA44) must be sloping upward, indicating an uptrend.
+
+Current Candle Conditions:
+
+The Low of the current candle is below SMA44.
+
+The Close of the candle is above SMA44.
+👉 This implies the price dipped below the SMA during the day but recovered and closed above it, showing buyer strength near support.
+
+🎯 Trade Setup
+Entry Price:
+Above the High of the candle that met the criteria.
+
+Stoploss:
+Below the Low of the same candle.
+
+Targets:
+
+Target 1 (1:2 RR): Entry + 2 × (Entry − Stoploss)
+
+Target 2 (1:3 RR): Entry + 3 × (Entry − Stoploss)
+
+🧠 Why SMA44?
+The 44-period SMA is a custom mid-range moving average that balances between shorter-term (e.g., 20 SMA) and long-term (e.g., 100/200 SMA) trends. It is often used by discretionary swing traders like Vivek Bhanushali for detecting pullback zones in trending markets.
+
+📌 Best Practices
+Works well in strong uptrending stocks.
+
+Avoid in sideways or weakly trending stocks.
+
+Preferably used with volume confirmation or sector strength.""")
+
+
 
 #_______________________________________________________________________________________________________________________________________________________________________________________________________
 elif selected == "Paper Trade":

@@ -745,53 +745,53 @@ elif selected == "Pullback to EMA20":
                     continue
     
     
-    # Date range
-    end_date = datetime.today()
-    start_date = end_date - timedelta(days=200)
-    
-    signals = []
-
-    # Ensure you get individual rows
-    prev = df.iloc[-2]
-    latest = df.iloc[-1]
-
-    # Convert to scalar values (float)
-    prev_close = float(prev["Close"])
-    prev_open = float(prev["Open"])
-    latest_close = float(latest["Close"])
-    latest_open = float(latest["Open"])
-    latest_low = float(latest["Low"])
-    latest_ema20 = float(latest["EMA20"])
-    latest_ema50 = float(latest["EMA50"])
-    latest_rsi = float(latest["RSI"])
-
-    # --- Conditions ---
-
-    # Condition 1: Uptrend
-    in_uptrend = latest_close > latest_ema20 and latest_ema20 > latest_ema50
-
-    # Condition 2: Close near EMA20
-    near_ema20 = abs(latest_close - latest_ema20) / latest_close < 0.01
-
-    # Condition 3: Reversal candle pattern
-    is_bullish_engulfing = (
-        prev_close < prev_open and
-        latest_close > latest_open and
-        latest_close > prev_open and
-        latest_open < prev_close
-    )
-
-    is_hammer = (
-        latest_close > latest_open and
-        (latest_open - latest_low) > 2 * (latest_close - latest_open)
-    )
-
-    # Condition 4: RSI > 40
-    rsi_ok = latest_rsi > 40
-
-    # Final condition
-    if in_uptrend and near_ema20 and rsi_ok and (is_bullish_engulfing or is_hammer):
-        pullback_signals.append({"Stock": stock, "Signal": "🟢 Pullback Buy"})
+                    # Date range
+                    end_date = datetime.today()
+                    start_date = end_date - timedelta(days=200)
+                    
+                    signals = []
+                
+                    # Ensure you get individual rows
+                    prev = df.iloc[-2]
+                    latest = df.iloc[-1]
+                
+                    # Convert to scalar values (float)
+                    prev_close = float(prev["Close"])
+                    prev_open = float(prev["Open"])
+                    latest_close = float(latest["Close"])
+                    latest_open = float(latest["Open"])
+                    latest_low = float(latest["Low"])
+                    latest_ema20 = float(latest["EMA20"])
+                    latest_ema50 = float(latest["EMA50"])
+                    latest_rsi = float(latest["RSI"])
+                
+                    # --- Conditions ---
+                
+                    # Condition 1: Uptrend
+                    in_uptrend = latest_close > latest_ema20 and latest_ema20 > latest_ema50
+                
+                    # Condition 2: Close near EMA20
+                    near_ema20 = abs(latest_close - latest_ema20) / latest_close < 0.01
+                
+                    # Condition 3: Reversal candle pattern
+                    is_bullish_engulfing = (
+                        prev_close < prev_open and
+                        latest_close > latest_open and
+                        latest_close > prev_open and
+                        latest_open < prev_close
+                    )
+                
+                    is_hammer = (
+                        latest_close > latest_open and
+                        (latest_open - latest_low) > 2 * (latest_close - latest_open)
+                    )
+                
+                    # Condition 4: RSI > 40
+                    rsi_ok = latest_rsi > 40
+                
+                    # Final condition
+                    if in_uptrend and near_ema20 and rsi_ok and (is_bullish_engulfing or is_hammer):
+                        pullback_signals.append({"Stock": stock, "Signal": "🟢 Pullback Buy"})
 
 
 

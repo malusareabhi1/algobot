@@ -248,9 +248,14 @@ elif selected == "Pullback to EMA20":
                     continue
 
                 # Calculate EMA and RSI
+                #df["EMA20"] = df["Close"].ewm(span=20).mean()
+                #df["EMA50"] = df["Close"].ewm(span=50).mean()
+                #df["RSI"] = RSIIndicator(df["Close"], window=14).rsi()
+                # Calculate indicators after downloading
                 df["EMA20"] = df["Close"].ewm(span=20).mean()
                 df["EMA50"] = df["Close"].ewm(span=50).mean()
-                df["RSI"] = RSIIndicator(df["Close"], window=14).rsi()
+                df["RSI"] = RSIIndicator(close=df["Close"], window=14).rsi()
+
 
                 df.dropna(inplace=True)
                 if len(df) < 2:

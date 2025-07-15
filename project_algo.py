@@ -32,12 +32,12 @@ with st.sidebar:
     selected = option_menu(
     menu_title="ALGO BOT  ",
     options=[
-        "Dashboard", "Get Stock Data", "Doctor Strategy","Doctor1.0 Strategy","Doctor2.0 Strategy","Doctor3.0 Strategy", "Swing Trade Strategy", "Swing SMA44 Strategy","SMA44+200MA Strategy","Golden Cross","New Nifty Strategy",
+        "Dashboard", "Get Stock Data", "Doctor Strategy","Doctor1.0 Strategy","Doctor2.0 Strategy","Doctor3.0 Strategy", "Swing Trade Strategy", "Swing SMA44 Strategy","SMA44+200MA Strategy","Golden Cross","Pullback to EMA20","New Nifty Strategy",
         "Intraday Stock Finder","ORB Strategy","ORB Screener", "Trade Log", "Account Info", "Candle Chart", "Strategy Detail","Strategy2.0 Detail", "Project Detail", "KITE API", "API","Alpha Vantage API","Live Algo Trading","Paper Trade","Volatility Scanner","TradingView","Telegram Demo","NIFTY PCR"
     ],
     icons=[
         "bar-chart", "search", "cpu", "cpu","cpu", "cpu","cpu","cpu","cpu","cpu", "arrow-repeat",
-        "search", "clipboard-data", "wallet2", "graph-up","graph-up", "info-circle", "search","file-earmark","file-earmark", "code-slash", "code-slash", "code-slash","journal-text","search", "bar-chart", "bar-chart","file-earmark", "bar-chart"
+        "search", "clipboard-data", "wallet2", "graph-up","graph-up", "info-circle", "search","file-earmark","file-earmark", "code-slash", "code-slash","code-slash", "code-slash","journal-text","search", "bar-chart", "bar-chart","file-earmark", "bar-chart"
     ],
     menu_icon="cast",
     default_index=0,
@@ -204,6 +204,49 @@ if selected == "Dashboard":
 
     else:
         st.warning("Please login to Kite Connect first.")
+
+elif selected == "Pullback to EMA20":
+    # Ensure you get individual rows
+     prev = df.iloc[-2]
+     latest = df.iloc[-1]
+                
+                # Convert to scalar values (float)
+     prev_close = float(prev["Close"])
+     prev_open = float(prev["Open"])
+     latest_close = float(latest["Close"])
+     latest_open = float(latest["Open"])
+     latest_low = float(latest["Low"])
+     latest_ema20 = float(latest["EMA20"])
+     latest_ema50 = float(latest["EMA50"])
+     latest_rsi = float(latest["RSI"])
+                
+                # --- Conditions ---
+                
+                # Condition 1: Uptrend
+     in_uptrend = latest_close > latest_ema20 and latest_ema20 > latest_ema50
+                
+                # Condition 2: Close near EMA20
+     near_ema20 = abs(latest_close - latest_ema20) / latest_close < 0.01
+                
+                # Condition 3: Reversal candle pattern
+     is_bullish_engulfing = (
+        prev_close < prev_open and
+        latest_close > latest_open and
+        latest_close > prev_open and
+        latest_open < prev_close
+     )
+                
+     is_hammer = (
+         latest_close > latest_open and
+         (latest_open - latest_low) > 2 * (latest_close - latest_open)
+     )
+                
+                # Condition 4: RSI > 40
+     rsi_ok = latest_rsi > 40
+                
+                # Final condition
+     if in_uptrend and near_ema20 and rsi_ok and (is_bullish_engulfing or is_hammer):
+     pullback_signals.append({"Stock": stock, "Signal": "🟢 Pullback Buy"})           
 
 
 

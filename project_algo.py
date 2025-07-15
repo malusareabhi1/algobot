@@ -723,8 +723,27 @@ elif selected == "Pullback to EMA20":
     ]
     
     
-    # User input: select stocks to scan
+   # User input: select stocks to scan
     selected_stocks = st.multiselect("Select Stocks to Scan", nifty50_stocks, default=nifty50_stocks)
+    
+    # Date range
+    end_date = datetime.today()
+    start_date = end_date - timedelta(days=200)
+    
+    signals = []
+    
+    if st.button("Run EMA Crossover Scan"):
+        progress_text = "Scanning stocks..."
+        progress_bar = st.progress(0)
+    
+        for i, stock in enumerate(selected_stocks):
+            try:
+                df = yf.download(stock, start=start_date, end=end_date, progress=False)
+    
+                if df.empty or len(df) < 2:
+                    st.warning(f"{stock}: Not enough data")
+                    continue
+    
     
     # Date range
     end_date = datetime.today()

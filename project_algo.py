@@ -20,6 +20,8 @@ from math import floor
 from dotenv import load_dotenv
 import numpy as np
 import matplotlib.pyplot as plt
+from ta.momentum import RSIIndicator
+
 
 # Global kite object placeholder
 if 'kite' not in st.session_state:

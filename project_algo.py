@@ -793,18 +793,18 @@ elif selected == "Pullback to EMA20":
                     if in_uptrend and near_ema20 and rsi_ok and (is_bullish_engulfing or is_hammer):
                         pullback_signals.append({"Stock": stock, "Signal": "🟢 Pullback Buy"})
 
-        except Exception as e:
-                st.error(f"Error for {stock}: {e}")
-    
-            progress_bar.progress((i + 1) / len(selected_stocks))
-    
-        progress_bar.empty()
-    
-        if signals:
-            st.success(f"✅ Found {len(signals)} crossover signals:")
-            st.table(pd.DataFrame(signals))
-        else:
-            st.info("No  signals found.")
+                except Exception as e:
+                        st.error(f"Error for {stock}: {e}")
+            
+                    progress_bar.progress((i + 1) / len(selected_stocks))
+            
+                progress_bar.empty()
+            
+                if signals:
+                    st.success(f"✅ Found {len(signals)} crossover signals:")
+                    st.table(pd.DataFrame(signals))
+                else:
+                    st.info("No  signals found.")
 
 
 

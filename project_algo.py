@@ -206,6 +206,17 @@ if selected == "Dashboard":
         st.warning("Please login to Kite Connect first.")
 
 elif selected == "Pullback to EMA20":
+    st.title("📈 Pullback to 20 EMA Scanner")
+
+    with st.expander("ℹ️ Strategy Explanation"):
+        st.markdown(""" 
+    
+        ### 🟢 Pullback to EMA20 (Buy the Dip)
+        - Price above EMA20 and EMA50 (Uptrend)
+        - Pullback to near EMA20 (within 1%)
+        - **Reversal candlestick** (Bullish Engulfing or Hammer)
+        - RSI > 40 for confirmation
+        """)
     # Ensure you get individual rows
      prev = df.iloc[-2]
      latest = df.iloc[-1]

@@ -10,7 +10,23 @@ st.title("📈 RSI > 60 + EMA 7/21 Crossover Strategy")
 
 # Sidebar Inputs
 st.sidebar.header("Strategy Settings")
-ticker = st.sidebar.text_input("Enter Stock Symbol (NSE)", value="TATAPOWER.NS")
+#ticker = st.sidebar.text_input("Enter Stock Symbol (NSE)", value="TATAPOWER.NS")
+nse_stocks = {
+    "Reliance Industries": "RELIANCE.NS",
+    "Tata Consultancy Services": "TCS.NS",
+    "Infosys": "INFY.NS",
+    "HDFC Bank": "HDFCBANK.NS",
+    "ICICI Bank": "ICICIBANK.NS",
+    "State Bank of India": "SBIN.NS",
+    "Tata Motors": "TATAMOTORS.NS",
+    "Tata Power": "TATAPOWER.NS",
+    "Adani Enterprises": "ADANIENT.NS",
+    "Hindustan Unilever": "HINDUNILVR.NS"
+}
+
+ticker_name = st.sidebar.selectbox("Select Stock", options=list(nse_stocks.keys()), index=7)
+ticker = nse_stocks[ticker_name]
+
 start_date = st.sidebar.date_input("Start Date", pd.to_datetime("2023-01-01"))
 end_date = st.sidebar.date_input("End Date", pd.to_datetime("today"))
 interval = st.sidebar.selectbox("Timeframe", ["1d", "1h", "15m", "5m"], index=3)

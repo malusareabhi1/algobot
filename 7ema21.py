@@ -17,21 +17,27 @@ interval = st.sidebar.selectbox("Timeframe", ["1d", "1h", "15m", "5m"], index=3)
 
 # Fetch Data
 df = yf.download(ticker, start=start_date, end=end_date, interval=interval)
-df.dropna(inplace=True)
 
-# Ensure 'Close' is clean
+# Validate and clean
+if df.empty or 'Close' not in df.columns:
+    st.error("⚠️ No data fetched. Please check the symbol, date range, or interval.")
+    st.stop()
+
 df = df[df['Close'].notnull()].copy()
+df['Close'] = df['Close'].astype(float)
 
 # Calculate Indicators
 df['EMA7'] = df['Close'].ewm(span=7, adjust=False).mean()
 df['EMA21'] = df['Close'].ewm(span=21, adjust=False).mean()
 
+# RSI Calculation
 try:
     rsi_calc = RSIIndicator(close=df['Close'], window=14)
     df['RSI'] = rsi_calc.rsi()
 except Exception as e:
-    st.error(f"RSI calculation error: {e}")
+    st.error(f"⚠️ RSI calculation failed: {e}")
     st.stop()
+
 
 # Signal Logic
 df['Buy_Signal'] = (

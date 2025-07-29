@@ -100,3 +100,7 @@ st.pyplot(fig2)
 # Buy Signal Table
 st.subheader("✅ Buy Signal Log")
 st.dataframe(buy_signals[['Close', 'EMA7', 'EMA21', 'RSI']].style.format({"Close": "{:.2f}", "RSI": "{:.2f}"}))
+
+st.subheader("🔻 Sell Signal Log")
+st.dataframe(sell_signals[['Close', 'EMA7', 'EMA21', 'RSI']].style.format({"Close": "{:.2f}", "RSI": "{:.2f}"}))
+

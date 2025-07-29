@@ -85,7 +85,14 @@ df['Close'] = df['Close'].astype(float)
 # Indicators
 df['EMA7'] = df['Close'].ewm(span=7, adjust=False).mean()
 df['EMA21'] = df['Close'].ewm(span=21, adjust=False).mean()
-df['RSI'] = RSIIndicator(close=df['Close'], window=14).rsi()
+#df['RSI'] = RSIIndicator(close=df['Close'], window=14).rsi()
+try:
+    close_series = pd.Series(df['Close'].values.flatten(), index=df.index)
+    df['RSI'] = RSIIndicator(close=close_series, window=14).rsi()
+except Exception as e:
+    st.error(f"⚠️ RSI calculation failed: {e}")
+    st.stop()
+
 
 # Volume Confirmation
 df['Avg_Volume'] = df['Volume'].rolling(window=20).mean()

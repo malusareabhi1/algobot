@@ -88,6 +88,11 @@ else:
 df['EMA7'] = df['Close'].ewm(span=7, adjust=False).mean()
 df['EMA21'] = df['Close'].ewm(span=21, adjust=False).mean()
 
+# Volume Confirmation
+df['Avg_Volume'] = df['Volume'].rolling(window=20).mean()
+df['Volume_Confirm'] = df['Volume'] > df['Avg_Volume']
+
+
 # RSI with guaranteed 1D input
 try:
     rsi_series = RSIIndicator(close=pd.Series(df['Close'].values.flatten()), window=14).rsi()
@@ -97,19 +102,29 @@ except Exception as e:
     st.stop()
 
 # Signal Conditions
-df['EMA_Cross'] = (df['EMA7'] > df['EMA21']) & (df['EMA7'].shift(1) <= df['EMA21'].shift(1))
-df['RSI_Cross'] = (df['RSI'] > 60) & (df['RSI'].shift(1) <= 60)
-df['Buy_Signal'] = df['EMA_Cross'] & df['RSI_Cross']
+#-----------------------------
+#df['EMA_Cross'] = (df['EMA7'] > df['EMA21']) & (df['EMA7'].shift(1) <= df['EMA21'].shift(1))
+#df['RSI_Cross'] = (df['RSI'] > 60) & (df['RSI'].shift(1) <= 60)
+#df['Buy_Signal'] = df['EMA_Cross'] & df['RSI_Cross']
 
-buy_signals = df[df['Buy_Signal']].copy()
+#buy_signals = df[df['Buy_Signal']].copy()
 
 # SELL Signal Logic
+#df['EMA_Cross_Down'] = (df['EMA7'] < df['EMA21']) & (df['EMA7'].shift(1) >= df['EMA21'].shift(1))
+#df['RSI_Cross_Down'] = (df['RSI'] < 40) & (df['RSI'].shift(1) >= 40)
+#df['Sell_Signal'] = df['EMA_Cross_Down'] & df['RSI_Cross_Down']
+
+#sell_signals = df[df['Sell_Signal']].copy() ---------#########
+
+
+# Signal Conditions
+df['EMA_Cross'] = (df['EMA7'] > df['EMA21']) & (df['EMA7'].shift(1) <= df['EMA21'].shift(1))
+df['RSI_Cross'] = (df['RSI'] > 60) & (df['RSI'].shift(1) <= 60)
+df['Buy_Signal'] = df['EMA_Cross'] & df['RSI_Cross'] & df['Volume_Confirm']
+
 df['EMA_Cross_Down'] = (df['EMA7'] < df['EMA21']) & (df['EMA7'].shift(1) >= df['EMA21'].shift(1))
 df['RSI_Cross_Down'] = (df['RSI'] < 40) & (df['RSI'].shift(1) >= 40)
-df['Sell_Signal'] = df['EMA_Cross_Down'] & df['RSI_Cross_Down']
-
-sell_signals = df[df['Sell_Signal']].copy()
-
+df['Sell_Signal'] = df['EMA_Cross_Down'] & df['RSI_Cross_Down'] & df['Volume_Confirm']
 
 # Plotting
 st.subheader(f"📊 {ticker} - Price Chart")

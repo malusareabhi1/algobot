@@ -97,7 +97,12 @@ except Exception as e:
 # Volume Confirmation
 df['Avg_Volume'] = df['Volume'].rolling(window=20).mean()
 #df['Volume_Confirm'] = df['Volume'] > df['Avg_Volume']
-df['Volume_Confirm'] = (df['Volume'] > df['Avg_Volume']) & df['Avg_Volume'].notna()
+#df['Volume_Confirm'] = (df['Volume'] > df['Avg_Volume']) & df['Avg_Volume'].notna()
+volume_series = pd.Series(df['Volume'].values.flatten(), index=df.index)
+avg_volume_series = df['Volume'].rolling(window=20).mean()
+
+df['Avg_Volume'] = avg_volume_series
+df['Volume_Confirm'] = (volume_series > avg_volume_series) & avg_volume_series.notna()
 
 
 # -----------------------------------------------

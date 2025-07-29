@@ -104,3 +104,36 @@ st.dataframe(buy_signals[['Close', 'EMA7', 'EMA21', 'RSI']].style.format({"Close
 st.subheader("🔻 Sell Signal Log")
 st.dataframe(sell_signals[['Close', 'EMA7', 'EMA21', 'RSI']].style.format({"Close": "{:.2f}", "RSI": "{:.2f}"}))
 
+st.markdown("""
+### 📘 Strategy Logic
+
+This strategy generates signals using RSI and EMA crossover on selected timeframes.
+
+#### ✅ BUY Signal:
+1. EMA 7 crosses **above** EMA 21
+2. RSI crosses **above 60**
+
+#### 🔻 SELL Signal:
+1. EMA 7 crosses **below** EMA 21
+2. RSI crosses **below 40**
+
+---
+- Arrows on chart show BUY (green ↑) and SELL (red ↓) signals.
+- Tables below list entry points with RSI and EMA values.
+""")
+
+st.markdown("""
+### 📘 Strategy Logic
+
+This strategy generates a **BUY signal** when the following two conditions are met on a selected timeframe:
+
+1. **EMA Crossover**: 7 EMA crosses **above** 21 EMA (indicating a short-term trend reversal)
+2. **RSI Confirmation**: RSI crosses **above 60** (momentum confirmation)
+
+---
+- 📌 Signals are shown with green arrows on the price chart.
+- 🕒 You can choose timeframe like 5m, 15m, 1h, etc.
+- 📊 Signal logs and RSI charts are displayed below.
+""")
+
+

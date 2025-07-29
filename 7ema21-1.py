@@ -96,11 +96,16 @@ except Exception as e:
 
 # Volume Confirmation
 # Ensure Volume is a 1D Series
-df['Volume'] = pd.to_numeric(df['Volume'], errors='coerce')  # Clean to numeric
-df['Avg_Volume'] = df['Volume'].rolling(window=20).mean()
+#df['Volume'] = pd.to_numeric(df['Volume'], errors='coerce')  # Clean to numeric
+if isinstance(df['Volume'], pd.DataFrame):
+    df['Volume'] = df['Volume'].iloc[:, 0]  # Take first column if it's a DataFrame
 
-# Volume Confirmation Condition
+volume_series = pd.to_numeric(df['Volume'], errors='coerce')  # Now guaranteed 1D
+df['Volume'] = volume_series
+
+df['Avg_Volume'] = df['Volume'].rolling(window=20).mean()
 df['Volume_Confirm'] = (df['Volume'] > df['Avg_Volume']) & df['Avg_Volume'].notna()
+
 
 
 

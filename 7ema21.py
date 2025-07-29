@@ -10,7 +10,7 @@ st.title("📈 RSI + EMA Crossover Strategy")
 
 # Sidebar Inputs
 st.sidebar.header("Strategy Settings")
-ticker = st.sidebar.text_input("Enter Stock Symbol (NSE)", value="TATAMOTORS.NS")
+ticker = st.sidebar.text_input("Enter Stock Symbol (NSE)", value="TATAPOWER.NS")
 start_date = st.sidebar.date_input("Start Date", pd.to_datetime("2023-01-01"))
 end_date = st.sidebar.date_input("End Date", pd.to_datetime("today"))
 interval = st.sidebar.selectbox("Timeframe", ["1d", "1h", "15m", "5m"], index=3)
@@ -19,11 +19,19 @@ interval = st.sidebar.selectbox("Timeframe", ["1d", "1h", "15m", "5m"], index=3)
 df = yf.download(ticker, start=start_date, end=end_date, interval=interval)
 df.dropna(inplace=True)
 
+# Ensure 'Close' is clean
+df = df[df['Close'].notnull()].copy()
+
 # Calculate Indicators
 df['EMA7'] = df['Close'].ewm(span=7, adjust=False).mean()
 df['EMA21'] = df['Close'].ewm(span=21, adjust=False).mean()
-rsi = RSIIndicator(close=df['Close'], window=14)
-df['RSI'] = rsi.rsi()
+
+try:
+    rsi_calc = RSIIndicator(close=df['Close'], window=14)
+    df['RSI'] = rsi_calc.rsi()
+except Exception as e:
+    st.error(f"RSI calculation error: {e}")
+    st.stop()
 
 # Signal Logic
 df['Buy_Signal'] = (

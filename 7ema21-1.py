@@ -95,14 +95,17 @@ except Exception as e:
 
 
 # Volume Confirmation
-# Ensure Volume is a 1D Series
-#df['Volume'] = pd.to_numeric(df['Volume'], errors='coerce')  # Clean to numeric
-if isinstance(df['Volume'], pd.DataFrame):
-    df['Volume'] = df['Volume'].iloc[:, 0]  # Take first column if it's a DataFrame
+# Step 1: Handle Volume safely
+try:
+    if isinstance(df['Volume'], pd.DataFrame):  # Defensive: not likely but just in case
+        df['Volume'] = df['Volume'].iloc[:, 0]
+    else:
+        df['Volume'] = df['Volume'].astype(float)
+except Exception as e:
+    st.error(f"Volume column error: {e}")
+    st.stop()
 
-volume_series = pd.to_numeric(df['Volume'], errors='coerce')  # Now guaranteed 1D
-df['Volume'] = volume_series
-
+# Step 2: Calculate average volume and confirmation
 df['Avg_Volume'] = df['Volume'].rolling(window=20).mean()
 df['Volume_Confirm'] = (df['Volume'] > df['Avg_Volume']) & df['Avg_Volume'].notna()
 

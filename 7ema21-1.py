@@ -96,7 +96,9 @@ except Exception as e:
 
 # Volume Confirmation
 df['Avg_Volume'] = df['Volume'].rolling(window=20).mean()
-df['Volume_Confirm'] = df['Volume'] > df['Avg_Volume']
+#df['Volume_Confirm'] = df['Volume'] > df['Avg_Volume']
+df['Volume_Confirm'] = (df['Volume'] > df['Avg_Volume']) & df['Avg_Volume'].notna()
+
 
 # -----------------------------------------------
 # BUY Signal Logic

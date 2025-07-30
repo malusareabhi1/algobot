@@ -65,7 +65,7 @@ nse_stocks = {
 ticker_name = st.sidebar.selectbox("Select Stock", options=list(nse_stocks.keys()), index=7)
 ticker = nse_stocks[ticker_name]
 
-start_date = st.sidebar.date_input("Start Date", pd.to_datetime("2023-01-01"))
+start_date = st.sidebar.date_input("Start Date", pd.to_datetime("2025-01-01"))
 end_date = st.sidebar.date_input("End Date", pd.to_datetime("today"))
 interval = st.sidebar.selectbox("Timeframe", ["1d", "1h", "15m", "5m"], index=3)
 

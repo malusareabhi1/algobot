@@ -67,7 +67,7 @@ ticker = nse_stocks[ticker_name]
 
 start_date = st.sidebar.date_input("Start Date", pd.to_datetime("2025-01-01"))
 end_date = st.sidebar.date_input("End Date", pd.to_datetime("today"))
-interval = st.sidebar.selectbox("Timeframe", ["1d", "1h", "15m", "5m"], index=3)
+interval = st.sidebar.selectbox("Timeframe", ["1d", "1h", "15m", "5m"], index=0)
 
 # Fetch data
 df = yf.download(ticker, start=start_date, end=end_date, interval=interval)

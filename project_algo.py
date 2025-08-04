@@ -6676,6 +6676,7 @@ elif selected == "3PM STRATEGY":
     
     
     # Simulate KiteConnect for paper trading
+    # Simulate KiteConnect for paper trading
     class PaperKite:
         def __init__(self):
             self.orders = []
@@ -6746,7 +6747,14 @@ elif selected == "3PM STRATEGY":
         st.write("🧾 All Simulated Option Orders:")
         st.dataframe(pd.DataFrame(paper_orders))
     
-    #import plotly.express as px
-    #import plotly.express as px
+    # ✅ Filter all trades to force time-exit before 2:30 PM IST
+    exit_cutoff = time(14, 30)
+    for df in [trade_log_df, breakdown_df]:
+        for i, row in df.iterrows():
+            if pd.to_datetime(str(row['Exit Time'])) > pd.to_datetime(str(exit_cutoff)):
+                df.at[i, 'Exit Time'] = exit_cutoff
+                df.at[i, 'Result'] = '⏰ Time Exit'
+                df.at[i, 'P&L'] = round((row['Target'] - row['Entry']) if row['Result'] == '🎯 Target Hit' else 0, 2)
+
       
        

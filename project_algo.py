@@ -6748,12 +6748,23 @@ elif selected == "3PM STRATEGY":
         st.dataframe(pd.DataFrame(paper_orders))
     
     # ✅ Filter all trades to force time-exit before 2:30 PM IST
-    exit_cutoff = time(14, 30)
+    exit_cutoff = datetime.strptime("14:30", "%H:%M").time()
+
     for df in [trade_log_df, breakdown_df]:
         for i, row in df.iterrows():
-            if pd.to_datetime(str(row['Exit Time'])) > pd.to_datetime(str(exit_cutoff)):
+            exit_time = row.get("Exit Time")
+            if isinstance(exit_time, (datetime, pd.Timestamp)):
+                exit_time = exit_time.time()
+            elif isinstance(exit_time, str):
+                try:
+                    exit_time = datetime.strptime(exit_time, "%H:%M:%S").time()
+                except:
+                    continue
+    
+            if exit_time and exit_time > exit_cutoff:
                 df.at[i, 'Exit Time'] = exit_cutoff
                 df.at[i, 'Result'] = '⏰ Time Exit'
+    
                 df.at[i, 'P&L'] = round((row['Target'] - row['Entry']) if row['Result'] == '🎯 Target Hit' else 0, 2)
 
       

@@ -6225,4 +6225,34 @@ elif selected == "New Nifty Strategy":
             st.warning("🚫 No trades were executed based on the given conditions.")
     else:
         st.warning("📴 Please upload a valid CSV file to backtest the strategy.")  
+
+elif selected == "3PM STRATEGY":
+    st.title("⚙️ Test New Nifty 3PM STRATEGY ")
+    st.set_page_config(page_title="NIFTY 15-Min Chart with 3PM Breakout Strategy", layout="wide")
+
+    st.title("📈 NIFTY 15-Min Chart – 3PM Breakout/Breakdown Strategy")
+    
+    
+    
+    st.sidebar.header("Settings")
+    offset_points = st.sidebar.number_input("Offset Points for Breakout/Breakdown", value=100, step=10)
+    analysis_days = st.sidebar.slider("Number of Days to Analyze", min_value=10, max_value=90, value=60, step=5)
+    
+    st.sidebar.subheader("💼 Paper Trading Settings")
+    initial_capital = st.sidebar.number_input("Starting Capital (₹)", value=100000, step=10000)
+    risk_per_trade_pct = st.sidebar.slider("Risk per Trade (%)", min_value=0.5, max_value=5.0, value=2.0, step=0.5)
+    
+    
+    st.markdown("""
+    ## 📘 Strategy Explanation
+    
+    This intraday breakout/backtest strategy is based on the NIFTY 15-minute chart.
+    
+    - 🔼 **Breakout Logic**: At 3:00 PM, capture the high of the 15-minute candle. On the next trading day, if price crosses 3PM High + offset points, mark as a breakout.
+    - 🔽 **Breakdown Logic**: Track 3PM Close. On the next day, if price crosses below previous close and then drops offset points lower, mark as breakdown.
+    
+    *Useful for swing and intraday traders planning trades based on end-of-day momentum.*
+    
+    ---
+    """)
    

@@ -3,20 +3,21 @@ import pandas as pd
 import yfinance as yf
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
+import time
 
 # ------------------- FUNCTION 1: LOAD DATA -------------------
-def load_nifty_data(selected_date):
+def load_nifty_data():
     """
-    Load Nifty 15-min data from Yahoo Finance for last 7 days + next day of selected_date.
+    Load Nifty 15-min data from Yahoo Finance for last 7 days + today.
     Converts datetime to Asia/Kolkata timezone.
     Returns: DataFrame with Datetime column
     """
-    start_date = selected_date - timedelta(days=7)
-    end_date = selected_date + timedelta(days=1)
+    today = datetime.today().date()
+    start_date = today - timedelta(days=7)
+    end_date = today + timedelta(days=1)
 
     df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="15m")
     if df.empty:
-        st.warning("No data downloaded for the selected range.")
         return pd.DataFrame()
 
     df.reset_index(inplace=True)
@@ -45,6 +46,7 @@ def plot_nifty_candles(df):
     Plots 15-min Nifty candles for last 2 trading days with previous day's 3PM candle lines.
     """
     if df.empty:
+        st.warning("No data available.")
         return
 
     unique_days = df['Datetime'].dt.date.unique()
@@ -95,6 +97,14 @@ def plot_nifty_candles(df):
     st.plotly_chart(fig, use_container_width=True)
 
 # ------------------- STREAMLIT INTERFACE -------------------
-selected_date = st.date_input("Select date", value=datetime.today())
-df = load_nifty_data(selected_date)
-plot_nifty_candles(df)
+st.title("📈 Nifty 15-min Live Candles with 3PM Lines")
+
+# Create a placeholder container for dynamic updates
+chart_placeholder = st.empty()
+
+# Infinite loop for live updates
+while True:
+    df = load_nifty_data()
+    with chart_placeholder:
+        plot_nifty_candles(df)
+    time.sleep(60)  # Refresh every minute

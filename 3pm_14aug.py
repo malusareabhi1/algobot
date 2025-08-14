@@ -116,7 +116,94 @@ def plot_nifty_candles(df):
     )
 
     st.plotly_chart(fig, use_container_width=True)
+# ----------------------------------------------------------------
 
+LOT_SIZE = 75
+TRADE_QTY = 10 * LOT_SIZE
+PROFIT_PERCENT = 0.10  # 10% gain
+TIME_EXIT_MIN = 16  # minutes
+
+def get_prev_3pm_candle(df):
+    """Get previous day's 3PM 15-min candle."""
+    df = df.sort_values("Datetime")
+    prev_day = df['Datetime'].dt.date.max() - dt.timedelta(days=1)
+    candle_3pm = df[(df['Datetime'].dt.date == prev_day) &
+                     (df['Datetime'].dt.hour == 15) &
+                     (df['Datetime'].dt.minute == 0)]
+    if candle_3pm.empty:
+        return None
+    open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
+    close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
+    high_3pm = max(open_3pm, close_3pm)
+    low_3pm = min(open_3pm, close_3pm)
+    return {"open": open_3pm, "close": close_3pm, "high": high_3pm, "low": low_3pm}
+
+def check_trade_condition(df, prev_3pm):
+    """
+    df: Nifty 15-min candles for current day
+    prev_3pm: dict containing open, close, high, low of previous day's 3PM candle
+    Returns: dict with trade_signal, trade_type, entry_price, stoploss, target, exit_time
+    """
+    today = df['Datetime'].dt.date.max()
+    first_candle = df[(df['Datetime'].dt.date == today) &
+                      (df['Datetime'].dt.hour == 9) &
+                      (df['Datetime'].dt.minute < 30)]
+    if first_candle.empty:
+        return None  # first candle not yet formed
+
+    ref_open = first_candle['open'].values[0]
+    ref_close = first_candle['close'].values[0]
+    ref_high = first_candle['high'].values[0]
+    ref_low = first_candle['low'].values[0]
+
+    trade = None
+    entry_price = None
+    trade_type = None
+
+    # ----------------- Condition 1 -----------------
+    if ref_close > prev_3pm['high'] and ref_close > prev_3pm['low']:
+        trade = "Buy Call"
+        trade_type = "CE"
+        entry_price = ref_close
+
+    # ----------------- Condition 2 -----------------
+    elif ref_close < prev_3pm['low']:  # major gap down
+        # Reference candle 2
+        ref2_high = ref_high
+        ref2_low = ref_low
+        trade = "Buy Put"
+        trade_type = "PE"
+        entry_price = ref2_low  # trade triggered when next candle crosses this
+
+    # ----------------- Condition 3 -----------------
+    elif ref_close > prev_3pm['high']:  # major gap up
+        ref2_high = ref_high
+        ref2_low = ref_low
+        trade = "Buy Call"
+        trade_type = "CE"
+        entry_price = ref2_high
+
+    # ----------------- Condition 4 -----------------
+    elif ref_close < prev_3pm['low']:
+        trade = "Buy Put"
+        trade_type = "PE"
+        entry_price = ref_close
+
+    if trade:
+        stoploss = entry_price * 0.90  # 10% trailing SL
+        target = entry_price * 1.10  # 10% profit for 50% position
+        exit_time = first_candle['Datetime'].values[0] + pd.Timedelta(minutes=TIME_EXIT_MIN)
+        return {
+            "trade_signal": trade,
+            "trade_type": trade_type,
+            "entry_price": entry_price,
+            "stoploss": stoploss,
+            "target": target,
+            "qty": TRADE_QTY,
+            "expiry": "nearest_weekly",
+            "exit_time": exit_time
+        }
+    return None
 # ------------------- STREAMLIT INTERFACE -------------------
 st.title("📈 Nifty 15-min Live Candles with 3PM Lines")
 

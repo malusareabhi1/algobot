@@ -206,7 +206,7 @@ def check_trade_condition(df, prev_3pm):
         }
     return None
 
-import simpleaudio as sa  # optional: for sound alert
+#import simpleaudio as sa  # optional: for sound alert
 
 def play_alert():
     try:

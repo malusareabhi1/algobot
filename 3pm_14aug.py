@@ -93,3 +93,62 @@ def strategy(df):
         st.success(f"Trade Signal: {trade_signal} at {ref_close:.2f} (Simulated {TRADE_QTY if 'TRADE_QTY' in globals() else 'Qty'} shares)")
 
 strategy(df)
+
+# ------------------- STRATEGY LOGIC -------------------
+def get_prev_3pm_candle(df):
+    prev_day = df['Datetime'].dt.date.max() - dt.timedelta(days=1)
+    prev_3pm_candle = df[(df['Datetime'].dt.date == prev_day) &
+                          (df['Datetime'].dt.hour == 15) &
+                          (df['Datetime'].dt.minute < 15)]
+    if prev_3pm_candle.empty:
+        st.warning("No 3PM candle data found for previous day!")
+        return None
+    open_3pm = prev_3pm_candle['open'].values[0]
+    close_3pm = prev_3pm_candle['close'].values[0]
+    high_line = max(open_3pm, close_3pm)
+    low_line = min(open_3pm, close_3pm)
+    return open_3pm, close_3pm, high_line, low_line
+
+# ------------------- PLOT FUNCTION -------------------
+def plot_nifty_chart(df, high_line=None, low_line=None, ref_candle=None):
+    fig = go.Figure()
+
+    # Plot close price line
+    fig.add_trace(go.Scatter(
+        x=df['Datetime'], y=df['close'],
+        mode='lines', name='Close'
+    ))
+
+    # Plot previous 3PM candle high/low
+    if high_line and low_line:
+        fig.add_hline(y=high_line, line_dash="dash", line_color="green", annotation_text="Prev 3PM High")
+        fig.add_hline(y=low_line, line_dash="dash", line_color="red", annotation_text="Prev 3PM Low")
+
+    # Plot reference candle high/low
+    if ref_candle:
+        fig.add_hline(y=ref_candle['high'], line_dash="dot", line_color="blue", annotation_text="Ref Candle High")
+        fig.add_hline(y=ref_candle['low'], line_dash="dot", line_color="orange", annotation_text="Ref Candle Low")
+
+    fig.update_layout(title="Nifty 50 Price Chart", xaxis_title="Time", yaxis_title="Price")
+    st.plotly_chart(fig, use_container_width=True)
+
+# ------------------- EXECUTION -------------------
+prev_3pm = get_prev_3pm_candle(df)
+if prev_3pm:
+    open_3pm, close_3pm, high_line, low_line = prev_3pm
+    st.write(f"Previous day 3PM candle → Open: {open_3pm:.2f}, Close: {close_3pm:.2f}, High: {high_line:.2f}, Low: {low_line:.2f}")
+
+    # Take first 15-min candle today as reference
+    today = dt.date.today()
+    first_candle = df[(df['Datetime'].dt.date == today) & (df['Datetime'].dt.hour == 9) & (df['Datetime'].dt.minute < 30)]
+    if not first_candle.empty:
+        ref_candle = {
+            "high": first_candle['high'].values[0],
+            "low": first_candle['low'].values[0]
+        }
+        st.write(f"Reference Candle → High: {ref_candle['high']:.2f}, Low: {ref_candle['low']:.2f}")
+    else:
+        ref_candle = None
+
+    # Plot chart
+    plot_nifty_chart(df, high_line=high_line, low_line=low_line, ref_candle=ref_candle)

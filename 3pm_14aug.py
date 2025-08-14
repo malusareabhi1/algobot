@@ -152,10 +152,10 @@ def check_trade_condition(df, prev_3pm):
     if first_candle.empty:
         return None  # first candle not yet formed
 
-    ref_open = first_candle['open'].values[0]
-    ref_close = first_candle['close'].values[0]
-    ref_high = first_candle['high'].values[0]
-    ref_low = first_candle['low'].values[0]
+    ref_open = first_candle['Open_^NSEI'].values[0]
+    ref_close = first_candle['Close_^NSEI'].values[0]
+    ref_high = first_candle['High_^NSEI'].values[0]
+    ref_low = first_candle['Low_^NSEI'].values[0]
 
     trade = None
     entry_price = None

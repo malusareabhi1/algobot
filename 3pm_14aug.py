@@ -109,29 +109,39 @@ def get_prev_3pm_candle(df):
     low_line = min(open_3pm, close_3pm)
     return open_3pm, close_3pm, high_line, low_line
 
-# ------------------- PLOT FUNCTION -------------------
-def plot_nifty_chart(df, high_line=None, low_line=None, ref_candle=None):
-    fig = go.Figure()
+# ------------------- FUNCTION TO PLOT CANDLE CHART -------------------
+def plot_candle_chart(df, high_line=None, low_line=None):
+    # Filter only market hours
+    df = df[(df['Datetime'].dt.time >= dt.time(9, 15)) & (df['Datetime'].dt.time <= dt.time(15, 30))]
 
-    # Plot close price line
-    fig.add_trace(go.Scatter(
-        x=df['Datetime'], y=df['close'],
-        mode='lines', name='Close'
-    ))
+    fig = go.Figure(data=[go.Candlestick(
+        x=df['Datetime'],
+        open=df['open'],
+        high=df['high'],
+        low=df['low'],
+        close=df['close'],
+        name='Nifty 50'
+    )])
 
-    # Plot previous 3PM candle high/low
+    # Add previous 3PM candle lines
     if high_line and low_line:
         fig.add_hline(y=high_line, line_dash="dash", line_color="green", annotation_text="Prev 3PM High")
         fig.add_hline(y=low_line, line_dash="dash", line_color="red", annotation_text="Prev 3PM Low")
 
-    # Plot reference candle high/low
-    if ref_candle:
-        fig.add_hline(y=ref_candle['high'], line_dash="dot", line_color="blue", annotation_text="Ref Candle High")
-        fig.add_hline(y=ref_candle['low'], line_dash="dot", line_color="orange", annotation_text="Ref Candle Low")
-
-    fig.update_layout(title="Nifty 50 Price Chart", xaxis_title="Time", yaxis_title="Price")
+    fig.update_layout(
+        title="Nifty 50 Candle Chart (Market Hours Only)",
+        xaxis_title="Time",
+        yaxis_title="Price",
+        xaxis_rangeslider_visible=False
+    )
     st.plotly_chart(fig, use_container_width=True)
 
+# ------------------- EXECUTION -------------------
+prev_3pm = get_prev_3pm_candle(df)
+if prev_3pm:
+    high_line, low_line = prev_3pm
+    st.write(f"Previous day 3PM → High: {high_line:.2f}, Low: {low_line:.2f}")
+    plot_candle_chart(df, high_line, low_line)
 # ------------------- EXECUTION -------------------
 prev_3pm = get_prev_3pm_candle(df)
 if prev_3pm:

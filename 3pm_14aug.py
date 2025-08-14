@@ -120,12 +120,50 @@ def plot_nifty_candles(df):
 # ------------------- STREAMLIT INTERFACE -------------------
 st.title("📈 Nifty 15-min Live Candles with 3PM Lines")
 
-# Create a placeholder container for dynamic updates
+
+
+# Placeholder for chart
 chart_placeholder = st.empty()
+trade_placeholder = st.empty()
 
 # Infinite loop for live updates
 while True:
-    df = load_nifty_data()
+    # Load Nifty 15-min data (replace with your function)
+    df = load_nifty_data()  
+
+    if df.empty:
+        st.warning("No data loaded.")
+        time.sleep(60)
+        continue
+
+    # 1️⃣ Get previous day's 3PM candle
+    prev_3pm = get_prev_3pm_candle(df)
+
+    if prev_3pm is None:
+        st.warning("No 3PM candle found for previous day.")
+        time.sleep(60)
+        continue
+
+    # 2️⃣ Check trade conditions
+    trade_info = check_trade_condition(df, prev_3pm)
+
+    # 3️⃣ Plot chart with 3PM horizontal lines
     with chart_placeholder:
-        plot_nifty_candles(df)
-    time.sleep(60)  # Refresh every minute
+        plot_nifty_candles(df, prev_3pm)  # Pass prev_3pm to mark lines
+
+    # 4️⃣ Display trade signal if any
+    with trade_placeholder:
+        if trade_info:
+            st.success(f"Trade Signal: {trade_info['trade_signal']}\n"
+                       f"Type: {trade_info['trade_type']}\n"
+                       f"Entry: {trade_info['entry_price']:.2f}\n"
+                       f"Stoploss: {trade_info['stoploss']:.2f}\n"
+                       f"Target: {trade_info['target']:.2f}\n"
+                       f"Qty: {trade_info['qty']}\n"
+                       f"Expiry: {trade_info['expiry']}\n"
+                       f"Time Exit: {trade_info['exit_time']}")
+        else:
+            st.info("No trade signal currently.")
+
+    # 5️⃣ Wait before refreshing
+    time.sleep(60)

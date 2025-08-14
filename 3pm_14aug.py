@@ -218,7 +218,7 @@ trade_placeholder = st.empty()
 while True:
     # Load Nifty 15-min data (replace with your function)
     df = load_nifty_data()  
-    st.write(df)
+    #st.write(df)
     if df.empty:
         st.warning("No data loaded.")
         time.sleep(60)

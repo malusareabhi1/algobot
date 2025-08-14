@@ -15,7 +15,7 @@ kite.set_access_token(KITE_ACCESS_TOKEN)
 
 to_date = datetime.now()
 from_date = to_date - timedelta(days=1)
-
+st.subheader("📊 Dashboard - Zerodha Account Overview")       
 try:
     data = kite.historical_data(NIFTY_TOKEN, from_date, to_date, interval="15minute")
     df = pd.DataFrame(data)

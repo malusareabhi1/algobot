@@ -43,24 +43,17 @@ def load_nifty_data():
 
 # ------------------- FUNCTION 2: PLOT CHART -------------------
 def plot_nifty_candles(df):
-    """
-    Plots 15-min Nifty candles for last 2 trading days with previous day's 3PM candle highlighted.
-    Only the 3PM candle lines get annotations.
-    """
     if df.empty:
-        st.warning("No data available.")
-        return
+        return None
 
     unique_days = df['Datetime'].dt.date.unique()
     if len(unique_days) < 2:
-        st.warning("Not enough data for two trading days")
-        return
+        return None
 
     last_day = unique_days[-2]
     today = unique_days[-1]
     df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
 
-    # Previous day 3PM candle
     candle_3pm = df_plot[(df_plot['Datetime'].dt.date == last_day) &
                          (df_plot['Datetime'].dt.hour == 15) &
                          (df_plot['Datetime'].dt.minute == 0)]
@@ -72,9 +65,7 @@ def plot_nifty_candles(df):
         candle_time = candle_3pm.iloc[0]['Datetime']
     else:
         open_3pm = close_3pm = high_3pm = low_3pm = candle_time = None
-        st.warning("No 3:00 PM candle found for last trading day.")
 
-    # Plot candlestick chart
     fig = go.Figure(data=[go.Candlestick(
         x=df_plot['Datetime'],
         open=df_plot['Open_^NSEI'],
@@ -83,7 +74,6 @@ def plot_nifty_candles(df):
         close=df_plot['Close_^NSEI']
     )])
 
-    # Highlight 3PM candle with a shaded rectangle
     if candle_time:
         fig.add_shape(
             type="rect",
@@ -97,7 +87,6 @@ def plot_nifty_candles(df):
             layer="below"
         )
 
-    # Only 3PM candle lines get annotations
     if open_3pm:
         fig.add_hline(y=open_3pm, line_dash="dot", line_color="blue",
                       annotation_text="3PM Open", annotation_position="top left")
@@ -105,18 +94,18 @@ def plot_nifty_candles(df):
         fig.add_hline(y=close_3pm, line_dash="dot", line_color="red",
                       annotation_text="3PM Close", annotation_position="top left")
 
-    # Hide weekends and hours outside trading
-    fig.update_layout(title="Nifty 15-min candles - Last Day & Today", xaxis_rangeslider_visible=False)
     fig.update_layout(
+        title="Nifty 15-min candles - Last Day & Today",
+        xaxis_rangeslider_visible=False,
         xaxis=dict(
             rangebreaks=[
-                dict(bounds=["sat", "mon"]),       # hide weekends
-                dict(bounds=[15.5, 9.25], pattern="hour")  # hide off-market hours
+                dict(bounds=["sat", "mon"]),
+                dict(bounds=[15.5, 9.25], pattern="hour")
             ]
         )
     )
+    return fig
 
-    st.plotly_chart(fig, use_container_width=True)
 # ----------------------------------------------------------------
 
 LOT_SIZE = 75
@@ -247,8 +236,13 @@ while True:
     trade_info = check_trade_condition(df, prev_3pm)
 
     # 3️⃣ Plot chart with 3PM horizontal lines
-    with chart_placeholder:
-        plot_nifty_candles(df)  # Pass prev_3pm to mark lines
+    #with chart_placeholder:
+        #plot_nifty_candles(df)  # Pass prev_3pm to mark lines
+
+     # ✅ Now plot only once via placeholder
+    fig = plot_nifty_candles(df)
+    if fig:
+        chart_placeholder.plotly_chart(fig, use_container_width=True)
 
     # 4️⃣ Display trade signal if any
     with trade_placeholder:

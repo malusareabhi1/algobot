@@ -267,4 +267,4 @@ while True:
         st.warning(f"Nifty below previous day's 3PM Low: {prev_3pm['low']:.2f} → Current: {last_close:.2f}")
         # play_alert()  # optional: play sound
     # 5️⃣ Wait before refreshing
-    time.sleep(60)
+    time.sleep(300)

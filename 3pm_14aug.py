@@ -79,9 +79,17 @@ def plot_nifty_candles(df):
     )])
 
     # Add 3PM candle lines
-    if open_3pm and close_3pm:
-        fig.add_hline(y=open_3pm, line_dash="dot", line_color="blue", annotation_text="3PM Open")
-        fig.add_hline(y=close_3pm, line_dash="dot", line_color="red", annotation_text="3PM Close")
+    #if open_3pm and close_3pm:
+        #fig.add_hline(y=open_3pm, line_dash="dot", line_color="blue", annotation_text="3PM Open")
+        #fig.add_hline(y=close_3pm, line_dash="dot", line_color="red", annotation_text="3PM Close")
+
+     # Only 3PM candle lines get annotations
+    if open_3pm:
+        fig.add_hline(y=open_3pm, line_dash="dot", line_color="blue",
+                      annotation_text="3PM Open", annotation_position="top left")
+    if close_3pm:
+        fig.add_hline(y=close_3pm, line_dash="dot", line_color="red",
+                      annotation_text="3PM Close", annotation_position="top left")
 
     # Hide weekends and hours outside trading
     fig.update_layout(title="Nifty 15-min candles - Last Day & Today", xaxis_rangeslider_visible=False)

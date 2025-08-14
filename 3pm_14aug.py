@@ -1,81 +1,100 @@
 import streamlit as st
 import pandas as pd
 import yfinance as yf
-import datetime as dt
-import pytz
 import plotly.graph_objects as go
+from datetime import datetime, timedelta
 
-st.title("📈 Nifty 50 Live Candle Chart with 3PM Lines (IST)")
+# ------------------- FUNCTION 1: LOAD DATA -------------------
+def load_nifty_data(selected_date):
+    """
+    Load Nifty 15-min data from Yahoo Finance for last 7 days + next day of selected_date.
+    Converts datetime to Asia/Kolkata timezone.
+    Returns: DataFrame with Datetime column
+    """
+    start_date = selected_date - timedelta(days=7)
+    end_date = selected_date + timedelta(days=1)
 
-# ------------------- FETCH LIVE NIFTY DATA -------------------
-def get_live_nifty_data(interval="15m"):
-    """
-    Fetch recent Nifty 50 data from Yahoo Finance.
-    Converts Datetime to IST timezone.
-    """
-    ticker = "^NSEI"  # Nifty 50
-    df = yf.download(tickers=ticker, period="2d", interval=interval)
-    df = df.reset_index()
-    df.rename(columns={"Datetime":"Datetime","Open":"open","High":"high","Low":"low","Close":"close","Volume":"volume"}, inplace=True)
-    
-    # Convert to IST only if naive
+    df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="15m")
+    if df.empty:
+        st.warning("No data downloaded for the selected range.")
+        return pd.DataFrame()
+
+    df.reset_index(inplace=True)
+
+    # Flatten MultiIndex if present
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in df.columns]
+
+    # Rename datetime column
+    if 'Datetime_' in df.columns:
+        df.rename(columns={'Datetime_': 'Datetime'}, inplace=True)
+    elif 'Date' in df.columns:
+        df.rename(columns={'Date': 'Datetime'}, inplace=True)
+
+    # Convert to datetime & timezone aware
     if df['Datetime'].dt.tz is None:
         df['Datetime'] = df['Datetime'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
     else:
         df['Datetime'] = df['Datetime'].dt.tz_convert('Asia/Kolkata')
-        
+
     return df
 
+# ------------------- FUNCTION 2: PLOT CHART -------------------
+def plot_nifty_candles(df):
+    """
+    Plots 15-min Nifty candles for last 2 trading days with previous day's 3PM candle lines.
+    """
+    if df.empty:
+        return
 
-# ------------------- GET PREVIOUS DAY 3PM CANDLE -------------------
-def get_prev_3pm_candle(df):
-    prev_day = df['Datetime'].dt.date.max() - dt.timedelta(days=1)
-    prev_3pm_candle = df[(df['Datetime'].dt.date == prev_day) &
-                          (df['Datetime'].dt.hour == 15) &
-                          (df['Datetime'].dt.minute == 0)]
-    if prev_3pm_candle.empty:
-        st.warning("No 3PM candle found for previous day!")
-        return None
-    open_3pm = prev_3pm_candle['open'].values[0]
-    close_3pm = prev_3pm_candle['close'].values[0]
-    
-    high_line = float(max(open_3pm, close_3pm))
-    low_line = float(min(open_3pm, close_3pm))
-    
-    st.write(f"Previous day 3PM → High: {high_line:.2f}, Low: {low_line:.2f}")
+    unique_days = df['Datetime'].dt.date.unique()
+    if len(unique_days) < 2:
+        st.warning("Not enough data for two trading days")
+        return
 
-    return high_line, low_line
+    last_day = unique_days[-2]
+    today = unique_days[-1]
+    df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
 
-# ------------------- PLOT CANDLE CHART -------------------
-def plot_candle_chart(df, high_line=None, low_line=None):
-    # Filter only market hours
-    df = df[(df['Datetime'].dt.time >= dt.time(9, 15)) & (df['Datetime'].dt.time <= dt.time(15, 30))]
+    # Previous day 3PM candle
+    candle_3pm = df_plot[(df_plot['Datetime'].dt.date == last_day) &
+                         (df_plot['Datetime'].dt.hour == 15) &
+                         (df_plot['Datetime'].dt.minute == 0)]
+    if not candle_3pm.empty:
+        open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
+        close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
+    else:
+        open_3pm = close_3pm = None
+        st.warning("No 3:00 PM candle found for last trading day.")
 
+    # Plot candlestick chart
     fig = go.Figure(data=[go.Candlestick(
-        x=df['Datetime'],
-        open=df['open'],
-        high=df['high'],
-        low=df['low'],
-        close=df['close'],
-        name='Nifty 50'
+        x=df_plot['Datetime'],
+        open=df_plot['Open_^NSEI'],
+        high=df_plot['High_^NSEI'],
+        low=df_plot['Low_^NSEI'],
+        close=df_plot['Close_^NSEI']
     )])
 
-    if high_line and low_line:
-        fig.add_hline(y=high_line, line_dash="dash", line_color="green", annotation_text="Prev 3PM High")
-        fig.add_hline(y=low_line, line_dash="dash", line_color="red", annotation_text="Prev 3PM Low")
+    # Add 3PM candle lines
+    if open_3pm and close_3pm:
+        fig.add_hline(y=open_3pm, line_dash="dot", line_color="blue", annotation_text="3PM Open")
+        fig.add_hline(y=close_3pm, line_dash="dot", line_color="red", annotation_text="3PM Close")
 
+    # Hide weekends and hours outside trading
+    fig.update_layout(title="Nifty 15-min candles - Last Day & Today", xaxis_rangeslider_visible=False)
     fig.update_layout(
-        title="Nifty 50 Candle Chart (Market Hours Only)",
-        xaxis_title="Time (IST)",
-        yaxis_title="Price",
-        xaxis_rangeslider_visible=False
+        xaxis=dict(
+            rangebreaks=[
+                dict(bounds=["sat", "mon"]),       # hide weekends
+                dict(bounds=[15.5, 9.25], pattern="hour")  # hide off-market hours
+            ]
+        )
     )
+
     st.plotly_chart(fig, use_container_width=True)
 
-# ------------------- MAIN -------------------
-df = get_live_nifty_data()
-prev_3pm = get_prev_3pm_candle(df)
-if prev_3pm:
-    high_line, low_line = prev_3pm
-    st.write(f"Previous day 3PM → High: {high_line:.2f}, Low: {low_line:.2f}")
-    plot_candle_chart(df, high_line, low_line)
+# ------------------- STREAMLIT INTERFACE -------------------
+selected_date = st.date_input("Select date", value=datetime.today())
+df = load_nifty_data(selected_date)
+plot_nifty_candles(df)

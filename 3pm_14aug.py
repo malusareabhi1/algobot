@@ -91,6 +91,20 @@ def plot_nifty_candles(df):
         fig.add_hline(y=close_3pm, line_dash="dot", line_color="red",
                       annotation_text="3PM Close", annotation_position="top left")
 
+     # Highlight 3PM candle with a shaded rectangle
+    if candle_time:
+        fig.add_shape(
+            type="rect",
+            x0=candle_time,
+            x1=candle_time + pd.Timedelta(minutes=15),
+            y0=low_3pm,
+            y1=high_3pm,
+            fillcolor="LightSkyBlue",
+            opacity=0.3,
+            line_width=0,
+            layer="below"
+        )
+
     # Hide weekends and hours outside trading
     fig.update_layout(title="Nifty 15-min candles - Last Day & Today", xaxis_rangeslider_visible=False)
     fig.update_layout(

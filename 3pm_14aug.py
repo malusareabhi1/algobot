@@ -205,6 +205,17 @@ def check_trade_condition(df, prev_3pm):
             "exit_time": exit_time
         }
     return None
+
+import simpleaudio as sa  # optional: for sound alert
+
+def play_alert():
+    try:
+        wave_obj = sa.WaveObject.from_wave_file("/path/to/alert.wav")  # replace with alert sound
+        play_obj = wave_obj.play()
+    except:
+        pass  # fallback if sound can't play
+
+
 # ------------------- STREAMLIT INTERFACE -------------------
 st.title("📈 Nifty 15-min Live Candles with 3PM Lines")
 
@@ -253,5 +264,13 @@ while True:
         else:
             st.info("No trade signal currently.")
 
+    # ✅ 6️⃣ Check for Nifty crossing 3PM High/Low and play alert
+    last_close = df[df['Datetime'].dt.date == df['Datetime'].dt.date.max()]['Close_^NSEI'].values[-1]
+    if last_close > prev_3pm['high']:
+        st.warning(f"Nifty above previous day's 3PM High: {prev_3pm['high']:.2f} → Current: {last_close:.2f}")
+        # play_alert()  # optional: play sound
+    elif last_close < prev_3pm['low']:
+        st.warning(f"Nifty below previous day's 3PM Low: {prev_3pm['low']:.2f} → Current: {last_close:.2f}")
+        # play_alert()  # optional: play sound
     # 5️⃣ Wait before refreshing
     time.sleep(60)

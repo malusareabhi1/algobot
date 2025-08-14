@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 st.title("📈 Nifty 50 Live Candle Chart with 3PM Lines (IST)")
 
 # ------------------- FETCH LIVE NIFTY DATA -------------------
-def get_live_nifty_data(interval="1m"):
+def get_live_nifty_data(interval="15m"):
     """
     Fetch recent Nifty 50 data from Yahoo Finance.
     Converts Datetime to IST timezone.
@@ -18,9 +18,14 @@ def get_live_nifty_data(interval="1m"):
     df = df.reset_index()
     df.rename(columns={"Datetime":"Datetime","Open":"open","High":"high","Low":"low","Close":"close","Volume":"volume"}, inplace=True)
     
-    # Convert to IST
-    df['Datetime'] = df['Datetime'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
+    # Convert to IST only if naive
+    if df['Datetime'].dt.tz is None:
+        df['Datetime'] = df['Datetime'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
+    else:
+        df['Datetime'] = df['Datetime'].dt.tz_convert('Asia/Kolkata')
+        
     return df
+
 
 # ------------------- GET PREVIOUS DAY 3PM CANDLE -------------------
 def get_prev_3pm_candle(df):

@@ -95,20 +95,20 @@ def strategy(df):
 strategy(df)
 
 # ------------------- STRATEGY LOGIC -------------------
+# ------------------- FUNCTION TO GET PREVIOUS 3PM CANDLE -------------------
 def get_prev_3pm_candle(df):
     prev_day = df['Datetime'].dt.date.max() - dt.timedelta(days=1)
     prev_3pm_candle = df[(df['Datetime'].dt.date == prev_day) &
                           (df['Datetime'].dt.hour == 15) &
-                          (df['Datetime'].dt.minute < 15)]
+                          (df['Datetime'].dt.minute == 0)]
     if prev_3pm_candle.empty:
-        st.warning("No 3PM candle data found for previous day!")
+        st.warning("No 3PM candle found for previous day!")
         return None
     open_3pm = prev_3pm_candle['open'].values[0]
     close_3pm = prev_3pm_candle['close'].values[0]
     high_line = max(open_3pm, close_3pm)
     low_line = min(open_3pm, close_3pm)
-    return open_3pm, close_3pm, high_line, low_line
-
+    return high_line, low_line
 # ------------------- FUNCTION TO PLOT CANDLE CHART -------------------
 def plot_candle_chart(df, high_line=None, low_line=None):
     # Filter only market hours

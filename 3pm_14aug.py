@@ -14,7 +14,7 @@ def get_live_nifty_data(interval="15m"):
     Converts Datetime to IST timezone.
     """
     ticker = "^NSEI"  # Nifty 50
-    df = yf.download(tickers=ticker, period="5d", interval=interval)
+    df = yf.download(tickers=ticker, period="2d", interval=interval)
     df = df.reset_index()
     df.rename(columns={"Datetime":"Datetime","Open":"open","High":"high","Low":"low","Close":"close","Volume":"volume"}, inplace=True)
     

@@ -237,7 +237,7 @@ while True:
 
     # 3️⃣ Plot chart with 3PM horizontal lines
     with chart_placeholder:
-        plot_nifty_candles(df, prev_3pm)  # Pass prev_3pm to mark lines
+        plot_nifty_candles(df)  # Pass prev_3pm to mark lines
 
     # 4️⃣ Display trade signal if any
     with trade_placeholder:

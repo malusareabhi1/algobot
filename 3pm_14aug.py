@@ -6,6 +6,7 @@ import time
 from kiteconnect import KiteConnect  # Zerodha API
 import plotly.graph_objects as go
 from dotenv import load_dotenv
+import os
 # ------------------- USER SETTINGS -------------------
 #KITE_API_KEY = "YOUR_API_KEY"
 #KITE_ACCESS_TOKEN = "YOUR_ACCESS_TOKEN"

@@ -35,7 +35,7 @@ def get_live_nifty_minute_data(token, interval="minute"):
     today = dt.date.today()
     from_date = today - dt.timedelta(days=2)
     to_date = today
-    df = pd.DataFrame(kite.historical_data(NIFTY_TOKEN , from_date, to_date, interval))
+    df = pd.DataFrame(kite.historical_data(token, from_date, to_date, interval))
     df['Datetime'] = pd.to_datetime(df['date'])
     df = df[['Datetime', 'open', 'high', 'low', 'close', 'volume']]
     return df

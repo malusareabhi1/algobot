@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
-
+import streamlit as st
 load_dotenv()
 
 KITE_API_KEY = os.getenv("KITE_API_KEY")
@@ -19,6 +19,6 @@ from_date = to_date - timedelta(days=1)
 try:
     data = kite.historical_data(NIFTY_TOKEN, from_date, to_date, interval="15minute")
     df = pd.DataFrame(data)
-    print(df.head())
+    st.write(df.head())
 except Exception as e:
-    print("Error fetching historical data:", e)
+     st.write("Error fetching historical data:", e)

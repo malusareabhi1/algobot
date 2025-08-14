@@ -38,8 +38,12 @@ def get_prev_3pm_candle(df):
         return None
     open_3pm = prev_3pm_candle['open'].values[0]
     close_3pm = prev_3pm_candle['close'].values[0]
-    high_line = max(open_3pm, close_3pm)
-    low_line = min(open_3pm, close_3pm)
+    
+    high_line = float(max(open_3pm, close_3pm))
+    low_line = float(min(open_3pm, close_3pm))
+    
+    st.write(f"Previous day 3PM → High: {high_line:.2f}, Low: {low_line:.2f}")
+
     return high_line, low_line
 
 # ------------------- PLOT CANDLE CHART -------------------

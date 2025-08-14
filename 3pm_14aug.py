@@ -5,10 +5,13 @@ import datetime as dt
 import time
 from kiteconnect import KiteConnect  # Zerodha API
 import plotly.graph_objects as go
-
+from dotenv import load_dotenv
 # ------------------- USER SETTINGS -------------------
-KITE_API_KEY = "YOUR_API_KEY"
-KITE_ACCESS_TOKEN = "YOUR_ACCESS_TOKEN"
+#KITE_API_KEY = "YOUR_API_KEY"
+#KITE_ACCESS_TOKEN = "YOUR_ACCESS_TOKEN"
+# Get API key and access token from environment
+KITE_API_KEY = os.getenv("KITE_API_KEY")
+KITE_ACCESS_TOKEN = os.getenv("KITE_ACCESS_TOKEN")
 NIFTY_TOKEN = 256265  # Nifty 50 spot
 LOT_SIZE = 75
 TRADE_QTY = 10 * LOT_SIZE  # 10 lots

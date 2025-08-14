@@ -4,7 +4,8 @@ import yfinance as yf
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import time
-import datetime
+import datetime as dt
+
 # ------------------- FUNCTION 1: LOAD DATA -------------------
 def load_nifty_data():
     """

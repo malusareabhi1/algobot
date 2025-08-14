@@ -11,19 +11,29 @@ st.title("📈 Nifty 50 3PM Candle Strategy Simulator")
 @st.cache_data
 def load_sample_data():
     """
-    Simulate Nifty minute data for 2 days
-    Columns: Datetime, Open, High, Low, Close
+    Simulate Nifty minute data for 2 days (9:15 AM to 3:30 PM)
     """
-    start_dt = dt.datetime.combine(dt.date.today() - dt.timedelta(days=2), dt.time(9, 15))
-    minutes = pd.date_range(start=start_dt, periods=2*390, freq='1min')  # 2 days, 6.5 hours each
-    prices = np.cumsum(np.random.randn(len(minutes))) + 18000  # Simulated Nifty around 18000
+    minutes_list = []
+    prices_list = []
+
+    for d in range(2):  # 2 days
+        date = dt.date.today() - dt.timedelta(days=2 - d)
+        # Trading from 9:15 to 15:30 → 6h 15min = 375 minutes
+        minutes = pd.date_range(start=dt.datetime.combine(date, dt.time(9,15)), periods=375, freq='1min')
+        prices = np.cumsum(np.random.randn(len(minutes))) + 18000  # simulated around 18000
+        minutes_list.append(minutes)
+        prices_list.append(prices)
+
+    all_minutes = pd.concat([pd.Series(m) for m in minutes_list])
+    all_prices = np.concatenate(prices_list)
+
     df = pd.DataFrame({
-        "Datetime": minutes,
-        "open": prices + np.random.randn(len(minutes)),
-        "high": prices + np.random.rand(len(minutes))*5,
-        "low": prices - np.random.rand(len(minutes))*5,
-        "close": prices + np.random.randn(len(minutes)),
-        "volume": np.random.randint(100, 1000, size=len(minutes))
+        "Datetime": all_minutes,
+        "open": all_prices + np.random.randn(len(all_minutes)),
+        "high": all_prices + np.random.rand(len(all_minutes))*5,
+        "low": all_prices - np.random.rand(len(all_minutes))*5,
+        "close": all_prices + np.random.randn(len(all_minutes)),
+        "volume": np.random.randint(100,1000,len(all_minutes))
     })
     return df
 

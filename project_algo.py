@@ -8037,7 +8037,12 @@ elif selected == "3PM OPTION":
         st.write(f"Total Quantity: {result['total_quantity']}")
         trade_log_df = generate_trade_log_from_option(result, signal)
         st.write("### Trade Log for Current Signal")
-        st.table(trade_log_df)
+
+        for i, row in trade_log_df.iterrows():
+            st.write(f"**Trade {i+1}:**")
+            st.table(pd.DataFrame(row).to_frame(name="Value"))
+        #st.write("### Trade Log for Current Signal")
+        #st.table(trade_log_df)
     else:
         st.write("No trade signal for today based on conditions.")
     

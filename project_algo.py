@@ -8025,8 +8025,14 @@ elif selected == "3PM OPTION":
         result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)
        # st.write("###  find_nearest_itm_option")
         #st.write(result)
+        # Convert dict to DataFrame, then transpose
         st.write("Nearest ITM Call option to BUY:")
-        st.table(pd.DataFrame([result['option_data']]))
+        df_option = pd.DataFrame([result['option_data']]).T
+        df_option.columns = ["Value"]  # Rename column for clarity
+        
+        st.table(df_option)
+        
+        #st.table(pd.DataFrame([result['option_data']]))
     
         st.write(f"Total Quantity: {result['total_quantity']}")
         trade_log_df = generate_trade_log_from_option(result, signal)

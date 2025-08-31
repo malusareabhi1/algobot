@@ -7915,8 +7915,8 @@ elif selected == "3PM OPTION":
         
         # Append into trade log DataFrame
         #trade_log["Exit Signal"] = exit_reason
-        trade_log["Exit Price"] = exit_price
-        trade_log["P&L"] = pnl
+        #trade_log["Exit Price"] = exit_price
+        #trade_log["P&L"] = pnl
 
     
         

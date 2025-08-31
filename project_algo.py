@@ -7879,7 +7879,16 @@ elif selected == "3PM OPTION":
         buy_price = result["option_data"]["lastPrice"]
         exit_reason = trade_signal.get("status", "Open")  # e.g. "Exited at Trailing SL"
         exit_price = trade_signal.get("exit_price", None)   
-        
+
+        # If exit price is not already set, you can simulate based on reason:
+        if exit_price is None:
+            if "Trailing SL" in exit_reason:
+                exit_price = buy_price * 0.9
+            elif "Profit" in exit_reason:
+                exit_price = buy_price * 1.1
+            else:
+                exit_price = buy_price  # flat exit
+            
         
         
         
@@ -8073,14 +8082,7 @@ elif selected == "3PM OPTION":
    # exit_reason = signal.get("status", "Open")  # from signal
     #exit_price = signal.get("exit_price", None)
     
-    # If exit price is not already set, you can simulate based on reason:
-    if exit_price is None:
-        if "Trailing SL" in exit_reason:
-            exit_price = buy_price * 0.9
-        elif "Profit" in exit_reason:
-            exit_price = buy_price * 1.1
-        else:
-            exit_price = buy_price  # flat exit
+    
     
     # Calculate P&L
     quantity = result["total_quantity"]

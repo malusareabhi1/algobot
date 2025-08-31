@@ -8062,6 +8062,39 @@ elif selected == "3PM OPTION":
     #trade_log_df = generate_trade_log_from_option(result, signal)
     #st.table(trade_log_df)
     # Ensure Expiry Date is a datetime
+    # Example P&L calculation
+
+    buy_price = result['option_data']['lastPrice']
+    exit_reason = signal.get("status", "Open")  # from signal
+    exit_price = signal.get("exit_price", None)
+    
+    # If exit price is not already set, you can simulate based on reason:
+    if exit_price is None:
+        if "Trailing SL" in exit_reason:
+            exit_price = buy_price * 0.9
+        elif "Profit" in exit_reason:
+            exit_price = buy_price * 1.1
+        else:
+            exit_price = buy_price  # flat exit
+    
+    # Calculate P&L
+    quantity = result["total_quantity"]
+    pnl = (exit_price - buy_price) * quantity
+    
+    # Append into trade log DataFrame
+    trade_log["Exit Signal"] = exit_reason
+    trade_log["Exit Price"] = exit_price
+    trade_log["P&L"] = pnl
+
+    st.write("### Trade Log Summary")
+
+    if 'trade_log_df' in locals() and not trade_log_df.empty:
+        cols_to_show = [c for c in ["Exit Signal", "Exit Price", "P&L"] if c in trade_log_df.columns]
+        st.table(trade_log_df[cols_to_show])
+    else:
+        st.write("No trade log data available.")
+
+
 
     
 

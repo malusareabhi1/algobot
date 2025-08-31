@@ -7874,7 +7874,12 @@ elif selected == "3PM OPTION":
         
         #exit_time = pd.to_datetime(exit_time)
         #result.index = pd.to_datetime(result.index)
-    
+        # ---- EXIT DETAILS + P&L ----
+         # ---- EXIT DETAILS + P&L ----
+        buy_price = result["option_data"]["lastPrice"]
+        exit_reason = trade_signal.get("status", "Open")  # e.g. "Exited at Trailing SL"
+        exit_price = trade_signal.get("exit_price", None)   
+        
         
         
         
@@ -8064,9 +8069,9 @@ elif selected == "3PM OPTION":
     # Ensure Expiry Date is a datetime
     # Example P&L calculation
 
-    buy_price = result['option_data']['lastPrice']
-    exit_reason = signal.get("status", "Open")  # from signal
-    exit_price = signal.get("exit_price", None)
+    #buy_price = result['option_data']['lastPrice']
+   # exit_reason = signal.get("status", "Open")  # from signal
+    #exit_price = signal.get("exit_price", None)
     
     # If exit price is not already set, you can simulate based on reason:
     if exit_price is None:

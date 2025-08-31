@@ -8038,9 +8038,11 @@ elif selected == "3PM OPTION":
         trade_log_df = generate_trade_log_from_option(result, signal)
         st.write("### Trade Log for Current Signal")
 
+        #sst.write("### Trade Log for Current Signal")
+
         for i, row in trade_log_df.iterrows():
             st.write(f"**Trade {i+1}:**")
-            st.table(pd.DataFrame(row).to_frame(name="Value"))
+            st.table(row.to_frame(name="Value"))
         #st.write("### Trade Log for Current Signal")
         #st.table(trade_log_df)
     else:

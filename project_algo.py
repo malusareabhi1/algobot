@@ -7480,14 +7480,14 @@ elif selected == "3PM OPTION":
     ##############################################################################################
 
     def trading_signal_all_conditions(df, quantity=10*75, return_all_signals=False):
-    """
-    Evaluate trading conditions based on Base Zone strategy with:
-    - CALL stop loss = recent swing low (last 10 candles)
-    - PUT stop loss = recent swing high (last 10 candles)
-    - Dynamic trailing stop loss based on swing points
-    - Time exit after 16 minutes if neither SL nor trailing SL hit
-    - Single active trade per day
-    """
+        """
+        Evaluate trading conditions based on Base Zone strategy with:
+        - CALL stop loss = recent swing low (last 10 candles)
+        - PUT stop loss = recent swing high (last 10 candles)
+        - Dynamic trailing stop loss based on swing points
+        - Time exit after 16 minutes if neither SL nor trailing SL hit
+        - Single active trade per day
+        """
 
     signals = []
     spot_price = df['Close_^NSEI'].iloc[-1]

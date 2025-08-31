@@ -8007,8 +8007,17 @@ elif selected == "3PM OPTION":
     #st.write("###  Signal")
     #st.write(signal)
     if signal:
+        # Exclude unwanted keys
+        exclude_cols = ["stoploss", "quantity", "expiry", "exit_price"]
+        
+        # Filter the signal dict
+        filtered_signal = {k: v for k, v in signal.items() if k not in exclude_cols}
+        
+        # Show message and table
         st.write(f"Trade signal detected:\n{signal['message']}")
-        st.table(pd.DataFrame([signal]))
+        st.table(pd.DataFrame([filtered_signal]))
+        #st.write(f"Trade signal detected:\n{signal['message']}")
+        #st.table(pd.DataFrame([signal]))
         spot_price = signal['spot_price']
         #option_type = signal['option_type']
         ot = "CE" if signal["option_type"].upper() == "CALL" else "PE"

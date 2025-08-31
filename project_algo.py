@@ -8063,27 +8063,7 @@ elif selected == "3PM OPTION":
     #st.table(trade_log_df)
     # Ensure Expiry Date is a datetime
 
-    st.write("### Trade Log for Current Signal")
     
-    if 'trade_log_df' in locals() and not trade_log_df.empty:
-        # ✅ Show each trade in vertical key-value format, but only Exit Reason + P&L
-        for i, row in trade_log_df.iterrows():
-            filtered_row = row[["Exit Reason", "P&L"]] if all(
-                col in row.index for col in ["Exit Reason", "P&L"]
-            ) else row
-            st.write(f"**Trade {i+1}:**")
-            st.table(filtered_row.to_frame(name="Value"))
-    else:
-        st.write("No trade log data available.")
-    
-    # ✅ Also show summary trade log DataFrame with only Exit Reason & P&L
-    st.write("### Trade Log Summary")
-    if 'trade_log_df' in locals() and not trade_log_df.empty:
-        cols_to_show = [c for c in ["Exit Reason", "P&L"] if c in trade_log_df.columns]
-        if cols_to_show:
-            st.table(trade_log_df[cols_to_show])
-        else:
-            st.write("No Exit Reason or P&L columns found.")
 
         
           

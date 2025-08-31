@@ -7908,6 +7908,16 @@ elif selected == "3PM OPTION":
         take_profit = buy_price * 1.10
         partial_qty = qty // 2
         time_exit = entry_time + timedelta(minutes=16)
+
+        # Calculate P&L
+        quantity = result["total_quantity"]
+        pnl = (exit_price - buy_price) * quantity
+        
+        # Append into trade log DataFrame
+        trade_log["Exit Signal"] = exit_reason
+        trade_log["Exit Price"] = exit_price
+        trade_log["P&L"] = pnl
+
     
         
     
@@ -8084,15 +8094,7 @@ elif selected == "3PM OPTION":
     
     
     
-    # Calculate P&L
-    quantity = result["total_quantity"]
-    pnl = (exit_price - buy_price) * quantity
     
-    # Append into trade log DataFrame
-    trade_log["Exit Signal"] = exit_reason
-    trade_log["Exit Price"] = exit_price
-    trade_log["P&L"] = pnl
-
     st.write("### Trade Log Summary")
 
     if 'trade_log_df' in locals() and not trade_log_df.empty:

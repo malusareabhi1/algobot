@@ -8054,8 +8054,8 @@ elif selected == "3PM OPTION":
         df_option = pd.DataFrame([result['option_data']]).T
         df_option.columns = ["Value"]  # Rename column for clarity
         
-        st.table(df_option)
-        
+        #st.table(df_option)
+        st.write(df_option)
         #st.table(pd.DataFrame([result['option_data']]))
     
         st.write(f"Total Quantity: {result['total_quantity']}")

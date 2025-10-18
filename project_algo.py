@@ -1775,7 +1775,7 @@ elif selected == "Telegram Demo":
             st.error("Failed to send message. Check bot token and chat ID.")
 
 elif selected == "NIFTY OI,PCR,D ":
-    st.title("📊 NIFTY / BANKNIFTY OI, PCR & Market Direction")
+    st.title("📊 NIFTY OI, PCR & Market Direction")
 
 # NSE request setup
 session = requests.Session()

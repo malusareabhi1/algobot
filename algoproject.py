@@ -286,54 +286,7 @@ elif selected == "NIFTY OI,PCR,D ":
             - **PCR:** {result['PCR']}  
             - **Market Direction:** {result['Direction']}  
             """)
-            import datetime
-            # Make sure session_state has kite
-            if "kite" not in st.session_state:
-                st.session_state.kite = None
-            
-            # ---- FIX: Restore kite object ----
-            kite = st.session_state.kite
-            
-            # If kite is still None → stop safely
-            if kite is None:
-                st.error("Kite is not connected yet!")
-                st.stop()
-            #if "kite" not in st.session_state:
-                #st.session_state.kite = None
-
-            # STEP 1: Get NIFTY spot price
-            nifty_spot = kite.ltp("NSE:NIFTY50")["NSE:NIFTY50"]["last_price"]
-            
-            # STEP 2: Find ATM strike (nearest 50)
-            atm_strike = int(round(nifty_spot / 50.0) * 50)
-            
-            # STEP 3: Select nearest weekly expiry NIFTY option
-            instruments = kite.instruments("NFO")
-            today = datetime.date.today()
-            
-            selected_ce = None
-            selected_pe = None
-            
-            for inst in instruments:
-                if (
-                    inst["name"] == "NIFTY"
-                    and inst["strike"] == atm_strike
-                    and inst["expiry"].date() >= today
-                ):
-                    if inst["instrument_type"] == "CE" and selected_ce is None:
-                        selected_ce = inst["tradingsymbol"]
-                    if inst["instrument_type"] == "PE" and selected_pe is None:
-                        selected_pe = inst["tradingsymbol"]
-            
-            # STEP 4: Fetch IV from quote API
-            quote = kite.quote([f"NFO:{selected_ce}", f"NFO:{selected_pe}"])
-            
-            nifty_ce_iv = quote[f"NFO:{selected_ce}"]["implied_volatility"]
-            nifty_pe_iv = quote[f"NFO:{selected_pe}"]["implied_volatility"]
-            
-            print("NIFTY ATM CE IV:", nifty_ce_iv)
-            print("NIFTY ATM PE IV:", nifty_pe_iv)
-
+           
 
 
 

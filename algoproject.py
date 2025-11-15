@@ -312,6 +312,7 @@ A complete option entry/exit engine using the previous day's 3PM Base Zone, firs
 
     # Show in Streamlit
     st.markdown(strategy_markdown)
+    st.write("Hello")
 
 
 

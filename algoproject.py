@@ -287,6 +287,8 @@ elif selected == "NIFTY OI,PCR,D ":
             - **Market Direction:** {result['Direction']}  
             """)
             import datetime
+            if "kite" not in st.session_state:
+                st.session_state.kite = None
 
             # STEP 1: Get NIFTY spot price
             nifty_spot = kite.ltp("NSE:NIFTY50")["NSE:NIFTY50"]["last_price"]

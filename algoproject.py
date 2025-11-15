@@ -204,3 +204,71 @@ if selected == "Dashboard":
 
     else:
         st.warning("Please login to Kite Connect first.")
+elif selected == "KITE API":
+    st.subheader("🔐 Kite Connect API (Zerodha) Integration")
+
+    api_key = st.text_input("Enter your API Key", type="password")
+    api_secret = st.text_input("Enter your API Secret", type="password")
+
+    if api_key and api_secret:
+        try:
+            kite = KiteConnect(api_key=api_key)
+            login_url = kite.login_url()
+
+            st.markdown(f"👉 [Click here to login with Zerodha and get your request token]({login_url})")
+            request_token = st.text_input("🔑 Paste the Request Token after login")
+
+            if request_token:
+                try:
+                    data = kite.generate_session(request_token, api_secret=api_secret)
+                    kite.set_access_token(data["access_token"])
+
+                    st.success("✅ Login successful!")
+                    st.session_state.kite = kite
+
+                    # Create tabs
+                    tab1, tab2, tab3 = st.tabs(["👤 Profile", "📈 Holdings", "📝 Orders"])
+
+                    # Tab 1: Profile
+                    with tab1:
+                        profile = kite.profile()
+                        profile_flat = {
+                            "User ID": profile.get("user_id"),
+                            "User Name": profile.get("user_name"),
+                            "Email": profile.get("email"),
+                            "User Type": profile.get("user_type"),
+                            "Broker": profile.get("broker"),
+                            "Exchanges": ", ".join(profile.get("exchanges", [])),
+                            "Products": ", ".join(profile.get("products", [])),
+                            "Order Types": ", ".join(profile.get("order_types", [])),
+                        }
+                        df_profile = pd.DataFrame(profile_flat.items(), columns=["Field", "Value"])
+                        st.table(df_profile)
+
+                    # Tab 2: Holdings
+                    with tab2:
+                        holdings = kite.holdings()
+                        if holdings:
+                            df_holdings = pd.DataFrame(holdings)
+                            st.dataframe(df_holdings, use_container_width=True)
+                        else:
+                            st.info("No holdings available.")
+
+                    # Tab 3: Orders
+                    with tab3:
+                        orders = kite.orders()
+                        if orders:
+                            df_orders = pd.DataFrame(orders)
+                            st.dataframe(df_orders, use_container_width=True)
+                        else:
+                            st.info("No orders found.")
+
+                except Exception as e:
+                    st.error(f"Login failed: {e}")
+        except Exception as e:
+            st.error(f"Error generating login URL: {e}")
+    else:
+        st.info("Please enter your API Key and Secret to continue.")
+      
+       
+        #############################################################################################################################

@@ -3267,8 +3267,7 @@ elif selected == "3PM OPTION":
     #trade_result = track_trade_exit(signal, option_df)
     #st.write(trade_result)
     
-
-elif selected == "NIFTY OI,PCR,D ":
+    elif selected == "NIFTY OI,PCR,D ":
     st.title("📊 NIFTY OI, PCR & Market Direction")
 
 # NSE request setup

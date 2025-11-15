@@ -34,7 +34,7 @@ with st.sidebar:
     selected = option_menu(
     menu_title="ALGO BOT  ",
     options=[
-        "Dashboard",  "KITE API", "Live Algo Trading","Paper Trade","Volatility Scanner","Telegram Demo","3PM OPTION","NIFTY OI,PCR,D ","Strategy Details"
+        "Dashboard",  "KITE API", "Live Algo Trading","Paper Trade","Volatility Scanner","Telegram Demo","3PM OPTION","NIFTY OI,PCR,D ","Strategy Detail"
     ],
     icons=[
         "bar-chart", "search", "cpu", "cpu","cpu", "cpu","cpu","cpu","cpu", "arrow-repeat"
@@ -205,117 +205,149 @@ if selected == "Dashboard":
     else:
         st.warning("Please login to Kite Connect first.")
 
-elif selected == "Strategy details":
+elif selected == "Strategy Detail":
+    st.title("📋 Project Details")
 
-    strategy_markdown = """
-# NIFTY OPTIONS STRATEGY — 3PM Candle / Base Zone Method
+    st.markdown("""
+        स्ट्रॅटेजीचा संपूर्ण प्लॅन खालील प्रमाणे आहे:
 
-## Step 1: Data Preparation
-- Load NIFTY 15-minute OHLC data for multiple days.
-- Ensure timestamps are in IST.
-- Maintain columns: Open, High, Low, Close, Volume, Timestamp.
+        📌 Step 1: चार्ट सेटअप
+        चार्टवर बोलिंजर बँड (Bollinger Bands) वापरा.
+        
+        कँडलस्टिक पॅटर्न वापरा, लाईन/हायकन अश्यि नको.
+        
+        टाइम फ्रेम – ५ मिनिटांचा चार्ट.
+        
+        📌 Step 2: Center Line (20 SMA) क्रॉसिंग
+        बोलिंजर बँडची मधली लाईन म्हणजेच 20 SMA.
+        
+        Nifty किंवा Bank Nifty ने ही लाईन खालून वर क्रॉस केली पाहिजे.
+        
+        📌 Step 3: क्रॉस झालेली कँडल त्याच कँडलमध्ये वर क्लोज झाली पाहिजे
+        जेव्हा 20 SMA ला क्रॉस करणारी कँडल कॅन्डल उर्ध्वगामी क्लोज होते, तेव्हा त्याची खात्री करा.
+        
+        📌 Step 4: 20 SMA च्या वर कँडल क्लोज
+        त्याच्या नंतरच्या कँडलने 20 SMA ला touch न करता, 20 SMA च्या वर क्लोज झाले पाहिजे.
+        
+        📌 Step 5: रेफरन्स कँडल मार्क करा
+        20 SMA ला क्रॉस करणारी कँडल ही रेफरन्स कँडल म्हणून मार्क करा.
+        
+        📌 Step 6: रेफरन्स कँडलच्या अगोदरच्या कँडलचा हाय आणि क्लोज
+        रेफरन्स कँडलच्या अगोदरच्या कँडलचा हाय आणि क्लोज दोन्हीमध्ये जे मोठे असेल, ते रेफरन्स कँडल नंतरच्या कँडलने खालून वर क्रॉस करत असताना ट्रेड एक्झिक्युट करा.
+        
+        स्टॉप लॉस त्याच्याखाली 10% असावा.
+        
+        📌 Step 7: रेफरन्स कँडलच्या अगोदरची कँडल
+        रेफरन्स कँडलच्या अगोदरची कँडल ही 20 SMA ला क्रॉस करणारी कँडल म्हणून ओळखली जाईल.
+        
+        📌 Step 8: रेफरन्स कँडलच्या अगोदरच्या कँडलचा हाय किंवा क्लोज वरून ट्रेड एंटर करा
+        रेफरन्स कँडल नंतरच्या कँडलने, त्याच्या अगोदरच्या कँडलचा हाय आणि क्लोज दोन्ही हिट केली पाहिजे.
+        
+        त्या स्थितीत In the Money Call Option खरेदी करा.
+        
+        📌 Step 9: प्रॉफिट बुकिंग आणि ट्रेलिंग स्टॉप लॉस
+        ट्रेड घेतल्यावर:
+        
+        10% Stop Loss.
+        
+        5% Profit Target.
+        
+        जेव्हा Profit 4% पेक्षा जास्त जाईल, तेव्हा Stop Loss ला Buy Price पर्यंत ट्रेल करा (No Loss Zone).
+        
+        नंतर, प्रॉफिटमध्ये वाढ केल्यास:
+        
+        10% Profit वर Stop Loss ला 4% Profit वर ट्रेल करा.
+        
+        15% Profit वर Stop Loss ला 11% Profit वर ट्रेल करा.
+        
+        20% Profit झाल्यावर, संपूर्ण प्रॉफिट बुक करा.
+        
+        📌 Step 10: Implied Volatility चा तपास
+        Nifty किंवा Bank Nifty चं Implied Volatility (IV) 16% किंवा त्याहून जास्त असावी, जेव्हा ट्रेड घेण्याचा निर्णय घेतला जातो.
+        
+        📌 Step 11: ब्रेकआउट आणि ट्रेड इनिशिएशन
+        Reference Candle च्या High च्या वर जर पुढील कँडल गेली, तर लगेच त्या इंडेक्सचा सर्वात जवळचा In the Money Call Option खरेदी करा.
+        
+        📌 Step 12: Risk Management – Stop Loss आणि Profit Booking
+        ट्रेड घेतल्यावर:
+        
+        10% Stop Loss.
+        
+        5% Profit Target.
+        
+        जेव्हा Profit 4% पेक्षा जास्त जाईल, तेव्हा Stop Loss ला Buy Price पर्यंत ट्रेल करा (No Loss Zone).
+        
+        नंतर 10% प्रॉफिट झाल्यावर Stop Loss ला 4% Profit वर ट्रेल करा.
+        
+        15% प्रॉफिट झाल्यावर Stop Loss ला 11% Profit वर ट्रेल करा.
+        
+        20% प्रॉफिट झाल्यावर, संपूर्ण प्रॉफिट बुक करा.
+        
+        📌 Step 13: Time-Based Exit
+        ट्रेड इनिशिएट केल्यानंतर 10 मिनिटात, वरच्या पैकी कोणतीही Condition (Target/SL) हिट झाली नाही तर, त्या ट्रेडला तिथेच बुक करा, Profit Loss न पाहता.
+        
+        📌 Step 14: Trade Time from 9:30 AM to 3:00 PM
+        ट्रेड फक्त 9:30 AM ते 3:00 PM दरम्यानच घेतला जावा.
+        
+        9:30 AM च्या आधी किंवा 3:00 PM नंतर ट्रेड सुरू होणार नाही.
+        
+        या स्टेप्समध्ये, प्रत्येक ट्रेडमध्ये तुम्ही सुरक्षितपणे आणि परिणामकारकपणे ट्रेड घेण्याचा प्रयत्न करू शकता. आपला Doctor Trade Strategy याप्रमाणे अधिक मजबूत आणि प्रॉफिटेबल होईल.
 
-## Step 2: Identify "Base Zone"
-- For each trading day:
-  - Take the previous day's 3PM (15:15) candle.
-  - Mark its **Open** and **Close**.
-- These two levels form the **Base Zone** for the next day.
-
-## Step 3: First 15-min Candle of Next Day
-- On Day 1, capture the **9:15–9:30 AM** candle.
-- Store:
-  - `H1` = High
-  - `L1` = Low
-  - `C1` = Close
-
-## Step 4: Check Entry Conditions
-
-### **Condition 1: Bullish Breakout**
-- If:
-  - L1 ≥ Base Zone High  
-  - H1 ≥ Base Zone Low  
-  - C1 ≥ Base Zone High  
-- Then:
-  - **Buy CALL above H1**
-  - SL = recent swing low
-  - Target = 10% gain
-
-### **Condition 2: Bearish Breakdown**
-- If:
-  - L1 ≤ Base Zone High  
-  - H1 ≤ Base Zone Low  
-  - C1 ≤ Base Zone Low  
-- Then:
-  - **Buy PUT below L1**
-  - SL = recent swing high
-  - Target = 10% drop
-
-### **Condition 3: Major Gap Up**
-- If market opens far above base zone:
-  - **Buy CALL above H1**
-
-### **Condition 4: Major Gap Down**
-- If market opens far below base zone:
-  - **Buy PUT below L1**
-
-## Step 5: Flip / Advanced Logic
-- If after initial entry, price moves across the base zone:
-  - Trigger flip entry (e.g., CALL if price goes above zone after breakdown).
-- Recalculate SL and target.
-
-## Step 6: Trailing Stop-Loss / Partial Book
-- Add trailing SL logic (e.g., +10 pts for CALLs).
-- Book partial profits at first target.
-- Trail remainder.
-
-## Step 7: Exit Logic
-- Exit trade when:
-  - Stoploss hit
-  - Target hit
-  - Time-based exit (e.g., 16 minutes after entry)
-  - Custom reason (volume spike, EMA cross)
-
-## Step 8: Trade Logging & PnL Calculation
-- Log:
-  - Entry/Exit time
-  - Price
-  - SL/Target
-  - Quantity
-  - Expiry (nearest weekly)
-  - Exit reason
-- Calculate PnL after brokerage/charges.
-
-## Step 9: Performance Metrics
-- Total trades
-- Win rate
-- Net PnL
-- Average PnL
-- Maximum drawdown
-- Capital growth
-
-## Technical Logic Used
-- EMA-20 cross
-- Volume breakout detection
-- Recent swing High/Low logic for stops
-
-## Visualization (Streamlit)
-- Plot candles
-- Draw Base Zone levels
-- Mark trades on chart
-- Display trade log + PnL
-
----
-
-### Summary
-A complete option entry/exit engine using the previous day's 3PM Base Zone, first 15-minute candle behavior, flip logic, trailing SL, and full trade logging with PnL + visualization.
-"""
-
-    # Show in Streamlit
-    st.markdown(strategy_markdown)
-    st.write("Hello")
-
-    msg = "This is stored text"
-    print(msg)
+        ✅ Development Checklist:
+        डेटा सोर्सिंग:
+        
+        5-minute candles for Nifty/Bank Nifty (live + historical).
+        
+        Bollinger Bands (20 SMA basis) calculation.
+        
+        IV value from NSE option chain or API.
+        
+        Reference Candle Logic:
+        
+        SMA cross check
+        
+        Close above 20 SMA without touching
+        
+        Identify reference and pre-reference candles
+        
+        Trigger check (next candle breaking pre-reference high/close)
+        
+        Trade Execution (Paper Trading / Live via Zerodha/Fyers API):
+        
+        ATM Call Option Buy
+        
+        SL/Target apply
+        
+        Trailing SL updates
+        
+        Time-based exit after 10 min if no SL/TP
+        
+        Trade Management Logic:
+        
+        Risk Management Module (as per Step 12)
+        
+        Trail logic:
+        
+        4% → No loss
+        
+        10% → SL @ 4%
+        
+        15% → SL @ 11%
+        
+        20% → Book full
+        
+        Streamlit Dashboard UI:
+        
+        Left Sidebar: Stock selection, Time range, Capital, Risk %, etc.
+        
+        Right Main: Chart view (candles + BB + markers), Live log, Trade Summary
+        
+        Telegram Alerts Integration:
+        
+        Entry/Exit alerts with levels
+        
+        IV alert (if below 16%, don’t trade)
+                    """)
 
 
 

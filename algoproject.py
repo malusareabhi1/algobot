@@ -37,7 +37,7 @@ with st.sidebar:
         "Dashboard",  "KITE API", "Live Algo Trading","Paper Trade","Volatility Scanner","Telegram Demo","3PM OPTION","NIFTY OI,PCR,D ","Strategy Details"
     ],
     icons=[
-        "bar-chart", "search", "cpu", "cpu","cpu", "cpu","cpu","cpu","cpu", "arrow-repeat",
+        "bar-chart", "search", "cpu", "cpu","cpu", "cpu","cpu","cpu","cpu", "arrow-repeat"
         
     ],
     menu_icon="cast",

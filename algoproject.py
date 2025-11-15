@@ -207,7 +207,7 @@ if selected == "Dashboard":
 
 
 elif selected == "Strategy details":    
-        strategy_markdown = """
+    strategy_markdown = """
         # NIFTY OPTIONS STRATEGY — 3PM Candle / Base Zone Method
         
         ## Step 1: Data Preparation
@@ -310,7 +310,7 @@ elif selected == "Strategy details":
         A complete option entry/exit engine using the previous day's 3PM Base Zone, first 15-minute candle behavior, flip logic, trailing SL, and full trade logging with PnL + visualization.
         """
         
-        print(strategy_markdown)
+    print(strategy_markdown)
 
 
 

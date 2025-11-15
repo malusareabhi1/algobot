@@ -34,7 +34,7 @@ with st.sidebar:
     selected = option_menu(
     menu_title="ALGO BOT  ",
     options=[
-        "Dashboard",  "KITE API", "Live Algo Trading","Paper Trade","Volatility Scanner","Telegram Demo","3PM OPTION","NIFTY OI,PCR,D "
+        "Dashboard",  "KITE API", "Live Algo Trading","Paper Trade","Volatility Scanner","Telegram Demo","3PM OPTION","NIFTY OI,PCR,D ","Strategy Details"
     ],
     icons=[
         "bar-chart", "search", "cpu", "cpu","cpu", "cpu","cpu","cpu","cpu", "arrow-repeat",
@@ -206,7 +206,7 @@ if selected == "Dashboard":
         st.warning("Please login to Kite Connect first.")
 
 
-elif selected == "Dashboard":    
+elif selected == "Strategy details":    
         strategy_markdown = """
         # NIFTY OPTIONS STRATEGY — 3PM Candle / Base Zone Method
         

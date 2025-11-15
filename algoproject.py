@@ -314,8 +314,8 @@ A complete option entry/exit engine using the previous day's 3PM Base Zone, firs
     st.markdown(strategy_markdown)
     st.write("Hello")
 
-msg = "This is stored text"
-print(msg)
+    msg = "This is stored text"
+    print(msg)
 
 
 

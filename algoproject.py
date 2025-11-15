@@ -205,6 +205,115 @@ if selected == "Dashboard":
     else:
         st.warning("Please login to Kite Connect first.")
 
+
+elif selected == "Dashboard":    
+        strategy_markdown = """
+        # NIFTY OPTIONS STRATEGY — 3PM Candle / Base Zone Method
+        
+        ## Step 1: Data Preparation
+        - Load NIFTY 15-minute OHLC data for multiple days.
+        - Ensure timestamps are in IST.
+        - Maintain columns: Open, High, Low, Close, Volume, Timestamp.
+        
+        ## Step 2: Identify "Base Zone"
+        - For each trading day:
+          - Take the previous day's 3PM (15:15) candle.
+          - Mark its **Open** and **Close**.
+        - These two levels form the **Base Zone** for the next day.
+        
+        ## Step 3: First 15-min Candle of Next Day
+        - On Day 1, capture the **9:15–9:30 AM** candle.
+        - Store:
+          - `H1` = High
+          - `L1` = Low
+          - `C1` = Close
+        
+        ## Step 4: Check Entry Conditions
+        
+        ### **Condition 1: Bullish Breakout**
+        - If:
+          - L1 ≥ Base Zone High  
+          - H1 ≥ Base Zone Low  
+          - C1 ≥ Base Zone High  
+        - Then:
+          - **Buy CALL above H1**
+          - SL = recent swing low
+          - Target = 10% gain
+        
+        ### **Condition 2: Bearish Breakdown**
+        - If:
+          - L1 ≤ Base Zone High  
+          - H1 ≤ Base Zone Low  
+          - C1 ≤ Base Zone Low  
+        - Then:
+          - **Buy PUT below L1**
+          - SL = recent swing high
+          - Target = 10% drop
+        
+        ### **Condition 3: Major Gap Up**
+        - If market opens far above base zone:
+          - **Buy CALL above H1**
+        
+        ### **Condition 4: Major Gap Down**
+        - If market opens far below base zone:
+          - **Buy PUT below L1**
+        
+        ## Step 5: Flip / Advanced Logic
+        - If after initial entry, price moves across the base zone:
+          - Trigger flip entry (e.g., CALL if price goes above zone after breakdown).
+        - Recalculate SL and target.
+        
+        ## Step 6: Trailing Stop-Loss / Partial Book
+        - Add trailing SL logic (e.g., +10 pts for CALLs).
+        - Book partial profits at first target.
+        - Trail remainder.
+        
+        ## Step 7: Exit Logic
+        - Exit trade when:
+          - Stoploss hit
+          - Target hit
+          - Time-based exit (e.g., 16 minutes after entry)
+          - Custom reason (volume spike, EMA cross)
+        
+        ## Step 8: Trade Logging & PnL Calculation
+        - Log:
+          - Entry/Exit time
+          - Price
+          - SL/Target
+          - Quantity
+          - Expiry (nearest weekly)
+          - Exit reason
+        - Calculate PnL after brokerage/charges.
+        
+        ## Step 9: Performance Metrics
+        - Total trades
+        - Win rate
+        - Net PnL
+        - Average PnL
+        - Maximum drawdown
+        - Capital growth
+        
+        ## Technical Logic Used
+        - EMA-20 cross
+        - Volume breakout detection
+        - Recent swing High/Low logic for stops
+        
+        ## Visualization (Streamlit)
+        - Plot candles
+        - Draw Base Zone levels
+        - Mark trades on chart
+        - Display trade log + PnL
+        
+        ---
+        
+        ### Summary
+        A complete option entry/exit engine using the previous day's 3PM Base Zone, first 15-minute candle behavior, flip logic, trailing SL, and full trade logging with PnL + visualization.
+        """
+        
+        print(strategy_markdown)
+
+
+
 elif selected == "NIFTY OI,PCR,D ":
     st.title("📊 NIFTY OI, PCR & Market Direction")
 

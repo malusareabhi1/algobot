@@ -3275,19 +3275,19 @@ elif selected == "3PM OPTION":
     
 
     def build_zerodha_tradingsymbol(underlying, expiryDate, strikePrice, option_type):
-    """
-    Convert NSE-style option details to Zerodha tradingsymbol format.
-    Example output: NIFTY25NOV1826050CE
-    """
-    expiry = pd.to_datetime(expiryDate)
-
-    yy = expiry.strftime("%y")       # 25
-    mon = expiry.strftime("%b").upper()  # NOV
-    dd = expiry.strftime("%d")       # 18
-
-    strike = str(int(float(strikePrice)))  # 26050
-
-    return f"{underlying}{yy}{mon}{dd}{strike}{option_type.upper()}"
+        """
+        Convert NSE-style option details to Zerodha tradingsymbol format.
+        Example output: NIFTY25NOV1826050CE
+        """
+        expiry = pd.to_datetime(expiryDate)
+    
+        yy = expiry.strftime("%y")       # 25
+        mon = expiry.strftime("%b").upper()  # NOV
+        dd = expiry.strftime("%d")       # 18
+    
+        strike = str(int(float(strikePrice)))  # 26050
+    
+        return f"{underlying}{yy}{mon}{dd}{strike}{option_type.upper()}"
 
 
  

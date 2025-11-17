@@ -3511,6 +3511,22 @@ def place_option_order(identifier, quantity, buy_side='BUY', product="NRML", ord
     # from your flow after signal / option selection:
 
 #identifier = option_data.get('tradingsymbol') or option_data.get('symbol') or option_data.get('identifier')
+# Step 1: Fetch result safely
+result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)
+
+# Step 2: Check if result is valid
+if not result:
+    st.error("❌ option_chain_finder() returned nothing. Cannot place trade.")
+    continue  # move to next day OR stop processing
+
+if 'option_data' not in result or not result['option_data']:
+    st.error("❌ option_data missing inside result. Cannot proceed.")
+    continue
+
+# Step 3: Now safe to use
+option_data = result['option_data']
+identifier = option_data.get('tradingsymbol') or option_data.get('symbol') or option_data.get('identifier')
+
 option_data = result.get('option_data', {}) if result else {}
 identifier = option_data.get('tradingsymbol') or option_data.get('symbol') or option_data.get('identifier')
 

@@ -3324,6 +3324,111 @@ def place_option_order(identifier, quantity, buy_side='BUY', product="NRML", ord
 #############################################useage above ###############################################################
 
 
+def process_and_execute_order(result, lots=10, lot_size=75):
+    """
+    Takes option chain 'result' from your option_chain_finder() and places:
+    1) Main MARKET BUY order
+    2) SL-M SELL order (10% Stop Loss)
+    Returns status message.
+    """
+
+    # 1) Result must exist
+    if not result:
+        return "❌ ERROR: Option chain result is empty. Cannot proceed."
+
+    # 2) Extract option data safely
+    option_data_list = result.get("option_data", [])
+
+    # Normalize
+    if isinstance(option_data_list, dict):
+        option_data_list = [option_data_list]
+
+    clean_options = []
+
+    for option_data in option_data_list:
+
+        if not isinstance(option_data, dict):
+            continue
+
+        identifier = (
+            option_data.get("tradingsymbol")
+            or option_data.get("symbol")
+            or option_data.get("identifier")
+        )
+
+        if not identifier:
+            continue
+
+        clean_options.append({
+            "identifier": identifier,
+            "expiry": option_data.get("expiry"),
+            "strike": option_data.get("strike"),
+            "option_type": option_data.get("type") or option_data.get("optionType"),
+            "ltp": option_data.get("ltp") or option_data.get("lastPrice"),
+            "bid": option_data.get("bidprice"),
+            "ask": option_data.get("askprice"),
+            "volume": option_data.get("volume"),
+            "iv": option_data.get("iv"),
+        })
+
+    # 3) No valid options
+    if not clean_options:
+        return "❌ No valid option found inside result['option_data']. Cannot place trade."
+
+    # 4) Select the first option (or apply your logic)
+    selected = clean_options[0]
+
+    identifier = selected["identifier"]
+    buy_price = selected["ltp"]
+
+    if not buy_price:
+        return f"❌ LTP not found for {identifier}. Cannot place trade."
+
+    # 5) Quantity calculation
+    qty = lots * lot_size
+
+    # 6) MARKET BUY ORDER
+    buy_resp = place_option_order(
+        identifier=identifier,
+        quantity=qty,
+        buy_side="BUY",
+        product="MIS",
+        order_type="MARKET"
+    )
+
+    if buy_resp.get("error"):
+        return f"❌ BUY Order Failed: {buy_resp['error']}"
+
+    order_id = buy_resp.get("order_id", "UNKNOWN")
+
+    # 7) SL ORDER (10% below LTP)
+    sl_trigger = round(buy_price * 0.90, 2)
+
+    sl_resp = place_option_order(
+        identifier=identifier,
+        quantity=qty,
+        buy_side="SELL",
+        product="MIS",
+        order_type="SL-M",
+        trigger_price=sl_trigger
+    )
+
+    if sl_resp.get("error"):
+        return (
+            f"✅ BUY Order Placed [{order_id}] at LTP {buy_price}\n\n"
+            f"⚠️ But SL order failed: {sl_resp['error']}"
+        )
+
+    # All good!
+    return (
+        f"✅ BUY Order Placed Successfully!\n"
+        f"🔹 Order ID: {order_id}\n"
+        f"🔹 Symbol: {identifier}\n"
+        f"🔹 Qty: {qty}\n"
+        f"🔹 Buy @ {buy_price}\n\n"
+        f"🔒 SL-M Order Placed @ {sl_trigger}"
+    )
+
 
 
  
@@ -3507,101 +3612,13 @@ def place_option_order(identifier, quantity, buy_side='BUY', product="NRML", ord
         
 ############################################# order placing   #####################################################
 
+    
 
-#############################################
-#   ORDER PLACING – CLEAN & FIXED BLOCK
-#############################################
 
-# --- Step 1: Ensure result exists ---
-result = result if 'result' in locals() else {}
 
-# --- Step 2: Extract option list safely ---
-option_data_list = result.get('option_data', [])
+msg = process_and_execute_order(result)
+st.write(msg)
 
-# Normalize to list
-if isinstance(option_data_list, dict):
-    option_data_list = [option_data_list]
-
-clean_options = []
-
-# --- Step 3: Build clean option list ---
-for option_data in option_data_list:
-
-    if not isinstance(option_data, dict):
-        continue
-
-    identifier = (
-        option_data.get('tradingsymbol')
-        or option_data.get('symbol')
-        or option_data.get('identifier')
-    )
-
-    if not identifier:
-        continue
-
-    clean_options.append({
-        "identifier": identifier,
-        "expiry": option_data.get("expiry"),
-        "strike": option_data.get("strike"),
-        "option_type": option_data.get("type") or option_data.get("optionType"),
-        "ltp": option_data.get("ltp") or option_data.get("lastPrice"),
-        "bid": option_data.get("bidprice"),
-        "ask": option_data.get("askprice"),
-        "volume": option_data.get("volume"),
-        "iv": option_data.get("iv"),
-    })
-
-# --- Step 4: Ensure at least one option is found ---
-if not clean_options:
-    st.error("❌ No valid option found. Cannot place order.")
-else:
-    # Pick first option OR apply your logic
-    selected = clean_options[0]
-
-    identifier = selected["identifier"]
-    buy_price = selected["ltp"]
-
-    # Quantity calculation
-    lots = 10
-    lot_size = 75
-    qty = lots * lot_size
-
-    #############################################
-    # STEP 5 : PLACE MARKET BUY ORDER
-    #############################################
-    order_resp = place_option_order(
-        identifier=identifier,
-        quantity=qty,
-        buy_side='BUY',
-        product="MIS",
-        order_type="MARKET"
-    )
-
-    if order_resp.get("error"):
-        st.error(f"❌ Order Failed: {order_resp['error']}")
-    else:
-        order_id = order_resp.get("order_id")
-        st.success(f"✅ BUY Order Placed → {order_id}")
-
-        #############################################
-        # STEP 6 : PLACE AUTOMATIC STOP LOSS
-        #############################################
-        if buy_price:
-            sl_trigger = round(buy_price * 0.90, 2)  # 10% SL
-
-            sl_resp = place_option_order(
-                identifier=identifier,
-                quantity=qty,
-                buy_side='SELL',
-                product="MIS",
-                order_type="SL-M",
-                trigger_price=sl_trigger
-            )
-
-            if sl_resp.get("error"):
-                st.warning(f"⚠️ SL Order Failed: {sl_resp['error']}")
-            else:
-                st.success(f"🔒 SL Order Placed @ {sl_trigger}")
 
    
 

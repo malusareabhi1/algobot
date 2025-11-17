@@ -3391,6 +3391,7 @@ elif selected == "3PM OPTION":
             buy_premium = option_data.get('lastPrice')
             identifier = option_data.get('identifier')
             #############################################################
+            st.write(option_data)
 
             tradingsymbol = option_data.get("tradingsymbol")  # VERY IMPORTANT
 

@@ -3513,23 +3513,46 @@ def place_option_order(identifier, quantity, buy_side='BUY', product="NRML", ord
 #identifier = option_data.get('tradingsymbol') or option_data.get('symbol') or option_data.get('identifier')
 # Step 1: Fetch result safely
 # Try to fetch option details
-result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)
+# Extract option_data safely
+option_data_list = result.get('option_data', []) if result else []
 
-# ---- SAFETY CHECKS ----
-if not result:
-    st.error("❌ option_chain_finder() returned None or empty. Cannot proceed.")
-    continue
+# Make sure option_data_list is a list
+if isinstance(option_data_list, dict):
+    option_data_list = [option_data_list]
 
-if 'option_data' not in result or result['option_data'] is None:
-    st.error("❌ option_data missing in result. Cannot place trade.")
-    continue
+clean_options = []
 
-option_data = result['option_data']
+for option_data in option_data_list:
 
-# Extract fields safely
-identifier = option_data.get('tradingsymbol') or option_data.get('symbol') or option_data.get('identifier')
-strike_price = option_data.get('strikePrice')
-buy_premium = option_data.get('lastPrice')
+    # Skip invalid entries
+    if not isinstance(option_data, dict):
+        continue
+
+    # Extract identifier
+    identifier = (
+        option_data.get('tradingsymbol') or
+        option_data.get('symbol') or
+        option_data.get('identifier')
+    )
+
+    if not identifier:
+        continue  # VALID: now inside loop
+
+    # Append cleaned data
+    clean_options.append({
+        "identifier": identifier,
+        "expiry": option_data.get("expiry"),
+        "strike": option_data.get("strike"),
+        "option_type": option_data.get("type") or option_data.get("optionType"),
+        "ltp": option_data.get("ltp"),
+        "bid": option_data.get("bidprice"),
+        "ask": option_data.get("askprice"),
+        "volume": option_data.get("volume"),
+        "iv": option_data.get("iv")
+    })
+
+# Use clean_options wherever needed
+
 
 lots = 10   # or derive from option_chain_finder result
 lot_size = 75

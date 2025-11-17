@@ -3461,7 +3461,10 @@ elif selected == "3PM OPTION":
                 st.error("No tradingsymbol found. Cannot place order.")
             else:
                 st.success(f"Placing Order for: {tradingsymbol}")
-            
+            if kite is None:
+                st.error("❌ Zerodha not connected! Please login first.")
+                st.stop()
+
                
                 order = place_zerodha_order(
                     kite=kite,

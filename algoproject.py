@@ -494,7 +494,9 @@ elif selected == "3PM OPTION":
     st.set_page_config(layout="wide")
     st.title("Nifty 3PM Base Zone Strategy - Multi-Day Backtest")
     
-    
+    # Load kite session
+    kite = st.session_state.kite if "kite" in st.session_state else None
+
     
     def plot_nifty_multiday(df, trading_days):
         """

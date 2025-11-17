@@ -3514,6 +3514,10 @@ def place_option_order(identifier, quantity, buy_side='BUY', product="NRML", ord
 # Step 1: Fetch result safely
 # Try to fetch option details
 # Extract option_data safely
+# Ensure result exists to avoid NameError
+if 'result' not in locals():
+    result = {}
+
 option_data_list = result.get('option_data', []) if result else []
 
 # Make sure option_data_list is a list

@@ -3505,89 +3505,112 @@ def place_option_order(identifier, quantity, buy_side='BUY', product="NRML", ord
     else:
         st.write("No trade signals detected for the selected period.")
         
-############################################# calling  #####################################################
+############################################# order placing   #####################################################
 
 
-    # from your flow after signal / option selection:
+#############################################
+#   ORDER PLACING – CLEAN & FIXED BLOCK
+#############################################
 
-#identifier = option_data.get('tradingsymbol') or option_data.get('symbol') or option_data.get('identifier')
-# Step 1: Fetch result safely
-# Try to fetch option details
-# Extract option_data safely
-# Ensure result exists to avoid NameError
-if 'result' not in locals():
-    result = {}
+# --- Step 1: Ensure result exists ---
+result = result if 'result' in locals() else {}
 
-option_data_list = result.get('option_data', []) if result else []
+# --- Step 2: Extract option list safely ---
+option_data_list = result.get('option_data', [])
 
-# Make sure option_data_list is a list
+# Normalize to list
 if isinstance(option_data_list, dict):
     option_data_list = [option_data_list]
 
 clean_options = []
 
+# --- Step 3: Build clean option list ---
 for option_data in option_data_list:
 
-    # Skip invalid entries
     if not isinstance(option_data, dict):
         continue
 
-    # Extract identifier
     identifier = (
-        option_data.get('tradingsymbol') or
-        option_data.get('symbol') or
-        option_data.get('identifier')
+        option_data.get('tradingsymbol')
+        or option_data.get('symbol')
+        or option_data.get('identifier')
     )
 
     if not identifier:
-        continue  # VALID: now inside loop
+        continue
 
-    # Append cleaned data
     clean_options.append({
         "identifier": identifier,
         "expiry": option_data.get("expiry"),
         "strike": option_data.get("strike"),
         "option_type": option_data.get("type") or option_data.get("optionType"),
-        "ltp": option_data.get("ltp"),
+        "ltp": option_data.get("ltp") or option_data.get("lastPrice"),
         "bid": option_data.get("bidprice"),
         "ask": option_data.get("askprice"),
         "volume": option_data.get("volume"),
-        "iv": option_data.get("iv")
+        "iv": option_data.get("iv"),
     })
 
-# Use clean_options wherever needed
-
-
-lots = 10   # or derive from option_chain_finder result
-lot_size = 75
-qty = lots * lot_size  # your signal['quantity'] likely already this
-
-# 1) Place main market buy
-order_resp = place_option_order(identifier=identifier, quantity=qty, buy_side='BUY', product="MIS", order_type="MARKET")
-if order_resp.get("error"):
-    # handle error, log, optionally retry
-    print("Order failed:", order_resp["error"])
+# --- Step 4: Ensure at least one option is found ---
+if not clean_options:
+    st.error("❌ No valid option found. Cannot place order.")
 else:
-    order_id = order_resp.get("order_id") or order_resp.get("order_id")  # check resp keys
-    print("Order placed, order_id:", order_id)
+    # Pick first option OR apply your logic
+    selected = clean_options[0]
 
-    # 2) Place a Stop-Loss (separate order) using trigger_price
-    # compute SL trigger (example: 10% below buy_premium)
-    if buy_premium:
-        sl_trigger = round(buy_premium * 0.90, 2)
-        sl_resp = place_option_order(identifier=identifier, quantity=qty, buy_side='SELL',
-                                    product="MIS", order_type="SL-M", trigger_price=sl_trigger)
-        if sl_resp.get("error"):
-            print("SL placement failed:", sl_resp["error"])
-        else:
-            print("SL order placed:", sl_resp)
+    identifier = selected["identifier"]
+    buy_price = selected["ltp"]
 
-    ######################################################################################################
+    # Quantity calculation
+    lots = 10
+    lot_size = 75
+    qty = lots * lot_size
+
+    #############################################
+    # STEP 5 : PLACE MARKET BUY ORDER
+    #############################################
+    order_resp = place_option_order(
+        identifier=identifier,
+        quantity=qty,
+        buy_side='BUY',
+        product="MIS",
+        order_type="MARKET"
+    )
+
+    if order_resp.get("error"):
+        st.error(f"❌ Order Failed: {order_resp['error']}")
+    else:
+        order_id = order_resp.get("order_id")
+        st.success(f"✅ BUY Order Placed → {order_id}")
+
+        #############################################
+        # STEP 6 : PLACE AUTOMATIC STOP LOSS
+        #############################################
+        if buy_price:
+            sl_trigger = round(buy_price * 0.90, 2)  # 10% SL
+
+            sl_resp = place_option_order(
+                identifier=identifier,
+                quantity=qty,
+                buy_side='SELL',
+                product="MIS",
+                order_type="SL-M",
+                trigger_price=sl_trigger
+            )
+
+            if sl_resp.get("error"):
+                st.warning(f"⚠️ SL Order Failed: {sl_resp['error']}")
+            else:
+                st.success(f"🔒 SL Order Placed @ {sl_trigger}")
+
+   
+
+#####################################################################################################
     
 
 
     
-    ##################################################################################
+   
     # ✅ Combine all logs into one DataFrame
     if combined_trade_log:
         all_trades = pd.concat(combined_trade_log, ignore_index=True)

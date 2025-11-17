@@ -3462,11 +3462,16 @@ elif selected == "3PM OPTION":
             else:
                 st.success(f"Placing Order for: {tradingsymbol}")
             
+               
                 order = place_zerodha_order(
+                    kite=kite,
                     tradingsymbol=tradingsymbol,
                     qty=signal['quantity'],
-                    txn_type="BUY"
+                    transaction_type="BUY",
+                    product="MIS",
+                    order_type="MARKET"
                 )
+
             
                 st.write(order)
 

@@ -3510,7 +3510,10 @@ def place_option_order(identifier, quantity, buy_side='BUY', product="NRML", ord
 
     # from your flow after signal / option selection:
 
+#identifier = option_data.get('tradingsymbol') or option_data.get('symbol') or option_data.get('identifier')
+option_data = result.get('option_data', {}) if result else {}
 identifier = option_data.get('tradingsymbol') or option_data.get('symbol') or option_data.get('identifier')
+
 strike_price = option_data.get('strikePrice')
 buy_premium = option_data.get('lastPrice')
 lots = 10   # or derive from option_chain_finder result

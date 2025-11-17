@@ -3390,6 +3390,27 @@ elif selected == "3PM OPTION":
             strike_price = option_data.get('strikePrice')
             buy_premium = option_data.get('lastPrice')
             identifier = option_data.get('identifier')
+            #############################################################
+
+            tradingsymbol = option_data.get("tradingsymbol")  # VERY IMPORTANT
+
+            if not tradingsymbol:
+                st.error("No tradingsymbol found. Cannot place order.")
+            else:
+                st.success(f"Placing Order for: {tradingsymbol}")
+            
+                order = place_zerodha_order(
+                    tradingsymbol=tradingsymbol,
+                    qty=signal['quantity'],
+                    txn_type="BUY"
+                )
+            
+                st.write(order)
+
+
+
+
+            ###############################################################
     
             # Construct signal log dictionary
             sig_log = {

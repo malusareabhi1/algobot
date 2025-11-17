@@ -3316,6 +3316,7 @@ elif selected == "3PM OPTION":
             params = {
                 "tradingsymbol": tradingsymbol,
                 "exchange": "NFO",
+                "variety="regular",
                 "transaction_type": transaction_type,
                 "quantity": qty,
                 "product": product,

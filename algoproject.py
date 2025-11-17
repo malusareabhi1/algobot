@@ -26,6 +26,10 @@ from ta.momentum import RSIIndicator
 # Global kite object placeholder
 if 'kite' not in st.session_state:
     st.session_state.kite = None
+
+if "access_token" not in st.session_state:
+    st.session_state.access_token = None
+    
 # Page configuration
 st.set_page_config(layout="wide", page_title="Trade Strategy Dashboard")
     

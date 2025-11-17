@@ -3289,41 +3289,47 @@ elif selected == "3PM OPTION":
     
         return f"{underlying}{yy}{mon}{dd}{strike}{option_type.upper()}"
 
+    def place_zerodha_order(
+        kite,
+        tradingsymbol,
+        qty,
+        transaction_type="BUY",
+        product="MIS",
+        order_type="MARKET",
+        trigger_price=None
+    ):
+        """
+        Places a Zerodha order and returns a result dict.
+        """
+        try:
+            params = {
+                "tradingsymbol": tradingsymbol,
+                "exchange": "NFO",
+                "transaction_type": transaction_type,
+                "quantity": qty,
+                "product": product,
+                "order_type": order_type
+            }
+    
+            if trigger_price:
+                params["trigger_price"] = float(trigger_price)
+    
+            order_id = kite.place_order(**params)
+    
+            return {
+                "success": True,
+                "order_id": order_id,
+                "message": f"Order placed: {transaction_type} {tradingsymbol}"
+            }
+    
+        except Exception as e:
+            return {
+                "success": False,
+                "error": str(e),
+                "message": f"Order Failed: {str(e)}"
+            }
 
-     def place_zerodha_order(kite, tradingsymbol, qty, transaction_type="BUY",
-                        product="MIS", order_type="MARKET", trigger_price=None):
-            """
-            Places a Zerodha order and returns a result dict.
-            """
-        
-            try:
-                params = {
-                    "tradingsymbol": tradingsymbol,
-                    "exchange": "NFO",
-                    "transaction_type": transaction_type,
-                    "quantity": qty,
-                    "product": product,
-                    "order_type": order_type
-                }
-        
-                if trigger_price:
-                    params["trigger_price"] = float(trigger_price)
-        
-                order_id = kite.place_order(**params)
-        
-                return {
-                    "success": True,
-                    "order_id": order_id,
-                    "message": f"Order placed: {transaction_type} {tradingsymbol}"
-                }
-        
-            except Exception as e:
-                return {
-                    "success": False,
-                    "error": str(e),
-                    "message": f"Order Failed: {str(e)}"
-                }
-
+    
 
     
     

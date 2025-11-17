@@ -3616,8 +3616,8 @@ def process_and_execute_order(result, lots=10, lot_size=75):
 
 
 
-    msg = process_and_execute_order(result)
-    st.write(msg)
+        msg = process_and_execute_order(result)
+        st.write(msg)
 
 
    

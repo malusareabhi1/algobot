@@ -3477,19 +3477,7 @@ elif selected == "3PM OPTION":
                 st.stop()
 
                
-                order = place_zerodha_order(
-                    kite=kite,
-                    tradingsymbol=tradingsymbol,
-                    qty=signal['quantity'],
-                    transaction_type="BUY",
-                    product="MIS",
-                    order_type="MARKET"
-                )
-
-            
-                st.write(order)
-
-
+               
 
 
             ###############################################################
@@ -3559,7 +3547,21 @@ elif selected == "3PM OPTION":
         
 ############################################# order placing   #####################################################
 
-    
+
+
+
+     order = place_zerodha_order(
+                    kite=kite,
+                    tradingsymbol=tradingsymbol,
+                    qty=signal['quantity'],
+                    transaction_type="BUY",
+                    product="MIS",
+                    order_type="MARKET"
+                )
+
+            
+                st.write(order)
+
 
 
 

@@ -3294,7 +3294,7 @@ elif selected == "3PM OPTION":
         else:
             st.stop()
     else:
-           start_date = st.date_input("Select Start Date", value=datetime.today() - timedelta(days=15))
+           start_date = st.date_input("Select Start Date", value=datetime.today() - timedelta(days=2))
            end_date = st.date_input("Select End Date", value=datetime.today())
     
     if start_date >= end_date:

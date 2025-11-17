@@ -2099,7 +2099,7 @@ elif selected == "3PM OPTION":
     ###################################################################################################################################
     
     
-    def trading_signal_all_conditions1(df, quantity=10*75, return_all_signals=False):
+    def trading_signal_all_conditions1(df, quantity=1*75, return_all_signals=False):
         """
         Generate signals ONLY AFTER 9:15 candle is fully closed.
         All breakouts must come from NEXT candle onwards.

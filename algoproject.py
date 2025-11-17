@@ -3512,26 +3512,25 @@ def place_option_order(identifier, quantity, buy_side='BUY', product="NRML", ord
 
 #identifier = option_data.get('tradingsymbol') or option_data.get('symbol') or option_data.get('identifier')
 # Step 1: Fetch result safely
+# Try to fetch option details
 result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)
 
-# Step 2: Check if result is valid
+# ---- SAFETY CHECKS ----
 if not result:
-    st.error("❌ option_chain_finder() returned nothing. Cannot place trade.")
-    continue  # move to next day OR stop processing
-
-if 'option_data' not in result or not result['option_data']:
-    st.error("❌ option_data missing inside result. Cannot proceed.")
+    st.error("❌ option_chain_finder() returned None or empty. Cannot proceed.")
     continue
 
-# Step 3: Now safe to use
+if 'option_data' not in result or result['option_data'] is None:
+    st.error("❌ option_data missing in result. Cannot place trade.")
+    continue
+
 option_data = result['option_data']
-identifier = option_data.get('tradingsymbol') or option_data.get('symbol') or option_data.get('identifier')
 
-option_data = result.get('option_data', {}) if result else {}
+# Extract fields safely
 identifier = option_data.get('tradingsymbol') or option_data.get('symbol') or option_data.get('identifier')
-
 strike_price = option_data.get('strikePrice')
 buy_premium = option_data.get('lastPrice')
+
 lots = 10   # or derive from option_chain_finder result
 lot_size = 75
 qty = lots * lot_size  # your signal['quantity'] likely already this

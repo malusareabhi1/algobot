@@ -3270,6 +3270,66 @@ elif selected == "3PM OPTION":
                 base_low = price_low  # ✅ Flip support (Base Low updates)
     
         return signals if return_all_signals else (signals[-1] if signals else None)
+
+#######################################################zerodha place order####################################################################################
+
+
+# required imports
+
+from kiteconnect import KiteConnect, KiteException
+import logging
+import time
+
+# initialize kite client once (do this when your app starts)
+#API_KEY = "your_api_key"
+#API_SECRET = "your_api_secret"
+# access_token must be created via login flow (valid for a day). Store & reuse until expiry.
+#ACCESS_TOKEN = "your_access_token"
+
+#kite = KiteConnect(api_key=API_KEY)
+#kite.set_access_token(ACCESS_TOKEN)  # set active token
+
+def place_option_order(identifier, quantity, buy_side='BUY', product="NRML", order_type="MARKET", price=None, trigger_price=None):
+    """
+    identifier: tradingsymbol (eg. 'NIFTY22JUL20100CE') OR the instrument's tradingsymbol returned by your option_chain_finder.
+    quantity: total qty (for F&O: lotsize * number_of_lots)
+    buy_side: 'BUY' or 'SELL'
+    product: 'NRML' / 'MIS' / 'CO' (choose per your intraday/overnight needs)
+    order_type: 'MARKET' / 'LIMIT' / 'SL' / 'SL-M'
+    price: price used for LIMIT orders
+    trigger_price: for SL / SL-M orders
+    """
+    try:
+        resp = kite.place_order(
+            variety=kite.VARIETY_REGULAR,         # regular variety (or use other variety if needed)
+            exchange="NFO",                       # F&O exchange for NIFTY options
+            tradingsymbol=identifier,             # e.g. "NIFTY24DEC21400CE" or whatever identifier you have
+            transaction_type=kite.TRANSACTION_TYPE_BUY if buy_side.upper()=="BUY" else kite.TRANSACTION_TYPE_SELL,
+            quantity=quantity,
+            product=product,                      # NRML for F&O carry, MIS for intraday
+            order_type=getattr(kite, "ORDER_TYPE_"+order_type.upper()) if order_type else kite.ORDER_TYPE_MARKET,
+            price=price,
+            trigger_price=trigger_price,
+            validity=kite.VALIDITY_DAY
+        )
+        logging.info("Order response: %s", resp)
+        return resp  # contains order_id etc.
+    except KiteException as e:
+        logging.error("Kite order failed: %s", e)
+        return {"error": str(e)}
+    except Exception as e:
+        logging.exception("Unexpected error placing order")
+        return {"error": str(e)}
+
+#############################################useage above ###############################################################
+
+
+
+
+ 
+
+    
+    
     
     ##################################START To Execute ################################################
     
@@ -3444,6 +3504,43 @@ elif selected == "3PM OPTION":
         st.download_button(label="Download Signal Log CSV", data=csv, file_name="signal_log.csv", mime="text/csv")
     else:
         st.write("No trade signals detected for the selected period.")
+        
+############################################# calling  #####################################################
+
+
+    # from your flow after signal / option selection:
+
+identifier = option_data.get('tradingsymbol') or option_data.get('symbol') or option_data.get('identifier')
+strike_price = option_data.get('strikePrice')
+buy_premium = option_data.get('lastPrice')
+lots = 10   # or derive from option_chain_finder result
+lot_size = 75
+qty = lots * lot_size  # your signal['quantity'] likely already this
+
+# 1) Place main market buy
+order_resp = place_option_order(identifier=identifier, quantity=qty, buy_side='BUY', product="MIS", order_type="MARKET")
+if order_resp.get("error"):
+    # handle error, log, optionally retry
+    print("Order failed:", order_resp["error"])
+else:
+    order_id = order_resp.get("order_id") or order_resp.get("order_id")  # check resp keys
+    print("Order placed, order_id:", order_id)
+
+    # 2) Place a Stop-Loss (separate order) using trigger_price
+    # compute SL trigger (example: 10% below buy_premium)
+    if buy_premium:
+        sl_trigger = round(buy_premium * 0.90, 2)
+        sl_resp = place_option_order(identifier=identifier, quantity=qty, buy_side='SELL',
+                                    product="MIS", order_type="SL-M", trigger_price=sl_trigger)
+        if sl_resp.get("error"):
+            print("SL placement failed:", sl_resp["error"])
+        else:
+            print("SL order placed:", sl_resp)
+
+    ######################################################################################################
+    
+
+
     
     ##################################################################################
     # ✅ Combine all logs into one DataFrame

@@ -3551,17 +3551,17 @@ elif selected == "3PM OPTION":
 
 
 
-order = place_zerodha_order(
-                    kite=kite,
-                    tradingsymbol=tradingsymbol,
-                    qty=signal['quantity'],
-                    transaction_type="BUY",
-                    product="MIS",
-                    order_type="MARKET"
-                )
-
-            
-st.write(order)
+    order = place_zerodha_order(
+                        kite=kite,
+                        tradingsymbol=tradingsymbol,
+                        qty=signal['quantity'],
+                        transaction_type="BUY",
+                        product="MIS",
+                        order_type="MARKET"
+                    )
+    
+                
+    st.write(order)
 
 
 

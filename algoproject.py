@@ -3341,6 +3341,18 @@ elif selected == "3PM OPTION":
                 "message": f"Order Failed: {str(e)}"
             }
 
+    def paper_trade_order(symbol, qty, action, price):
+    order = {
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "symbol": symbol,
+        "qty": qty,
+        "action": action,
+        "price": price,
+        "status": "PAPER ORDER EXECUTED"
+    }
+    return order
+
+
     
 
     
@@ -3561,7 +3573,22 @@ elif selected == "3PM OPTION":
                             )
             
                         
+    #st.write(order)
+
+    
+    ##### PAPER TRADE MODE
+
+    
+    order = paper_trade_order(
+        symbol=tradingsymbol,
+        qty=signal['quantity'],
+        action="BUY",
+        price=signal['spot_price']
+    )
+    
+    st.success("📘 PAPER ORDER EXECUTED")
     st.write(order)
+
 
 
 

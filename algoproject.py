@@ -32,7 +32,44 @@ if "access_token" not in st.session_state:
     
 # Page configuration
 st.set_page_config(layout="wide", page_title="Trade Strategy Dashboard")
-    
+ #############################################################################################################
+
+# -------------------- LOGIN SYSTEM --------------------
+import streamlit as st
+
+# Default username/password (change as needed)
+USERNAME = "admin"
+PASSWORD = "1234"
+
+# Create login session state
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+# Login function
+def login_page():
+    st.title("🔐 Algo Dashboard Login")
+
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if username == USERNAME and password == PASSWORD:
+            st.session_state.logged_in = True
+            st.success("Login successful! Redirecting...")
+            st.experimental_rerun()
+        else:
+            st.error("Invalid username or password")
+
+# If NOT logged in → show login page only
+if not st.session_state.logged_in:
+    login_page()
+    st.stop()
+# -------------------- LOGIN END --------------------
+
+
+
+
+##############################################################################################################
 # Sidebar navigation
 with st.sidebar:
     selected = option_menu(

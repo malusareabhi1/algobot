@@ -13,8 +13,8 @@ def hash_password(password: str) -> str:
 
 # USER DATABASE (HASHED PASSWORDS)
 USERS = {
-    "admin": hash_password("admin123"),
-    "shree": hash_password("shree@123"),
+    "admin": hash_password("admin"),
+    "shree": hash_password("shree"),
 }
 
 #############################################

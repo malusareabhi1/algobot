@@ -3587,7 +3587,12 @@ elif selected == "3PM OPTION":
     )
     
     st.success("📘 PAPER ORDER EXECUTED")
-    st.write(order)
+    #st.write(order)
+    # Convert to DataFrame
+    order_df = pd.DataFrame([order])
+    
+    # Display as table
+    st.table(order_df)
 
 
 

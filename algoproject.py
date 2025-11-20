@@ -3546,22 +3546,22 @@ elif selected == "3PM OPTION":
     else:
         st.write("No trade signals detected for the selected period.")
         
-############################################# order placing   #####################################################
+######## ##################################### order placing   #####################################################
 
 
 
 
-    order = place_zerodha_order(
-                        kite=kite,
-                        tradingsymbol=tradingsymbol,
-                        qty=signal['quantity'],
-                        transaction_type="BUY",
-                        product="MIS",
-                        order_type="MARKET"
-                    )
-    
-                
-    st.write(order)
+            order = place_zerodha_order(
+                                kite=kite,
+                                tradingsymbol=tradingsymbol,
+                                qty=signal['quantity'],
+                                transaction_type="BUY",
+                                product="MIS",
+                                order_type="MARKET"
+                            )
+            
+                        
+            st.write(order)
 
 
 

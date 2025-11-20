@@ -1,195 +1,203 @@
 import streamlit as st
-import hashlib
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
+import time
 from datetime import datetime, timedelta
 
-#############################################
-# PASSWORD UTILS
-#############################################
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+###############################################
+# INITIAL SESSION STATE
+###############################################
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-# USER DATABASE (HASHED PASSWORDS)
-USERS = {
-    "admin": hash_password("admin"),
-    "shree": hash_password("shree"),
-}
+if "open_trade" not in st.session_state:
+    st.session_state.open_trade = None
 
-#############################################
-# LOGIN COMPONENT
-#############################################
-def login_screen():
-    st.title("🔐 Algo Trading Dashboard Login")
-    with st.form("login_form"):
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        submit = st.form_submit_button("Login")
+if "orderbook" not in st.session_state:
+    st.session_state.orderbook = []
 
-        if submit:
-            if username in USERS and USERS[username] == hash_password(password):
-                st.session_state.logged_in = True
-                st.session_state.username = username
-                st.success("Login Successful! Redirecting...")
-                st.rerun()
-            else:
-                st.error("Invalid username or password ❌")
 
-#############################################
-# SIDEBAR MENU
-#############################################
-def sidebar_menu():
-    with st.sidebar:
-        st.markdown(f"### 👤 {st.session_state.username}")
-        st.markdown("---")
-        return st.radio("📌 Menu", [
-            "Dashboard",
-            "Market Data",
-            "Strategy Signals",
-            "Backtest",
-            "Order Log",
-            "Settings",
-        ])
+###############################################
+# LOGIN SYSTEM
+###############################################
+def login_ui():
+    st.title("Algo Trading Dashboard — Login")
+    user = st.text_input("Username")
+    pwd = st.text_input("Password", type="password")
 
-#############################################
-# DASHBOARD
-#############################################
-def dashboard_home():
-    st.title("📊 Algo Trading Dashboard")
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Today's PnL", "₹ 2,450", "+4.2%")
-    col2.metric("Total Trades", "12")
-    col3.metric("Win Rate", "67%")
+    if st.button("Login"):
+        if user == "admin" and pwd == "1234":
+            st.session_state.logged_in = True
+            st.success("Login successful!")
+            time.sleep(1)
+            st.rerun()
+        else:
+            st.error("Invalid credentials")
 
-    st.markdown("---")
-    st.subheader("Market Trend Overview (NIFTY 50)")
-    df = get_dummy_chart_data()
-    fig = px.line(df, x="time", y="price", title="NIFTY Trend")
-    st.plotly_chart(fig, use_container_width=True)
 
-#############################################
-# MARKET DATA PAGE
-#############################################
-def market_data_page():
-    st.title("📈 Live Market Data")
-    df = get_dummy_chart_data()
-
-    fig = go.Figure()
-    fig.add_trace(go.Candlestick(
-        x=df["time"],
-        open=df["open"], high=df["high"], low=df["low"], close=df["close"]
-    ))
-    fig.update_layout(height=500)
-    st.plotly_chart(fig, use_container_width=True)
-
-#############################################
-# STRATEGY SIGNALS
-#############################################
-def strategy_signals():
-    st.title("⚡ Strategy Signals (Live)")
-    st.info("Signals auto-update based on strategy conditions.")
-
-    # Dummy signal
-    signal = {
-        "time": datetime.now().strftime("%H:%M:%S"),
-        "symbol": "NIFTY24NOVFUT",
-        "signal": "BUY",
-        "price": 22450,
-        "strength": "Strong"
+###############################################
+# PAPER TRADE FUNCTIONS
+###############################################
+def place_paper_trade(symbol, direction, entry_price, sl, target):
+    trade = {
+        "symbol": symbol,
+        "direction": direction,
+        "entry_price": entry_price,
+        "sl": sl,
+        "target": target,
+        "qty": 50,
+        "entry_time": datetime.now(),
+        "status": "OPEN",
     }
 
-    st.success(f"{signal['time']} → {signal['symbol']} → {signal['signal']} at {signal['price']}")
-
-#############################################
-# BACKTEST SECTION
-#############################################
-def backtest_section():
-    st.title("📘 Strategy Backtest")
-    uploaded = st.file_uploader("Upload OHLC CSV")
-
-    if uploaded:
-        df = pd.read_csv(uploaded)
-        st.write("Data Preview", df.head())
-
-        df["Returns"] = df["Close"].pct_change()
-        st.line_chart(df["Returns"].cumsum())
-
-#############################################
-# ORDER LOG
-#############################################
-def order_log_page():
-    st.title("📜 Order Log")
-    st.write("Your executed/paper trades will appear here.")
-    st.table(pd.DataFrame({
-        "Time": ["09:20", "10:15", "11:40"],
-        "Symbol": ["NIFTY24NOVFUT", "BANKNIFTY24NOVFUT", "NIFTY24NOVFUT"],
-        "Action": ["BUY", "SELL", "SELL"],
-        "Qty": [50, 30, 50],
-        "Price": [22400, 48920, 22510]
-    }))
-
-#############################################
-# SETTINGS
-#############################################
-def settings_page():
-    st.title("⚙️ Settings")
-    st.write("Update user preferences, API Keys, Alerts, Theme.")
-
-    st.text_input("Zerodha API Key")
-    st.text_input("Zerodha API Secret")
-    st.text_input("Telegram Bot Token")
-
-    st.button("Save Settings")
-
-#############################################
-# UTILS
-#############################################
-def get_dummy_chart_data():
-    times = pd.date_range(datetime.now() - timedelta(hours=1), periods=30, freq="2min")
-    price = 22000 + (pd.Series(range(30)) * 5)
-    df = pd.DataFrame({
-        "time": times,
-        "price": price,
-        "open": price - 10,
-        "high": price + 20,
-        "low": price - 30,
-        "close": price,
+    st.session_state.open_trade = trade
+    st.session_state.orderbook.append({
+        **trade,
+        "exit_price": None,
+        "exit_time": None,
+        "exit_reason": None,
+        "pnl": None,
     })
-    return df
 
-#############################################
-# MAIN APP
-#############################################
-def main():
-    st.set_page_config(page_title="Algo Dashboard", layout="wide")
+    return trade
 
-    if "logged_in" not in st.session_state:
-        st.session_state.logged_in = False
 
-    if not st.session_state.logged_in:
-        login_screen()
+def exit_trade(exit_price, reason):
+    trade = st.session_state.open_trade
+    if trade is None:
         return
 
-    # Sidebar
-    choice = sidebar_menu()
-    if st.sidebar.button("Logout"):
-        st.session_state.clear()
-        st.rerun()
+    last = st.session_state.orderbook[-1]
+    last["exit_price"] = exit_price
+    last["exit_time"] = datetime.now()
+    last["exit_reason"] = reason
 
-    # Routing
-    if choice == "Dashboard":
-        dashboard_home()
-    elif choice == "Market Data":
-        market_data_page()
-    elif choice == "Strategy Signals":
-        strategy_signals()
-    elif choice == "Backtest":
-        backtest_section()
-    elif choice == "Order Log":
-        order_log_page()
-    elif choice == "Settings":
-        settings_page()
+    qty = trade["qty"]
 
-if __name__ == "__main__":
-    main()
+    if trade["direction"] == "CALL":
+        pnl = (exit_price - trade["entry_price"]) * qty
+    else:
+        pnl = (trade["entry_price"] - exit_price) * qty
+
+    last["pnl"] = pnl
+
+    st.session_state.open_trade = None
+
+
+def monitor_trade(ltp, base_high, base_low):
+    trade = st.session_state.open_trade
+    if trade is None:
+        return None
+
+    direction = trade["direction"]
+    entry_time = trade["entry_time"]
+    elapsed_min = (datetime.now() - entry_time).seconds / 60
+
+    # STOPLOSS
+    if direction == "CALL" and ltp <= trade["sl"]:
+        exit_trade(ltp, "SL HIT")
+        return
+
+    if direction == "PUT" and ltp >= trade["sl"]:
+        exit_trade(ltp, "SL HIT")
+        return
+
+    # TARGET
+    if direction == "CALL" and ltp >= trade["target"]:
+        exit_trade(ltp, "TARGET HIT")
+        return
+
+    if direction == "PUT" and ltp <= trade["target"]:
+        exit_trade(ltp, "TARGET HIT")
+        return
+
+    # TIME EXIT (16 minutes)
+    if elapsed_min >= 16:
+        exit_trade(ltp, "TIME EXIT")
+        return
+
+    # FLIP LOGIC
+    if direction == "CALL" and ltp < base_low:
+        exit_trade(ltp, "FLIP: CALL EXIT → MAKE PUT")
+        return "FLIP_PUT"
+
+    if direction == "PUT" and ltp > base_high:
+        exit_trade(ltp, "FLIP: PUT EXIT → MAKE CALL")
+        return "FLIP_CALL"
+
+
+###############################################
+# STRATEGY ENGINE
+###############################################
+def apply_strategy(base_high, base_low, H1, L1, C1):
+    # Condition 1: Bullish Breakout
+    if L1 >= base_high and H1 >= base_low and C1 >= base_high:
+        sl = L1
+        target = H1 * 1.10
+        place_paper_trade("NIFTY_CALL", "CALL", H1, sl, target)
+        return "CALL ENTRY"
+
+    # Condition 2: Bearish Breakdown
+    elif L1 <= base_high and H1 <= base_low and C1 <= base_low:
+        sl = H1
+        target = L1 * 0.90
+        place_paper_trade("NIFTY_PUT", "PUT", L1, sl, target)
+        return "PUT ENTRY"
+
+    # Condition 3: Gap Up
+    elif C1 > base_high:
+        place_paper_trade("NIFTY_CALL", "CALL", H1, H1 - 15, H1 * 1.10)
+        return "GAP UP CALL"
+
+    # Condition 4: Gap Down
+    elif C1 < base_low:
+        place_paper_trade("NIFTY_PUT", "PUT", L1, L1 + 15, L1 * 0.90)
+        return "GAP DOWN PUT"
+
+    return "NO TRADE"
+
+
+###############################################
+# DASHBOARD UI
+###############################################
+def dashboard():
+    st.title("Algo Trading Dashboard — Base Zone Strategy")
+
+    st.subheader("Base Zone Inputs")
+    base_high = st.number_input("Previous Day 3PM Candle OPEN (Base High)")
+    base_low = st.number_input("Previous Day 3PM Candle CLOSE (Base Low)")
+
+    st.subheader("Today's First 15-min Candle")
+    H1 = st.number_input("H1 — High")
+    L1 = st.number_input("L1 — Low")
+    C1 = st.number_input("C1 — Close")
+
+    if st.button("Run Strategy & Generate Entry"):
+        signal = apply_strategy(base_high, base_low, H1, L1, C1)
+        st.success(f"Signal: {signal}")
+
+    st.subheader("Live LTP Simulation")
+    ltp = st.number_input("Live Price (LTP)")
+
+    if st.button("Monitor Trade"):
+        result = monitor_trade(ltp, base_high, base_low)
+        if result == "FLIP_CALL":
+            place_paper_trade("NIFTY_CALL", "CALL", ltp, ltp-15, ltp*1.10)
+        elif result == "FLIP_PUT":
+            place_paper_trade("NIFTY_PUT", "PUT", ltp, ltp+15, ltp*0.90)
+
+    st.subheader("Open Trade")
+    st.write(st.session_state.open_trade)
+
+    st.subheader("Orderbook")
+    if st.session_state.orderbook:
+        df = pd.DataFrame(st.session_state.orderbook)
+        st.dataframe(df, use_container_width=True)
+
+
+###############################################
+# MAIN APP
+###############################################
+if not st.session_state.logged_in:
+    login_ui()
+else:
+    dashboard()

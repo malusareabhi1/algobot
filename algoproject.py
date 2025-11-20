@@ -3341,7 +3341,7 @@ elif selected == "3PM OPTION":
                 "message": f"Order Failed: {str(e)}"
             }
 
-        def paper_trade_order(symbol, qty, action, price):
+    def paper_trade_order(symbol, qty, action, price):
         order = {
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "symbol": symbol,

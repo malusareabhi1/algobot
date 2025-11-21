@@ -3568,7 +3568,7 @@ elif selected == "3PM OPTION":
 
 
 
-        order = place_zerodha_order(
+    order = place_zerodha_order(
                                 kite=kite,
                                 tradingsymbol=tradingsymbol,
                                 qty=signal['quantity'],

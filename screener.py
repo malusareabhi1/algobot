@@ -513,7 +513,7 @@ nifty100 = [
 results = []
 
 st.info("Fetching data... (may take 10–20 seconds)")
-
+#this
 for ticker in nifty100:
     df = yf.download(ticker, period="6mo", interval="1d")
     if df.empty:

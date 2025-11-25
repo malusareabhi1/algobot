@@ -208,7 +208,8 @@ if st.button('Run Scan'):
             continue
         # optional volume filter
         avg_vol = df['Volume'].tail(30).mean()
-        if avg_vol < min_volume:
+        #if avg_vol < min_volume:
+        if avg_vol.mean() < min_volume:    
             continue
         flags = []
         try:

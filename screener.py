@@ -31,7 +31,15 @@ def find_swing_signal(df):
     prev = df.iloc[-2]
 
     # 2. Crossing candle – Close > MA44 & previous Close < MA44
-    crossing = prev["Close"] < prev["MA44"] and last["Close"] > last["MA44"]
+    #crossing = prev["Close"] < prev["MA44"] and last["Close"] > last["MA44"]
+    prev_close = prev["Close"].iloc[-1]
+    prev_ma44  = prev["MA44"].iloc[-1]
+    
+    last_close = last["Close"].iloc[-1]
+    last_ma44  = last["MA44"].iloc[-1]
+    
+    crossing = (prev_close < prev_ma44) and (last_close > last_ma44)
+
     if not crossing:
         return False
 

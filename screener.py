@@ -17,36 +17,20 @@ def rising_ma(ma):
 
 
 def find_swing_signal(df):
-    df["MA44"] = df["Close"].rolling(44).mean()
-
-    if len(df) < 60:
+    if len(df) < 50:
         return False
 
-    # 1. Rising MA
-    if not rising_ma(df["MA44"]):
-        return False
+    prev_close = df["Close"].iloc[-2]
+    prev_ma44  = df["MA44"].iloc[-2]
 
-    # Last candle
-    last = df.iloc[-1]
-    prev = df.iloc[-2]
+    last_close = df["Close"].iloc[-1]
+    last_ma44  = df["MA44"].iloc[-1]
 
-    # 2. Crossing candle – Close > MA44 & previous Close < MA44
-    #crossing = prev["Close"] < prev["MA44"] and last["Close"] > last["MA44"]
-    prev_close = prev["Close"].iloc[-1]
-    prev_ma44  = prev["MA44"].iloc[-1]
-    
-    last_close = last["Close"].iloc[-1]
-    last_ma44  = last["MA44"].iloc[-1]
-    
+    # Example: Bullish swing entry when crossing above MA44
     crossing = (prev_close < prev_ma44) and (last_close > last_ma44)
 
-    if not crossing:
-        return False
+    return crossing     # ← This now returns only True/False
 
-    # 3. Support check – candle low near MA44 (within 1%)
-    support = abs(last["Low"] - last["MA44"]) / last["MA44"] < 0.01
-
-    return support
 
 
 def plot_chart(df, ticker):

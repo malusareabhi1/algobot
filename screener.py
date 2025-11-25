@@ -17,19 +17,21 @@ def rising_ma(ma):
 
 
 def find_swing_signal(df):
-    if len(df) < 50:
+    # Safety check
+    if "MA44" not in df.columns:
         return False
 
+    if len(df) < 50:
+        return False
+    
     prev_close = df["Close"].iloc[-2]
     prev_ma44  = df["MA44"].iloc[-2]
 
     last_close = df["Close"].iloc[-1]
     last_ma44  = df["MA44"].iloc[-1]
 
-    # Example: Bullish swing entry when crossing above MA44
     crossing = (prev_close < prev_ma44) and (last_close > last_ma44)
-
-    return crossing     # ← This now returns only True/False
+    return crossing
 
 
 

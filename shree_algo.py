@@ -6573,7 +6573,7 @@ elif MENU =="Live Trade":
                     )
                     st.success(f"Order Placed Successfully! Order ID: {order_id}")
                 
-                except Exception as e:
+            except Exception as e:
                     st.error(f"Order Failed: {e}")    
                     
         else:

@@ -6300,7 +6300,13 @@ elif MENU =="Live Trade":
         st.write(selected_option)
        # st.write("###  find_nearest_itm_option")
         #st.write(result)
+        
         # Convert dict to DataFrame, then transpose
+        ltp = kite.ltp(f"NFO:{selected_option['tradingsymbol']}")
+        option_data["ltp"] = list(ltp.values())[0]["last_price"]
+        st.write("LTP:", option_data["ltp"])
+
+        
         st.write("Nearest ITM Call option to BUY:")
         df_option = pd.DataFrame([result['option_data']]).T
         df_option.columns = ["Value"]  # Rename column for clarity

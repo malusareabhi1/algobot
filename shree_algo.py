@@ -6351,7 +6351,7 @@ elif MENU =="Live Trade":
 
         result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)
         #st.write("Result")
-        st.table(pd.DataFrame([filtered_signal]))
+        #st.table(pd.DataFrame([filtered_signal]))
         if isinstance(chain, pd.DataFrame):
             chain = chain.to_dict(orient="records")
             

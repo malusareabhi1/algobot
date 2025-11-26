@@ -6330,11 +6330,11 @@ elif MENU =="Live Trade":
         st.write("No trade signal for today based on conditions.")
     
     
-    st.write("Trade log DataFrame:")
-    if 'trade_log_df' in locals():
-        st.write(trade_log_df)
-    else:
-        st.write("No trade log data available.")
+    #st.write("Trade log DataFrame:")
+    #if 'trade_log_df' in locals():
+        #st.write(trade_log_df)
+    #else:
+        #st.write("No trade log data available.")
 
     #st.write(trade_log_df)
     #st.write("Columns:", trade_log_df.columns.tolist())

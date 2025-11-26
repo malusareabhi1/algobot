@@ -4939,6 +4939,9 @@ elif MENU == "Support":
     #######################################################################################################
 elif MENU =="Live Trade":
     from streamlit_autorefresh import st_autorefresh
+    import time             # Python's time module
+    from datetime import time  # datetime.time (conflict!)
+
 
     st.set_page_config(layout="wide")
     # Place at the very top of your script (or just before plotting)

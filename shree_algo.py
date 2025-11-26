@@ -6276,7 +6276,7 @@ elif MENU =="Live Trade":
                 raise ValueError("Unrecognized option chain format. Cannot extract list.")
 
         result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)
-        st.write("Result")
+        #st.write("Result")
         st.table(pd.DataFrame([filtered_signal]))
         if isinstance(chain, pd.DataFrame):
             chain = chain.to_dict(orient="records")
@@ -6310,7 +6310,7 @@ elif MENU =="Live Trade":
 
         
         st.write("Nearest ITM Call option to BUY:")
-        df_option = pd.DataFrame([result['option_data']]).T
+        df_option = pd.DataFrame([selected_option['option_data']]).T
         df_option.columns = ["Value"]  # Rename column for clarity
         
         st.table(df_option)

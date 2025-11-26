@@ -6519,32 +6519,6 @@ elif MENU =="Live Trade":
                     return f"{underlying}{day}{month}{year}{option_type}{strike}"
 
     
-# ---- PLACE ORDER IN ZERODHA ----
-    try:
-            if "kite" in st.session_state and st.session_state.kite:
-                kite = st.session_state.kite
-            #tradingsymbol = result['option_data']['identifier'].replace("OPTIDX", "")  #selected_option
-            tradingsymbol = selected_option['option_data']['identifier'].replace("OPTIDX", "")
-            # Example: NIFTY25-11-2025CE26200 (correct format)
-            st.write(tradingsymbol)
-           
-            order = kite.place_order(
-                variety="regular",
-                exchange="NFO",
-                tradingsymbol=tradingsymbol,
-                transaction_type="BUY",
-                quantity=result["total_quantity"],
-                product="MIS",
-                order_type="MARKET"
-            )
-        
-            st.success(f"Order Placed Successfully! Order ID: {order}")
-            st.write(f"**Executed:** {tradingsymbol}")
-            st.write(f"**Qty:** {result['total_quantity']}")
-            st.write(f"**Side:** BUY")
-       
-    except Exception as e:
-            st.error(f"Order Failed: {e}")     
 
     
 

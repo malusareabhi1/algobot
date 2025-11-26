@@ -6541,6 +6541,7 @@ elif MENU =="Live Trade":
             
             #st.write("Available keys:", list(result['option_data'].index))
             trading_symbol = selected_option["tradingsymbol"]
+            st.write("Trading Symbol")
             st.write(trading_symbol)
 
             # Extract option symbol & quantity
@@ -6553,26 +6554,16 @@ elif MENU =="Live Trade":
             qty = result['total_quantity']
             ltp = result['option_data']['lastPrice']
             #-------------------------------------------------------------------------------------
-            contract = find_kite_option(
-                kite,
-                symbol="NIFTY",
-                expiry_date="2025-12-04",
-                strike=26150,
-                option_type="CE"
-            )
             
-            st.write(contract)
-
-
             #--------------------------------------------------------------------------------------
             
-            st.write(f"Placing order for: **{option_symbol}**")
+            st.write(f"Placing order for: **{trading_symbol}**")
             st.write(f"Quantity: {qty}, LTP: {ltp}")
             
             if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
                 try:
                     order_id = kite.place_order(
-                        tradingsymbol=option_symbol,
+                        tradingsymbol=trading_symbol,
                         exchange=kite.EXCHANGE_NFO,
                         transaction_type=kite.TRANSACTION_TYPE_BUY,
                         quantity=qty,

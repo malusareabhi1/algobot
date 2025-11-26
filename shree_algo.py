@@ -6297,7 +6297,7 @@ elif MENU =="Live Trade":
         # ---- GET SELECTED OPTION ----
 
         selected_option = option_chain_finder_zerodha(chain, spot_price, option_type=ot, lots=1, lot_size=75)
-        st.write(selected_option)
+        st.table(selected_option)
        # st.write("###  find_nearest_itm_option")
         #st.write(result)
         

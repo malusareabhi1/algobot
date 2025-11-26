@@ -6256,6 +6256,24 @@ elif MENU =="Live Trade":
         # Find nearest ITM option to buy
         chain = get_option_chain(kite, "NIFTY")
             #st.dataframe(chain)
+        # FIX: convert dict structure to list
+        if isinstance(chain, dict):
+        
+            # Case 1: NSE Option Chain Structure
+            if "records" in chain and "data" in chain["records"]:
+                chain = chain["records"]["data"]
+        
+            # Case 2: Zerodha format
+            elif "data" in chain and isinstance(chain["data"], list):
+                chain = chain["data"]
+        
+            # Case 3: Your custom scrapper might use "options"
+            elif "options" in chain:
+                chain = chain["options"]
+        
+            else:
+                raise ValueError("Unrecognized option chain format. Cannot extract list.")
+
         result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)
         selected_option = option_chain_finder_zerodha(chain, spot_price, option_type=ot, lots=1, lot_size=75)
         st.write(selected_option)

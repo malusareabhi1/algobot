@@ -6317,13 +6317,13 @@ elif MENU =="Live Trade":
     
         st.write(f"Total Quantity: {result['total_quantity']}")
         trade_log_df = generate_trade_log_from_option(result, signal)
-        st.write("### Trade Log for Current Signal")
+        #st.write("### Trade Log for Current Signal")
 
         #sst.write("### Trade Log for Current Signal")
 
-        for i, row in trade_log_df.iterrows():
-            st.write(f"**Trade {i+1}:**")
-            st.table(row.to_frame(name="Value"))
+        #for i, row in trade_log_df.iterrows():
+            #st.write(f"**Trade {i+1}:**")
+            #st.table(row.to_frame(name="Value"))
         #st.write("### Trade Log for Current Signal")
         #st.table(trade_log_df)
     else:

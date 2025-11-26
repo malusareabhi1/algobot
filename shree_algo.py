@@ -6586,11 +6586,31 @@ elif MENU =="Live Trade":
     
     st.write("### Trade Log Summary")
 
-    if 'trade_log_df' in locals() and not trade_log_df.empty:
-        cols_to_show = [c for c in ["Exit Signal", "Exit Price", "P&L"] if c in trade_log_df.columns]
-        st.table(trade_log_df[cols_to_show])
-    else:
-        st.write("No trade log data available.")
+    import pandas as pd
+
+    trades = kite.trades()  # fetch executed trades
+    
+    df = pd.DataFrame(trades)
+    
+    # Optional: select relevant columns
+    df_summary = df[[
+        "trade_id",
+        "order_id",
+        "tradingsymbol",
+        "transaction_type",
+        "quantity",
+        "price",
+        "exchange",
+        "fill_timestamp"
+    ]]
+    
+    # Sort by time
+    df_summary = df_summary.sort_values("fill_timestamp", ascending=False)
+    
+    # Display
+    import streamlit as st
+    st.dataframe(df_summary)
+
 
 elif MENU=="Paper Trade":
     # Put this inside your Streamlit app file (e.g. ui_dash.py)

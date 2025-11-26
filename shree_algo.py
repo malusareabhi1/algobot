@@ -6593,7 +6593,7 @@ elif MENU =="Live Trade":
         df = pd.DataFrame(orders)
     
         # Check available columns
-        st.write("Available columns:", df.columns.tolist())
+        #st.write("Available columns:", df.columns.tolist())
     
         # Select only safe columns that exist
         cols = [c for c in [

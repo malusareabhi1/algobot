@@ -6147,28 +6147,33 @@ elif MENU =="Live Trade":
         plt.tight_layout()
         st.pyplot(fig)
 
-    def option_chain_finder_zerodha(option_chain, spot_price, option_type="CALL", lots=1, lot_size=75):
+   def option_chain_finder_zerodha(option_chain, spot_price, option_type="CALL", lots=1, lot_size=75):
         """
-        Find Zerodha option closest to spot price.
-        Works for list of dicts or DataFrame.
+        Zerodha option finder (ATM/nearest strike)
         """
-        import pandas as pd
     
-        # Convert DataFrame to list of dicts if needed
-        if isinstance(option_chain, pd.DataFrame):
-            option_chain = option_chain.to_dict('records')
+        # Convert option_type to Zerodha format
+        if option_type.upper() == "CALL":
+            opt_type = "CE"
+        elif option_type.upper() == "PUT":
+            opt_type = "PE"
+        else:
+            raise ValueError("option_type must be CALL or PUT")
     
-        # Filter by option type safely
-        filtered_chain = [opt for opt in option_chain if opt.get('instrument_type', '').upper() == option_type.upper()]
-        
+        # Filter CE/PE from Zerodha instruments
+        filtered_chain = [
+            opt for opt in option_chain 
+            if opt.get("instrument_type", "").upper() == opt_type
+        ]
+    
         if not filtered_chain:
-            raise ValueError(f"No options found for type {option_type}")
+            raise ValueError(f"No options found for type {opt_type} in Zerodha chain")
     
         # Find closest strike
-        closest_option = min(filtered_chain, key=lambda x: abs(x['strike'] - spot_price))
+        closest_option = min(filtered_chain, key=lambda x: abs(x["strike"] - spot_price))
     
         # Add total quantity
-        closest_option['total_quantity'] = lots * lot_size
+        closest_option["total_quantity"] = lots * lot_size
     
         return closest_option
 

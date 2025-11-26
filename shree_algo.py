@@ -6276,6 +6276,9 @@ elif MENU =="Live Trade":
                 raise ValueError("Unrecognized option chain format. Cannot extract list.")
 
         result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)
+        if isinstance(chain, pd.DataFrame):
+            chain = chain.to_dict(orient="records")
+
         selected_option = option_chain_finder_zerodha(chain, spot_price, option_type=ot, lots=1, lot_size=75)
         st.write(selected_option)
        # st.write("###  find_nearest_itm_option")

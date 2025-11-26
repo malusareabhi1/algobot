@@ -6147,35 +6147,35 @@ elif MENU =="Live Trade":
         plt.tight_layout()
         st.pyplot(fig)
 
-   def option_chain_finder_zerodha(option_chain, spot_price, option_type="CALL", lots=1, lot_size=75):
-        """
-        Zerodha option finder (ATM/nearest strike)
-        """
-    
-        # Convert option_type to Zerodha format
-        if option_type.upper() == "CALL":
-            opt_type = "CE"
-        elif option_type.upper() == "PUT":
-            opt_type = "PE"
-        else:
-            raise ValueError("option_type must be CALL or PUT")
-    
-        # Filter CE/PE from Zerodha instruments
-        filtered_chain = [
-            opt for opt in option_chain 
-            if opt.get("instrument_type", "").upper() == opt_type
-        ]
-    
-        if not filtered_chain:
-            raise ValueError(f"No options found for type {opt_type} in Zerodha chain")
-    
-        # Find closest strike
-        closest_option = min(filtered_chain, key=lambda x: abs(x["strike"] - spot_price))
-    
-        # Add total quantity
-        closest_option["total_quantity"] = lots * lot_size
-    
-        return closest_option
+       def option_chain_finder_zerodha(option_chain, spot_price, option_type="CALL", lots=1, lot_size=75):
+            """
+            Zerodha option finder (ATM/nearest strike)
+            """
+        
+            # Convert option_type to Zerodha format
+            if option_type.upper() == "CALL":
+                opt_type = "CE"
+            elif option_type.upper() == "PUT":
+                opt_type = "PE"
+            else:
+                raise ValueError("option_type must be CALL or PUT")
+        
+            # Filter CE/PE from Zerodha instruments
+            filtered_chain = [
+                opt for opt in option_chain 
+                if opt.get("instrument_type", "").upper() == opt_type
+            ]
+        
+            if not filtered_chain:
+                raise ValueError(f"No options found for type {opt_type} in Zerodha chain")
+        
+            # Find closest strike
+            closest_option = min(filtered_chain, key=lambda x: abs(x["strike"] - spot_price))
+        
+            # Add total quantity
+            closest_option["total_quantity"] = lots * lot_size
+        
+            return closest_option
 
     
     

@@ -6150,27 +6150,33 @@ elif MENU =="Live Trade":
 
     def option_chain_finder_zerodha(option_chain, spot_price, option_type, lots=1, lot_size=75):
         """
-        Zerodha option finder with robust type detection.
-        Accepts CALL/PUT/CE/PE with any casing or extra words.
+        Safe Zerodha option finder.
+        Handles cases where chain contains strings or invalid objects.
         """
     
         # Normalize input
-        if option_type is None:
-            raise ValueError("option_type is missing")
-    
         ot = str(option_type).upper().strip()
     
-        # Convert any format to CE/PE
+        # Convert CALL/PUT/CE/PE to CE/PE format
         if "CALL" in ot or ot == "CE":
             opt_type = "CE"
         elif "PUT" in ot or ot == "PE":
             opt_type = "PE"
         else:
-            raise ValueError(f"Unknown option_type received: '{option_type}'")
+            raise ValueError(f"Unknown option_type received: {option_type}")
     
-        # Filter Zerodha chain
-        filtered = [
+        # Remove invalid rows (strings, None, ints)
+        cleaned_chain = [
             opt for opt in option_chain
+            if isinstance(opt, dict)
+        ]
+    
+        if not cleaned_chain:
+            raise ValueError("Option chain has no valid dictionary rows.")
+    
+        # Filter CE/PE options
+        filtered = [
+            opt for opt in cleaned_chain
             if opt.get("instrument_type", "").upper() == opt_type
         ]
     
@@ -6183,7 +6189,7 @@ elif MENU =="Live Trade":
         closest["total_quantity"] = lots * lot_size
     
         return closest
-
+    
 
 
        

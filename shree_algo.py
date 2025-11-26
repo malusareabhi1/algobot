@@ -1810,7 +1810,7 @@ elif MENU == "Backtest":
     #st.write(option_chain_df.head())
     
     ################################################################################################
-   def find_nearest_itm_option(kite, spot_price, option_type):
+    def find_nearest_itm_option(kite, spot_price, option_type):
         df = load_zerodha_instruments()
         chain = get_nifty_option_chain(df)
     

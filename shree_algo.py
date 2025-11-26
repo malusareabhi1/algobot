@@ -6171,7 +6171,17 @@ elif MENU =="Live Trade":
         Safe Zerodha option finder.
         Handles cases where chain contains strings or invalid objects.
         """
+        if chain is None:
+        raise ValueError("Received None instead of option chain.")
+
+        if not isinstance(chain, list):
+            raise ValueError(f"Option chain must be a list. Received: {type(chain)}")
     
+        # Filter only valid dict rows
+        clean_rows = [row for row in chain if isinstance(row, dict)]
+    
+        if len(clean_rows) == 0:
+            raise ValueError("Option chain has no valid dictionary rows.")
         # Normalize input
         ot = str(option_type).upper().strip()
     

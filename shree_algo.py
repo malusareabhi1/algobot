@@ -6278,6 +6278,23 @@ elif MENU =="Live Trade":
         result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)
         if isinstance(chain, pd.DataFrame):
             chain = chain.to_dict(orient="records")
+            
+        # ---- LOAD ZERODHA INSTRUMENTS ----
+        df = pd.read_csv("https://api.kite.trade/instruments")
+        
+        # ---- FILTER ONLY NIFTY OPTIONS ----
+        nifty_chain = df[
+            (df["segment"] == "NFO-OPT") &
+            (df["name"] == "NIFTY")
+        ]
+        
+        if nifty_chain.empty:
+            raise ValueError("No NIFTY option instruments found in Zerodha instruments")
+        
+        # ---- CONVERT TO LIST OF DICT ----
+        chain = nifty_chain.to_dict(orient="records")
+        
+        # ---- GET SELECTED OPTION ----
 
         selected_option = option_chain_finder_zerodha(chain, spot_price, option_type=ot, lots=1, lot_size=75)
         st.write(selected_option)

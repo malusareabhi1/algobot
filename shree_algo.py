@@ -4941,6 +4941,12 @@ elif MENU =="Live Trade":
     from streamlit_autorefresh import st_autorefresh
     import time             # Python's time module
     from datetime import time  # datetime.time (conflict!)
+    # --- SESSION STATE INIT ---
+    if "order_executed" not in st.session_state:
+        st.session_state.order_executed = False
+    
+    if "signal_time" not in st.session_state:
+        st.session_state.signal_time = None
 
 
     st.set_page_config(layout="wide")

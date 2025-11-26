@@ -6303,7 +6303,7 @@ elif MENU =="Live Trade":
         
         # Convert dict to DataFrame, then transpose
         ltp = kite.ltp(f"NFO:{selected_option['tradingsymbol']}")
-        option_data["ltp"] = list(ltp.values())[0]["last_price"]
+        selected_option["ltp"] = list(ltp.values())[0]["last_price"]
         st.write("LTP:", option_data["ltp"])
 
         

@@ -6574,25 +6574,35 @@ elif MENU =="Live Trade":
             #-------------------------------------------------------------------------------------
             
             #--------------------------------------------------------------------------------------
-            
+            ist = pytz.timezone("Asia/Kolkata")
+            now = datetime.now(ist).time()
+            #------------------------------------------------
             st.write(f"Placing order for: **{trading_symbol}**")
             st.write(f"Quantity: {qty}, LTP: {ltp}")
             
             #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
-            try:
-                    order_id = kite.place_order(
-                        tradingsymbol=trading_symbol,
-                        exchange=kite.EXCHANGE_NFO,
-                        transaction_type=kite.TRANSACTION_TYPE_BUY,
-                        quantity=qty,
-                        order_type=kite.ORDER_TYPE_MARKET,
-                        variety=kite.VARIETY_REGULAR,
-                        product=kite.PRODUCT_MIS  # or CNC/NRML based on your logic
-                    )
-                    st.success(f"Order Placed Successfully! Order ID: {order_id}")
-                
-            except Exception as e:
-                    st.error(f"Order Failed: {e}")    
+            # Condition 1: Current time >= signal candle time
+            if now >= signal_time:
+        
+                # Condition 2: Order must be placed only once
+                if not st.session_state.order_executed:
+                    try:
+                            order_id = kite.place_order(
+                                tradingsymbol=trading_symbol,
+                                exchange=kite.EXCHANGE_NFO,
+                                transaction_type=kite.TRANSACTION_TYPE_BUY,
+                                quantity=qty,
+                                order_type=kite.ORDER_TYPE_MARKET,
+                                variety=kite.VARIETY_REGULAR,
+                                product=kite.PRODUCT_MIS  # or CNC/NRML based on your logic
+                            )
+                            st.success(f"Order Placed Successfully! Order ID: {order_id}")
+                        
+                    except Exception as e:
+                            st.error(f"Order Failed: {e}")   
+
+                else:
+                    st.info("Order already executed for this signal.")
                     
         else:
             st.warning("Kite session not connected. Please login first to place live orders.")

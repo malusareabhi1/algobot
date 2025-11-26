@@ -6540,6 +6540,8 @@ elif MENU =="Live Trade":
             
             
             #st.write("Available keys:", list(result['option_data'].index))
+            trading_symbol = selected_option["tradingsymbol"]
+            st.write(trading_symbol)
 
             # Extract option symbol & quantity
             #option_symbol = result['option_data']['tradingsymbol']

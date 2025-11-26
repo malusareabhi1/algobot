@@ -445,7 +445,7 @@ def option_chain_finder(option_chain_df, spot_price, option_type, lots=10, lot_s
         'total_quantity': total_qty,
         'option_data': option_row
     }
-def find_nearest_itm_option():
+def find_nearest_itm_option0():
     import nsepython
     from nsepython import nse_optionchain_scrapper
 
@@ -474,6 +474,24 @@ def find_nearest_itm_option():
     option_chain_df['expiryDate'] = pd.to_datetime(option_chain_df['expiryDate'])
     #st.write(option_chain_df.head())
     return  option_chain_df
+
+def find_nearest_itm_option(spot_price, option_type, chain):
+    """
+    Zerodha-based ATM/ITM option finder
+    """
+
+    if option_type.upper() == "CALL":
+        opt_type = "CE"
+        valid = [c for c in chain if c.get("instrument_type") == "CE" and c.get("strike") <= spot_price]
+    else:
+        opt_type = "PE"
+        valid = [c for c in chain if c.get("instrument_type") == "PE" and c.get("strike") >= spot_price]
+
+    if not valid:
+        raise ValueError("No ITM option found")
+
+    return min(valid, key=lambda x: abs(x["strike"] - spot_price))
+
 
 
 def get_nearest_weekly_expiry(today):

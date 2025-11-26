@@ -6147,7 +6147,8 @@ elif MENU =="Live Trade":
         plt.tight_layout()
         st.pyplot(fig)
 
-       def option_chain_finder_zerodha(option_chain, spot_price, option_type="CALL", lots=1, lot_size=75):
+
+    def option_chain_finder_zerodha(option_chain, spot_price, option_type="CALL", lots=1, lot_size=75):
             """
             Zerodha option finder (ATM/nearest strike)
             """
@@ -6177,6 +6178,8 @@ elif MENU =="Live Trade":
         
             return closest_option
 
+
+       
     
     
     

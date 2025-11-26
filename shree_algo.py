@@ -6546,10 +6546,53 @@ elif MENU =="Live Trade":
 
     
 
-    
+   #------------------------------------------------------------------------------------------------------------------------------------
 
+        #import streamlit as st
+
+    def show_fund_status(kite, lot_size, premium):
+            """
+            Display Zerodha available funds and margin required for the trade.
+            """
         
-
+            try:
+                funds = kite.margins(segment="equity")    # Fetch funds
+        
+                available_cash = funds["available"]["cash"]          # Free cash
+                used_margin = funds["utilized"]["debits"]            # Used margin
+                total_balance = available_cash - used_margin         # Net free
+        
+                st.subheader("💰 Zerodha Fund Status")
+        
+                col1, col2, col3 = st.columns(3)
+                col1.metric("Available Cash", f"₹{available_cash:,.2f}")
+                col2.metric("Used Margin", f"₹{used_margin:,.2f}")
+                col3.metric("Net Free Balance", f"₹{total_balance:,.2f}")
+        
+                # Margin required = premium × lot size
+                required_margin = premium * lot_size
+        
+                st.markdown(f"### 🧮 Required Margin for Trade: ₹{required_margin:,.2f}")
+        
+                # Lots allowed
+                max_lots = int(total_balance // required_margin) if required_margin > 0 else 0
+                st.markdown(f"### 🎯 Maximum Lots You Can Buy: **{max_lots} lot(s)**")
+        
+                # Final result
+                if total_balance >= required_margin:
+                    st.success("✔ You have enough margin to place the trade.")
+                else:
+                    st.error("❌ Not enough funds. Trade cannot be executed.")
+        
+                return total_balance, required_margin, max_lots
+        
+            except Exception as e:
+                st.error(f"Failed to fetch funds: {e}")
+                return None, None, None
+            
+        
+                
+        
 
             
 
@@ -6563,6 +6606,12 @@ elif MENU =="Live Trade":
             kite = st.session_state.kite
             
             st.success("Kite session connected. Ready to place trade.")
+
+            premium = float(selected_option["last_price"])
+            lot_size = int(selected_option["lot_size"])
+        
+            total_balance, required_margin, max_lots = show_fund_status(kite, lot_size, premium)
+         
             
             
             #st.write("Available keys:", list(result['option_data'].index))

@@ -6304,6 +6304,8 @@ elif MENU =="Live Trade":
     #st.write("###  Signal")
     #st.write(signal)
     if signal:
+        signal_time = df["Datetime"].iloc[-1].time()   # last candle time
+        
         if "kite" in st.session_state and st.session_state.kite:
                 kite = st.session_state.kite
         # Exclude unwanted keys

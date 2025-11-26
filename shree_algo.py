@@ -6172,7 +6172,7 @@ elif MENU =="Live Trade":
         Handles cases where chain contains strings or invalid objects.
         """
         if chain is None:
-        raise ValueError("Received None instead of option chain.")
+            raise ValueError("Received None instead of option chain.")
 
         if not isinstance(chain, list):
             raise ValueError(f"Option chain must be a list. Received: {type(chain)}")

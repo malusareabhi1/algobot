@@ -6586,31 +6586,24 @@ elif MENU =="Live Trade":
     
     st.write("### Trade Log Summary")
 
-    import pandas as pd
-
     trades = kite.trades()  # fetch executed trades
-    
-    df = pd.DataFrame(trades)
-    
-    # Optional: select relevant columns
-    df_summary = df[[
-        "trade_id",
-        "order_id",
-        "tradingsymbol",
-        "transaction_type",
-        "quantity",
-        "price",
-        "exchange",
-        "fill_timestamp"
-    ]]
-    
-    # Sort by time
-    df_summary = df_summary.sort_values("fill_timestamp", ascending=False)
-    
-    # Display
-    import streamlit as st
-    st.dataframe(df_summary)
 
+    if not trades:
+        st.write("No trades executed yet.")
+    else:
+        df = pd.DataFrame(trades)
+    
+        # Check which columns actually exist
+        st.write("Available columns:", df.columns.tolist())
+    
+        # Use only existing columns
+        cols = [c for c in ["trade_id", "order_id", "tradingsymbol", "transaction_type",
+                            "quantity", "price", "exchange", "fill_timestamp", "exchange_timestamp"]
+                if c in df.columns]
+    
+        df_summary = df[cols].sort_values(cols[-1], ascending=False)
+    
+        st.dataframe(df_summary)
 
 elif MENU=="Paper Trade":
     # Put this inside your Streamlit app file (e.g. ui_dash.py)

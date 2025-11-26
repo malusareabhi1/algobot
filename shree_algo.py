@@ -6720,6 +6720,91 @@ elif MENU =="Live Trade":
         df_summary = df[cols].sort_values(cols[-1], ascending=False)
     
         st.dataframe(df_summary)
+#------------------------------------------------------------------------------------------------
+    def get_open_position(kite, instrument_token):
+        try:
+            positions = kite.positions()["net"]
+            for pos in positions:
+                if pos["instrument_token"] == instrument_token and pos["quantity"] != 0:
+                    return pos
+            return None
+        except Exception as e:
+            st.error(f"Position Fetch Error: {e}")
+            return None
+#------------------------------------------------------------------------------------------------
+    def exit_position(kite, pos):
+        try:
+            exit_order = kite.place_order(
+                tradingsymbol=pos["tradingsymbol"],
+                exchange=kite.EXCHANGE_NFO,
+                transaction_type="SELL" if pos["quantity"] > 0 else "BUY",
+                quantity=abs(pos["quantity"]),
+                order_type=kite.ORDER_TYPE_MARKET,
+                product=pos["product"],
+                variety=kite.VARIETY_REGULAR
+            )
+            return exit_order
+        except Exception as e:
+            st.error(f"Exit Failed: {e}")
+            return None
+#------------------------------------------------------------------------------------------------
+
+    
+    def auto_exit_monitor(kite, instrument_token, entry_price,
+                      stop_loss=None, target=None, exit_time=None,
+                      reverse_signal=False):
+
+        pos = get_open_position(kite, instrument_token)
+        if pos is None:
+            st.info("No open position to track.")
+            return
+    
+        ltp = kite.ltp([f"NFO:{pos['tradingsymbol']}"])[f"NFO:{pos['tradingsymbol']}"]["last_price"]
+    
+        # -------- STOP LOSS --------
+        if stop_loss and ltp <= stop_loss:
+            st.warning("STOPLOSS HIT — Exiting")
+            exit_id = exit_position(kite, pos)
+            st.success(f"Exited. Order ID: {exit_id}")
+            return
+    
+        # -------- TARGET --------
+        if target and ltp >= target:
+            st.success("TARGET HIT — Exiting")
+            exit_id = exit_position(kite, pos)
+            st.success(f"Exited. Order ID: {exit_id}")
+            return
+    
+        # -------- TIME BASED EXIT --------
+        if exit_time:
+            now = datetime.now().time()
+            if now >= exit_time:
+                st.info("Time exit reached — Exiting")
+                exit_id = exit_position(kite, pos)
+                st.success(f"Exited. Order ID: {exit_id}")
+                return
+    
+        # -------- REVERSE SIGNAL EXIT --------
+        if reverse_signal:
+            st.error("Reverse signal detected — Exiting")
+            exit_id = exit_position(kite, pos)
+            st.success(f"Exited. Order ID: {exit_id}")
+            return
+    
+        st.info(f"Tracking... LTP = {ltp}")
+#-------------------------------------------------------------------------------------
+    if "entry_price" in st.session_state and "token" in st.session_state:
+        auto_exit_monitor(
+            kite,
+            st.session_state.token,
+            st.session_state.entry_price,
+            stop_loss=st.session_state.entry_price * 0.90,
+            target=st.session_state.entry_price * 1.10,
+            exit_time=time(15, 15)
+        )
+
+
+
 
 elif MENU=="Paper Trade":
     # Put this inside your Streamlit app file (e.g. ui_dash.py)

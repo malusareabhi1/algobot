@@ -6534,7 +6534,7 @@ elif MENU =="Live Trade":
             
             st.write(f"Placing order for: **{option_symbol}**")
             st.write(f"Quantity: {qty}, LTP: {ltp}")
-            """
+            
             if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
                 try:
                     order_id = kite.place_order(
@@ -6550,7 +6550,7 @@ elif MENU =="Live Trade":
                 
                 except Exception as e:
                     st.error(f"Order Failed: {e}")
-                    """
+                    
         else:
             st.warning("Kite session not connected. Please login first to place live orders.")
     else:

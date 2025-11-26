@@ -1,0 +1,6932 @@
+import time
+from datetime import datetime, timedelta
+from typing import Dict
+
+
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+import streamlit as st
+
+import yfinance as yf
+
+#st.sidebar.image("shree.jpg",width=15)  # Correct parameter
+# ------------------------------------------------------------
+# Page Config & Global Theming
+# ------------------------------------------------------------
+st.set_page_config(
+    page_title="Algo Trading Platform",
+    page_icon="📈",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+def compute_performance(signal_df, brokerage_per_trade=20, gst_rate=0.18, stamp_duty_rate=0.00015, starting_capital=0):
+    """
+    Compute performance summary from signal log with PnL and include daily costs.
+    
+    Returns:
+    - summary_df: Overall performance summary (including Total Expense)
+    - pnl_per_day: Daily PnL with Total PnL, Net Expense, and Net PnL
+    """
+    import pandas as pd
+    
+    total_trades = len(signal_df)
+    winning_trades = signal_df[signal_df['PnL'] > 0]
+    losing_trades = signal_df[signal_df['PnL'] <= 0]
+    
+    total_pnl = signal_df['PnL'].sum()
+    avg_pnl = signal_df['PnL'].mean() if total_trades > 0 else 0
+    max_pnl = signal_df['PnL'].max() if total_trades > 0 else 0
+    min_pnl = signal_df['PnL'].min() if total_trades > 0 else 0
+    
+    win_pct = len(winning_trades) / total_trades * 100 if total_trades > 0 else 0
+    loss_pct = len(losing_trades) / total_trades * 100 if total_trades > 0 else 0
+    
+    # Group by date and calculate daily PnL
+    pnl_per_day = signal_df.groupby('Date').agg({'PnL': 'sum', 'Quantity': 'sum'}).reset_index()
+    
+    cost_per_trade_list = []
+    net_pnl_list = []
+    capital_needed_list = []
+    capital_after_list = []
+    
+    current_capital = starting_capital  # Initialize overall capital tracker
+    
+    for idx, row in pnl_per_day.iterrows():
+        day_trades = signal_df[signal_df['Date'] == row['Date']]
+        day_expense = 0
+        day_capital_needed = 0  # Initialize daily capital before summing
+        
+        for _, trade in day_trades.iterrows():
+            turnover = trade['Buy Premium'] * trade['Quantity'] * 2  # Buy + Sell
+            brokerage = brokerage_per_trade
+            gst = brokerage * gst_rate
+            stamp_duty = turnover * stamp_duty_rate
+            total_cost = brokerage + gst + stamp_duty
+            day_expense += total_cost
+
+            # Calculate capital needed for each trade
+            trade_capital = trade['Buy Premium'] * trade['Quantity']
+            day_capital_needed += trade_capital
+        
+        # Update capital after daily PnL
+        current_capital += row['PnL'] - day_expense
+        
+        cost_per_trade_list.append(round(day_expense, 2))
+        net_pnl_list.append(round(row['PnL'] - day_expense, 2))
+        capital_needed_list.append(round(day_capital_needed, 2))
+        capital_after_list.append(round(current_capital, 2))
+    
+    pnl_per_day['Total PnL'] = pnl_per_day['PnL'].round(2)
+    pnl_per_day['Net Expense'] = cost_per_trade_list
+    pnl_per_day['Net PnL'] = net_pnl_list
+    pnl_per_day['Capital Needed'] = capital_needed_list
+    pnl_per_day['Capital After'] = capital_after_list
+    
+    pnl_per_day = pnl_per_day[['Date', 'Total PnL', 'Net Expense', 'Net PnL', 'Capital Needed', 'Capital After']]
+    
+    total_expense = sum(cost_per_trade_list)
+    
+    summary = {
+        "Total Trades": total_trades,
+        "Winning Trades": len(winning_trades),
+        "Losing Trades": len(losing_trades),
+        "Win %": round(win_pct, 2),
+        "Loss %": round(loss_pct, 2),
+        "Total PnL": round(total_pnl, 2),
+        "Average PnL": round(avg_pnl, 2),
+        "Max PnL": round(max_pnl, 2),
+        "Min PnL": round(min_pnl, 2),
+        "Total Expense": round(total_expense, 2),
+        "Net PnL (After Expenses)": round(sum(net_pnl_list), 2),
+        "Final Capital": round(current_capital, 2)
+    }
+    
+    summary_df = pd.DataFrame([summary])
+    return summary_df, pnl_per_day
+
+def compute_trade_pnl(signal_log_df, df):
+    """
+    Compute PnL and exit reason for each signal in signal_log_df based on price data in df.
+    Returns updated DataFrame with Sell Price, PnL, and Exit Reason.
+    """
+    trade_results = []
+
+    for _, row in signal_log_df.iterrows():
+        day = row['Date']
+        entry_time = row['Entry Time']
+        exit_time = row['Time Exit (16 mins after entry)']
+        buy_premium = row['Buy Premium']
+        qty = row['Quantity']
+        stoploss = row['Stoploss (Trailing 10%)']
+        take_profit = row['Take Profit (10% rise)']
+        option_type = row['Option Selected']
+
+        # Filter df for the trading day and after entry
+        day_df = df[df['Datetime'].dt.date == day]
+        day_after_entry = day_df[(day_df['Datetime'] >= entry_time) & (day_df['Datetime'] <= exit_time)].sort_values('Datetime')
+
+        sell_price = None
+        actual_exit_time = exit_time
+        exit_reason = "Time Exit"
+
+        for _, candle in day_after_entry.iterrows():
+            price = candle['Close_^NSEI']  # Spot price used for simulation; replace with option price if available
+            
+            # Check Take Profit for CALL or PUT
+            if take_profit and (
+                (option_type.upper() == "CE" and price >= take_profit) or
+                (option_type.upper() == "PE" and price <= take_profit)
+            ):
+                sell_price = take_profit
+                exit_reason = "Take Profit"
+                actual_exit_time = candle['Datetime']
+                break
+
+            # Check Stoploss
+            elif stoploss and (
+                (option_type.upper() == "CE" and price <= stoploss) or
+                (option_type.upper() == "PE" and price >= stoploss)
+            ):
+                sell_price = stoploss
+                exit_reason = "Stoploss"
+                actual_exit_time = candle['Datetime']
+                break
+
+        # If neither TP nor SL hit, exit at last available price (time exit)
+        if sell_price is None:
+            sell_price = day_after_entry['Close_^NSEI'].iloc[-1]
+
+        # Compute PnL
+        pnl = (sell_price - buy_premium) * qty if option_type.upper() == "CE" else (buy_premium - sell_price) * qty
+
+        trade_results.append({
+            **row.to_dict(),
+            "Sell Price": sell_price,
+            "Exit Reason": exit_reason,
+            "Actual Exit Time": actual_exit_time,
+            "PnL": pnl
+        })
+
+    return pd.DataFrame(trade_results)
+
+def calculate_trade_cost(buy_price, sell_price, quantity, option_type="CE", brokerage_type="fixed"):
+    """
+    Calculate total cost/charges per trade.
+    
+    Params:
+    - buy_price: Entry price per unit
+    - sell_price: Exit price per unit
+    - quantity: Number of units
+    - option_type: "CE" or "PE"
+    - brokerage_type: "fixed" or "percentage"
+    
+    Returns total charges
+    """
+    turnover = (buy_price + sell_price) * quantity
+
+    # Brokerage
+    if brokerage_type == "fixed":
+        brokerage = 20  # assume ₹20 per trade
+    else:  # percentage
+        brokerage = turnover * 0.0003  # 0.03%
+
+    # Exchange Transaction Charges
+    exchange_charges = turnover * 0.0000325  # 0.00325%
+
+    # GST on brokerage (18%)
+    gst = 0.18 * brokerage
+
+    # SEBI Charges (approx)
+    sebi_charges = turnover * 0.000001
+
+    # Stamp Duty (approx)
+    stamp_duty = turnover * 0.00003
+
+    total_charges = brokerage + exchange_charges + gst + sebi_charges + stamp_duty
+    return total_charges
+
+def compute_trade_pnl_with_costs(signal_log_df, df):
+    """
+    Compute PnL, exit reason, and capital impact per trade.
+    """
+    trade_results = []
+
+    capital = 0  # running capital (cumulative PnL)
+    
+
+    for _, row in signal_log_df.iterrows():
+        day = row['Date']
+        entry_time = row['Entry Time']
+        exit_time = row['Time Exit (16 mins after entry)']
+        buy_premium = row['Buy Premium']
+        qty = row['Quantity']
+        stoploss = row['Stoploss (Trailing 10%)']
+        take_profit = row['Take Profit (10% rise)']
+        option_type = row['Option Selected']
+        # Capital needed for this trade (premium × quantity)
+        capital_needed = buy_premium * qty
+
+        day_df = df[df['Datetime'].dt.date == day]
+        day_after_entry = day_df[day_df['Datetime'] >= entry_time].sort_values('Datetime')
+
+        sell_price = None
+        exit_reason = "Time Exit"
+
+        for _, candle in day_after_entry.iterrows():
+            price = candle['Close_^NSEI']  # Option price if available
+            if take_profit and price >= take_profit:
+                sell_price = take_profit
+                exit_reason = "Take Profit"
+                exit_time = candle['Datetime']
+                break
+            elif stoploss and price <= stoploss:
+                sell_price = stoploss
+                exit_reason = "Stoploss"
+                exit_time = candle['Datetime']
+                break
+
+        if sell_price is None:
+            sell_price = day_after_entry['Close_^NSEI'].iloc[0]  # fallback
+
+        raw_pnl = (sell_price - buy_premium) * qty if option_type.upper() == "CE" else (buy_premium - sell_price) * qty
+
+        # Calculate brokerage & charges
+        total_charges = calculate_trade_cost(buy_premium, sell_price, qty, option_type)
+        
+        net_pnl = raw_pnl - total_charges
+        capital += net_pnl
+
+        trade_results.append({
+            **row.to_dict(),
+            "Sell Price": sell_price,
+            "Exit Reason": exit_reason,
+            "Actual Exit Time": exit_time,
+            "Raw PnL": raw_pnl,
+            "Total Charges": total_charges,
+            "Net PnL": net_pnl,
+            "Capital Needed": capital_needed,  # ✅ Added column
+            "Capital After Trade": capital
+        })
+
+    return pd.DataFrame(trade_results)
+def display_3pm_candle_info(df, day):
+    """
+    Display the 3PM candle Open and Close prices for a given day (datetime.date).
+    
+    Parameters:
+    - df: DataFrame with 'Datetime' column (timezone-aware datetime)
+    - day: datetime.date object representing the trading day
+    
+    Returns:
+    - (open_price, close_price) tuple or (None, None) if candle not found
+    """
+    candle = df[(df['Datetime'].dt.date == day) &
+                (df['Datetime'].dt.hour == 15) &
+                (df['Datetime'].dt.minute == 0)]
+    
+    if candle.empty:
+        st.warning(f"No 3:00 PM candle found for {day}")
+        return None, None
+    
+    open_price = candle.iloc[0]['Open_^NSEI']
+    close_price = candle.iloc[0]['Close_^NSEI']
+    
+    #st.info(f"3:00 PM Candle for {day}: Open = {open_price}, Close = {close_price}")
+    #st.write(f"🔵 3:00 PM Open for {day}: {open_price}")
+    #st.write(f"🔴 3:00 PM Close for {day}: {close_price}")
+    
+    return open_price, close_price
+
+
+def generate_trade_log_from_option(result, trade_signal):
+    if result is None or trade_signal is None:
+        return None
+    # Determine exit reason and price
+    stoploss_hit = False
+    target_hit = False
+    
+    #exit_time = pd.to_datetime(exit_time)
+    #result.index = pd.to_datetime(result.index)
+
+    
+    
+    
+
+    option = result['option_data']
+    qty = result['total_quantity']
+
+    condition = trade_signal['condition']
+    entry_time = trade_signal['entry_time']
+    message = trade_signal['message']
+
+    buy_price = option.get('lastPrice', trade_signal.get('buy_price'))
+    expiry = option.get('expiryDate', trade_signal.get('expiry'))
+    option_type = option.get('optionType', trade_signal.get('option_type'))
+
+    stoploss = buy_price * 0.9
+    take_profit = buy_price * 1.10
+    partial_qty = qty // 2
+    time_exit = entry_time + timedelta(minutes=16)
+
+    
+
+    
+
+    trade_log = {
+        "Condition": condition,
+        "Option Type": option_type,
+        "Strike Price": option.get('strikePrice'),
+        #"Exit Price": exit_price,  # ✅ new column
+        "Buy Premium": buy_price,
+        "Stoploss (Trailing 10%)": stoploss,
+        "Take Profit (10% rise)": take_profit,
+        "Quantity": qty,
+        "Partial Profit Booking Qty (50%)": partial_qty,
+        "Expiry Date": expiry.strftime('%Y-%m-%d') if hasattr(expiry, 'strftime') else expiry,
+        "Entry Time": entry_time.strftime('%Y-%m-%d %H:%M:%S') if hasattr(entry_time, 'strftime') else entry_time,
+        "Time Exit (16 mins after entry)": time_exit.strftime('%Y-%m-%d %H:%M:%S'),
+        "Trade Message": message
+        #"Trade Details": row["Trade Details"],
+        #"Exit Reason": reason
+    }
+
+    # Add condition-specific details
+    if condition == 1:
+        trade_log["Trade Details"] = (
+            "Buy nearest ITM CALL option. Stoploss trailing 10% below buy premium. "
+            "Book 50% qty profit when premium rises 10%. "
+            "Time exit after 16 minutes if no target hit."
+        )
+    elif condition == 2:
+        trade_log["Trade Details"] = (
+            "Major gap down. Buy nearest ITM PUT option when next candle crosses low of 9:30 candle. "
+            "Stoploss trailing 10% below buy premium."
+        )
+    elif condition == 3:
+        trade_log["Trade Details"] = (
+            "Major gap up. Buy nearest ITM CALL option. Stoploss trailing 10% below buy premium. "
+            "Book 50% qty profit when premium rises 10%. "
+            "Time exit after 16 minutes if no target hit."
+        )
+    elif condition == 4:
+        trade_log["Trade Details"] = (
+            "Buy nearest ITM PUT option. Stoploss trailing 10% below buy premium. "
+            "Book 50% qty profit when premium rises 10%. "
+            "Time exit after 16 minutes if no target hit."
+        )
+    else:
+        trade_log["Trade Details"] = "No specific trade details available."
+
+    trade_log_df = pd.DataFrame([trade_log])
+    return trade_log_df
+def option_chain_finder(option_chain_df, spot_price, option_type, lots=10, lot_size=75):
+    """
+    Find nearest ITM option in option chain DataFrame.
+
+    Parameters:
+    - option_chain_df: pd.DataFrame with columns including ['strikePrice', 'expiryDate', 'optionType', ...]
+    - spot_price: float, current underlying price
+    - option_type: str, 'CE' for Call or 'PE' for Put
+    - lots: int, number of lots to trade (default 10)
+    - lot_size: int, lot size per option contract (default 75)
+
+    Returns:
+    - dict with keys:
+        'strikePrice', 'expiryDate', 'optionType', 'total_quantity', 'option_data' (pd.Series row)
+    """
+
+    # Ensure expiryDate is datetime
+    if not pd.api.types.is_datetime64_any_dtype(option_chain_df['expiryDate']):
+        option_chain_df['expiryDate'] = pd.to_datetime(option_chain_df['expiryDate'])
+
+    today = pd.Timestamp.today().normalize()
+
+    # Find nearest expiry on or after today
+    expiries = option_chain_df.loc[option_chain_df['expiryDate'] >= today, 'expiryDate'].unique()
+    if len(expiries) == 0:
+        raise ValueError("No expiry dates found on or after today.")
+    nearest_expiry = min(expiries)
+
+    # Filter for nearest expiry and option type
+    df_expiry = option_chain_df[
+        (option_chain_df['expiryDate'] == nearest_expiry) &
+        (option_chain_df['optionType'] == option_type)
+    ]
+
+    if df_expiry.empty:
+        raise ValueError(f"No options found for expiry {nearest_expiry.date()} and type {option_type}")
+
+    # Find nearest ITM strike
+    if option_type == "CALL":
+        itm_strikes = df_expiry[df_expiry['strikePrice'] <= spot_price]
+        if itm_strikes.empty:
+            # fallback to minimum strike (OTM)
+            nearest_strike = df_expiry['strikePrice'].min()
+        else:
+            nearest_strike = itm_strikes['strikePrice'].max()
+    else:  # 'PE'
+        itm_strikes = df_expiry[df_expiry['strikePrice'] >= spot_price]
+        if itm_strikes.empty:
+            # fallback to maximum strike (OTM)
+            nearest_strike = df_expiry['strikePrice'].max()
+        else:
+            nearest_strike = itm_strikes['strikePrice'].min()
+
+    # Get option row
+    option_row = df_expiry[df_expiry['strikePrice'] == nearest_strike].iloc[0]
+
+    total_qty = lots * lot_size
+
+    return {
+        'strikePrice': nearest_strike,
+        'expiryDate': nearest_expiry,
+        'optionType': option_type,
+        'total_quantity': total_qty,
+        'option_data': option_row
+    }
+def find_nearest_itm_option():
+    import nsepython
+    from nsepython import nse_optionchain_scrapper
+
+
+    option_chain = nse_optionchain_scrapper('NIFTY')
+    df = []
+    
+    for item in option_chain['records']['data']:
+        strike = item['strikePrice']
+        expiry = item['expiryDate']
+        if 'CE' in item:
+            ce = item['CE']
+            ce['strikePrice'] = strike
+            ce['expiryDate'] = expiry
+            ce['optionType'] = 'CE'
+            df.append(ce)
+        if 'PE' in item:
+            pe = item['PE']
+            pe['strikePrice'] = strike
+            pe['expiryDate'] = expiry
+            pe['optionType'] = 'PE'
+            df.append(pe)
+    
+    #import pandas as pd
+    option_chain_df = pd.DataFrame(df)
+    option_chain_df['expiryDate'] = pd.to_datetime(option_chain_df['expiryDate'])
+    #st.write(option_chain_df.head())
+    return  option_chain_df
+
+
+def get_nearest_weekly_expiry(today):
+    """
+    Placeholder: implement your own logic to find nearest weekly expiry date
+    For demo, returns today + 7 days (Saturday)
+    """
+    return today + pd.Timedelta(days=7)
+    
+def plot_nifty_multiday(df, trading_days):
+    """
+    Plots Nifty 15-min candles for multiple trading days with each previous day's 3PM Open/Close
+    marked only on the next trading day and extending only until 3PM candle.
+    
+    Parameters:
+    - df : DataFrame with columns ['Datetime', 'Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI']
+    - trading_days : list of sorted trading dates (datetime.date)
+    """
+    
+    fig = go.Figure()
+    
+    for i in range(1, len(trading_days)):
+        day0 = trading_days[i-1]  # Previous day (for Base Zone)
+        day1 = trading_days[i]    # Current day
+        
+        # Filter data for current day only
+        df_day1 = df[df['Datetime'].dt.date == day1]
+        
+        # Add candlestick trace for current day
+        fig.add_trace(go.Candlestick(
+            x=df_day1['Datetime'],
+            open=df_day1['Open_^NSEI'],
+            high=df_day1['High_^NSEI'],
+            low=df_day1['Low_^NSEI'],
+            close=df_day1['Close_^NSEI'],
+            name=f"{day1}"
+        ))
+        
+        # Get 3 PM candle of previous day (Base Zone)
+        candle_3pm = df[df['Datetime'].dt.date == day0]
+        candle_3pm = candle_3pm[(candle_3pm['Datetime'].dt.hour == 15) &
+                                (candle_3pm['Datetime'].dt.minute == 0)]
+        
+        if not candle_3pm.empty:
+            open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
+            close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
+            
+            # Get day1 3PM candle time for line end
+            day1_3pm_candle = df_day1[(df_day1['Datetime'].dt.hour == 15) &
+                                       (df_day1['Datetime'].dt.minute == 0)]
+            if not day1_3pm_candle.empty:
+                x_end = day1_3pm_candle['Datetime'].iloc[0]
+                x_start = df_day1['Datetime'].min()
+                
+                # Horizontal line for Open
+                fig.add_shape(
+                    type="line",
+                    x0=x_start,
+                    x1=x_end,
+                    y0=open_3pm,
+                    y1=open_3pm,
+                    line=dict(color="blue", width=1, dash="dot"),
+                )
+                
+                # Horizontal line for Close
+                fig.add_shape(
+                    type="line",
+                    x0=x_start,
+                    x1=x_end,
+                    y0=close_3pm,
+                    y1=close_3pm,
+                    line=dict(color="red", width=1, dash="dot"),
+                )
+    
+    # Layout adjustments
+    fig.update_layout(
+        title="Nifty 15-min Candles with Previous Day 3PM Open/Close Lines (to next day 3PM)",
+        xaxis_rangeslider_visible=False,
+        xaxis=dict(
+            rangebreaks=[
+                dict(bounds=["sat", "mon"]),          # Hide weekends
+                dict(bounds=[15.5, 9.25], pattern="hour")  # Hide off-hours
+            ]
+        )
+    )
+    
+    return fig   
+
+##############################################################################
+
+
+
+
+def trading_signal_all_conditions1(df, quantity=10*75, return_all_signals=False):
+    """
+    Evaluate trading conditions based on Base Zone strategy with modified stop loss logic:
+    - CALL stop loss = recent swing low (before entry)
+    - PUT stop loss = recent swing high (before entry)
+    """
+
+    signals = []
+    spot_price = df['Close_^NSEI'].iloc[-1]
+    df = df.copy()
+    df['Date'] = df['Datetime'].dt.date
+    unique_days = sorted(df['Date'].unique())
+    if len(unique_days) < 2:
+        return None
+
+    day0 = unique_days[-2]
+    day1 = unique_days[-1]
+
+    candle_3pm = df[(df['Date'] == day0) &
+                    (df['Datetime'].dt.hour == 15) &
+                    (df['Datetime'].dt.minute == 0)]
+    if candle_3pm.empty:
+        return None
+
+    base_open = candle_3pm.iloc[0]['Open_^NSEI']
+    base_close = candle_3pm.iloc[0]['Close_^NSEI']
+    base_low = min(base_open, base_close)
+    base_high = max(base_open, base_close)
+
+    candle_915 = df[(df['Date'] == day1) &
+                    (df['Datetime'].dt.hour == 9) &
+                    (df['Datetime'].dt.minute == 15)]
+    if candle_915.empty:
+        return None
+
+    H1 = candle_915.iloc[0]['High_^NSEI']
+    L1 = candle_915.iloc[0]['Low_^NSEI']
+    C1 = candle_915.iloc[0]['Close_^NSEI']
+    entry_time = candle_915.iloc[0]['Datetime']
+
+    expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+    day1_after_915 = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+
+    # Helper to find recent swing high and low before a given time
+    def get_recent_swing(df, current_time):
+        recent_data = df[(df['Datetime'] < current_time)].tail(10)  # last 10 candles before entry
+        swing_high = recent_data['High_^NSEI'].max()
+        swing_low = recent_data['Low_^NSEI'].min()
+        return swing_high, swing_low
+
+    # Get recent swing values before 09:15
+    swing_high, swing_low = get_recent_swing(df[df['Date'] == day1], entry_time)
+
+    # Condition 1: CALL breakout
+    if (L1 < base_high and H1 > base_low) and (C1 > base_high):
+        sig = {
+            'condition': 1,
+            'option_type': 'CALL',
+            'buy_price': H1,
+            'stoploss': swing_low,             # Updated stoploss
+            'take_profit': H1 * 1.10,
+            'quantity': quantity,
+            'expiry': expiry,
+            'entry_time': entry_time,
+            'message': 'Condition 1: Bullish breakout above Base Zone → Buy CALL above H1',
+            'spot_price': spot_price
+        }
+        signals.append(sig)
+        if not return_all_signals:
+            return sig
+
+    if C1 < base_low:
+        for _, next_candle in day1_after_915.iterrows():
+            swing_high, swing_low = get_recent_swing(df[df['Date'] == day1], next_candle['Datetime'])
+
+            # Condition 2: PUT continuation
+            if next_candle['Low_^NSEI'] < L1:
+                sig = {
+                    'condition': 2,
+                    'option_type': 'PUT',
+                    'buy_price': L1,
+                    'stoploss': swing_high,        # Updated stoploss
+                    'take_profit': L1 * 0.90,
+                    'quantity': quantity,
+                    'expiry': expiry,
+                    'entry_time': next_candle['Datetime'],
+                    'message': 'Condition 2: Gap down confirmed → Buy PUT below L1',
+                    'spot_price': spot_price
+                }
+                signals.append(sig)
+                if not return_all_signals:
+                    return sig
+
+            # Flip rule 2.7: CALL
+            if next_candle['Close_^NSEI'] > base_high:
+                ref_high = next_candle['High_^NSEI']
+                sig_flip = {
+                    'condition': 2.7,
+                    'option_type': 'CALL',
+                    'buy_price': ref_high,
+                    'stoploss': swing_low,        # Updated stoploss
+                    'take_profit': ref_high * 1.10,
+                    'quantity': quantity,
+                    'expiry': expiry,
+                    'entry_time': next_candle['Datetime'],
+                    'message': 'Condition 2 Flip: Later candle closed above Base Zone → Buy CALL above Candle 2 high',
+                    'spot_price': spot_price
+                }
+                signals.append(sig_flip)
+                if not return_all_signals:
+                    return sig_flip
+
+    if C1 > base_high:
+        for _, next_candle in day1_after_915.iterrows():
+            swing_high, swing_low = get_recent_swing(df[df['Date'] == day1], next_candle['Datetime'])
+
+            # Condition 3: CALL continuation
+            if next_candle['High_^NSEI'] > H1:
+                sig = {
+                    'condition': 3,
+                    'option_type': 'CALL',
+                    'buy_price': H1,
+                    'stoploss': swing_low,        # Updated stoploss
+                    'take_profit': H1 * 1.10,
+                    'quantity': quantity,
+                    'expiry': expiry,
+                    'entry_time': next_candle['Datetime'],
+                    'message': 'Condition 3: Gap up confirmed → Buy CALL above H1',
+                    'spot_price': spot_price
+                }
+                signals.append(sig)
+                if not return_all_signals:
+                    return sig
+
+            # Flip rule 3.7: PUT
+            if next_candle['Close_^NSEI'] < base_low:
+                ref_low = next_candle['Low_^NSEI']
+                sig_flip = {
+                    'condition': 3.7,
+                    'option_type': 'PUT',
+                    'buy_price': ref_low,
+                    'stoploss': swing_high,       # Updated stoploss
+                    'take_profit': ref_low * 0.90,
+                    'quantity': quantity,
+                    'expiry': expiry,
+                    'entry_time': next_candle['Datetime'],
+                    'message': 'Condition 3 Flip: Later candle closed below Base Zone → Buy PUT below Candle 3 low',
+                    'spot_price': spot_price
+                }
+                signals.append(sig_flip)
+                if not return_all_signals:
+                    return sig_flip
+
+    # Condition 4: PUT breakdown
+    if (L1 < base_high and H1 > base_low) and (C1 < base_low):
+        sig = {
+            'condition': 4,
+            'option_type': 'PUT',
+            'buy_price': L1,
+            'stoploss': swing_high,             # Updated stoploss
+            'take_profit': L1 * 0.90,
+            'quantity': quantity,
+            'expiry': expiry,
+            'entry_time': entry_time,
+            'message': 'Condition 4: Bearish breakdown below Base Zone → Buy PUT below L1',
+            'spot_price': spot_price
+        }
+        signals.append(sig)
+        if not return_all_signals:
+            return sig
+
+    return signals if signals else None
+    
+
+# 🎨 Modern colorful theme (light/dark aware)
+BASE_CSS = """
+<style>
+/* App background */
+.stApp {
+  background: linear-gradient(135deg, #eef2ff 0%, #ffffff 60%);
+}
+[data-theme="dark"] .stApp, .stApp[theme="dark"] {
+  background: linear-gradient(135deg, #0b1220 0%, #111827 60%);
+}
+
+:root {
+  --blue: #2563eb;    /* indigo-600 */
+  --amber: #f59e0b;   /* amber-500 */
+  --purple: #9333ea;  /* purple-600 */
+  --teal: #14b8a6;    /* teal-500 */
+  --green: #16a34a;   /* green-600 */
+  --red: #dc2626;     /* red-600 */
+  --card-bg: rgba(255,255,255,0.75);
+  --card-border: rgba(0,0,0,0.08);
+}
+[data-theme="dark"] :root, .stApp[theme="dark"] :root {
+  --card-bg: rgba(17,24,39,0.65);
+  --card-border: rgba(255,255,255,0.08);
+}
+
+/* Generic colorful card */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 6px 22px rgba(0,0,0,0.08);
+}
+.card h3 { margin-top: 0 !important; }
+
+/* KPI tiles */
+.kpi-card { text-align:center; border-radius:16px; padding:16px; }
+.kpi-title { margin:0; font-weight:700; font-size:14px; opacity:.9; }
+.kpi-value { font-size:30px; font-weight:800; margin-top:6px; }
+
+/* Buttons */
+.stButton > button {
+  background: linear-gradient(135deg, var(--blue), #3b82f6);
+  color: #fff; border: none; border-radius: 10px; padding: 10px 18px; font-weight:700;
+  box-shadow: 0 6px 18px rgba(37,99,235,0.3);
+}
+.stButton > button:hover { filter: brightness(1.05); }
+
+/* Secondary variants via data-color attr */
+.button-amber > button { background: linear-gradient(135deg, var(--amber), #fbbf24); box-shadow: 0 6px 18px rgba(245,158,11,.35); }
+.button-purple > button { background: linear-gradient(135deg, var(--purple), #a855f7); box-shadow: 0 6px 18px rgba(147,51,234,.35); }
+.button-teal > button { background: linear-gradient(135deg, var(--teal), #2dd4bf); box-shadow: 0 6px 18px rgba(20,184,166,.35); }
+
+/* Badges */
+.badge { display:inline-block; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight:700; }
+.badge.success { background: rgba(22,163,74,.15); color: var(--green); }
+.badge.danger { background: rgba(220,38,38,.15); color: var(--red); }
+
+/* Dataframes */
+[data-testid="stDataFrame"] div .row_heading, [data-testid="stDataFrame"] div .blank {background: transparent;}
+
+/* Dividers */
+hr { border-top: 1px solid rgba(0,0,0,.08); }
+</style>
+"""
+st.markdown(BASE_CSS, unsafe_allow_html=True)
+
+# ------------------------------------------------------------
+# Session State Defaults
+# ------------------------------------------------------------
+def _init_state():
+    defaults = dict(
+        theme_dark=False,
+        api_status={"Zerodha": False, "Fyers": False, "AliceBlue": False},
+        connected_broker=None,
+        live_running=False,
+        live_strategy=None,
+        trade_logs=pd.DataFrame(columns=["Time","Symbol","Action","Qty","Price","PnL"]),
+        capital=100000.0,
+        risk_per_trade_pct=1.0,
+        max_trades=3,
+        strategies=[
+            {"name": "3PM  Strategy 1.0", "short": "3PM 15min  with  last day breakout with today", "metrics": {"CAGR": 18.3, "Win%": 85.8, "MaxDD%": 15.6}},
+            {"name": "Doctor Strategy 1.0", "short": "BB 20 SMA breakout with IV filter", "metrics": {"CAGR": 18.3, "Win%": 64.8, "MaxDD%": 12.6}},
+            {"name": "ORB (Opening Range Breakout)", "short": "Range breakout after first 15m", "metrics": {"CAGR": 14.1, "Win%": 57.4, "MaxDD%": 10.9}},
+            {"name": "EMA20 + Volume", "short": "Momentum confirmation with volume push", "metrics": {"CAGR": 11.7, "Win%": 55.0, "MaxDD%": 9.8}},
+        ],
+        selected_strategy="Doctor Strategy 1.0",
+        pricing=[
+            {"name": "Basic", "price": 699, "features": ["1 live strategy","Backtests & charts","Telegram alerts","Email support"]},
+            {"name": "Pro", "price": 1499, "features": ["3 live strategies","Automation (paper/live)","Custom risk settings","Priority support"]},
+            {"name": "Enterprise", "price": 3999, "features": ["Unlimited strategies","Broker API integration","SLA & onboarding","Dedicated manager"]},
+        ],
+        faq=[
+            ("Is algo trading risky?", "Yes. Markets involve risk. Backtests are not guarantees. Manage risk per trade and overall exposure."),
+            ("Which brokers are supported?", "Zerodha, Fyers, AliceBlue out-of-the-box. Others upon request."),
+            ("Do you store my API keys?", "Keys are stored encrypted on device/server per your deployment. You control revocation."),
+        ],
+    )
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
+
+_init_state()
+
+# ------------------------------------------------------------
+# Utility: Colors & Components
+# ------------------------------------------------------------
+
+STRAT_COLORS: Dict[str, str] = {
+    "Doctor Strategy 1.0": "var(--blue)",
+    "ORB (Opening Range Breakout)": "var(--amber)",
+    "EMA20 + Volume": "var(--teal)",
+}
+
+
+def kpi_card(title: str, value: str, color_css: str):
+    st.markdown(
+        f"""
+        <div class='kpi-card' style='background: linear-gradient(135deg, {color_css}15, transparent); border:1px solid {color_css}35'>
+            <div class='kpi-title' style='color:{color_css}'>{title}</div>
+            <div class='kpi-value' style='color:{color_css}'>{value}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def strategy_card(name: str, desc: str, metrics: Dict[str, float]):
+    color = STRAT_COLORS.get(name, "var(--purple)")
+    st.markdown(
+        f"""
+        <div class='card' style='border-left:6px solid {color};'>
+            <h3 style='color:{color}'>{name}</h3>
+            <p style='margin:6px 0 14px 0'>{desc}</p>
+            <div style='display:flex;gap:16px;flex-wrap:wrap'>
+                <div class='badge' style='background:{color}15;color:{color}'><b>CAGR</b>&nbsp;{metrics.get('CAGR',0):.1f}%</div>
+                <div class='badge' style='background:{color}15;color:{color}'><b>Win%</b>&nbsp;{metrics.get('Win%',0):.1f}%</div>
+                <div class='badge' style='background:{color}15;color:{color}'><b>Max DD</b>&nbsp;{metrics.get('MaxDD%',0):.1f}%</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def plot_equity_curve(pnl_series: pd.Series, title: str = "Equity Curve"):
+    if pnl_series is None or len(pnl_series) == 0:
+        st.info("Upload backtest CSV to see equity curve.")
+        return
+    cum = pnl_series.cumsum()
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(y=cum, mode='lines', name='Equity', line=dict(width=3)))
+    fig.update_layout(
+        height=360,
+        title=title,
+        margin=dict(l=20, r=20, t=40, b=20),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def plot_candles(df: pd.DataFrame, title: str = "Candlestick Chart"):
+    req = {"Datetime", "Open", "High", "Low", "Close"}
+    if not req.issubset(df.columns):
+        st.warning("Candlestick requires columns: Datetime, Open, High, Low, Close")
+        return
+    fig = go.Figure(data=[go.Candlestick(x=df['Datetime'], open=df['Open'], high=df['High'], low=df['Low'], close=df['Close'])])
+    fig.update_layout(
+        height=420,
+        title=title,
+        xaxis_rangeslider_visible=False,
+        margin=dict(l=20, r=20, t=40, b=20),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def add_trade_log(symbol: str, side: str, qty: int, price: float, pnl: float):
+    row = {
+        "Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "Symbol": symbol,
+        "Action": side,
+        "Qty": qty,
+        "Price": price,
+        "PnL": pnl,
+    }
+    st.session_state.trade_logs = pd.concat([st.session_state.trade_logs, pd.DataFrame([row])], ignore_index=True)
+
+# ------------------------------------------------------------
+# Sidebar Navigation
+# ------------------------------------------------------------
+with st.sidebar:
+    st.title("⚡ Algo Trading")
+    # Theme toggle (visual only)
+    st.session_state.theme_dark = st.toggle("Dark Theme", value=st.session_state.theme_dark)
+    # Mark attribute for CSS targeting
+    st.markdown(f"<div style='display:none' data-theme={'dark' if st.session_state.theme_dark else 'light'}></div>", unsafe_allow_html=True)
+
+    #st.image(
+        #"https://assets-global.website-files.com/5e0a1f0d3a9f1b6f7f1b6f34/5e0a1f63a4f62a5534b5f5f9_finance-illustration.png",
+        #use_container_width=True,
+    #)
+
+    MENU = st.radio(
+        "Navigate",
+        ["Home", "Strategies","My Account", "Zerodha Broker API","Groww Broker API", "Dashboard","Backtest","Live Trade","Paper Trade", "Products", "Support","Logout"],
+        index=0,
+    )
+
+# ------------------------------------------------------------
+# Home
+# ------------------------------------------------------------
+if MENU == "Home":
+    st.title("Welcome to SHREE Algo Trading Platform")
+    st.write("Automate your trades with smart, auditable strategies. Connect your broker, choose a strategy, and manage risk — all from one dashboard.")
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+        st.markdown("### What is Algo Trading?")
+        st.markdown(
+        r"""
+        Algorithmic Trading (**Algo Trading**) means using **computer programs** to automatically place
+        **buy/sell orders** based on predefined, rule‑based logic. Instead of clicking buttons manually,
+        algorithms monitor data streams (price, volume, indicators) and execute trades **fast**, **consistently**,
+        and **without emotions**.
+        
+        
+        ---
+        
+        
+        ### 🔑 Why Traders Use It
+        - **Automation**: Executes your plan 24×7 (where markets allow) exactly as written.
+        - **Speed**: Milliseconds matter for entries, exits, and order routing.
+        - **Backtesting**: Test your ideas on **historical data** before going live.
+        - **Scalability**: Watch dozens of instruments simultaneously.
+        
+        
+        ### ⚠️ Risks to Respect
+        - **Bad logic = fast losses** (garbage in, garbage out).
+        - **Overfitting**: Great on the past, weak in live markets.
+        - **Operational**: Data glitches, API limits, slippage, latency.
+        
+        
+        > **TL;DR**: Algo Trading = *rules → code → automated execution*.
+        """
+        )
+        st.write("Algorithmic trading executes orders using pre-defined rules for entries, exits, and risk management.")
+        st.markdown("</div>", unsafe_allow_html=True)
+    with c2:
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+        st.markdown("### Why Choose Us?")
+        st.markdown("""
+        At **Shree Software**, we are committed to delivering **high-quality software solutions** that cater to your business needs. Our approach combines **innovation, reliability, and customer focus** to ensure your success.
+        
+        
+        ---
+        
+        
+        ### 🔑 Key Reasons to Choose Us
+        
+        
+        1. **Expert Team**: Experienced developers and designers who understand your business challenges.
+        2. **Customized Solutions**: Tailored software to match your specific requirements.
+        3. **On-Time Delivery**: We value your time and ensure project timelines are met.
+        4. **Affordable Pricing**: Competitive pricing without compromising on quality.
+        5. **24/7 Support**: Dedicated support team to help you whenever you need assistance.
+        
+        
+        > Our mission is to empower businesses through technology, making processes **efficient, reliable, and scalable**.
+        
+        
+        ### 🎯 Our Approach
+        - **Consultation & Analysis**: Understanding your business goals.
+        - **Design & Development**: Building robust and scalable software.
+        - **Testing & Quality Assurance**: Ensuring flawless performance.
+        - **Deployment & Maintenance**: Smooth launch and continuous support.
+        
+        
+        We combine the best of **technology, strategy, and creativity** to ensure your project stands out.
+        """)
+        
+        
+        # Optional HTML Styling for Highlight
+        st.markdown(
+        """
+        <div style='padding:12px;border-radius:12px;background:#f0f8ff;border:1px solid #cce0ff;'>
+        <h4 style='margin:0 0 6px 0;'>Client Commitment</h4>
+        <p style='margin:0;'>We focus on delivering solutions that <b>drive growth, efficiency, and innovation</b> for our clients.</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+        )
+        
+        
+        st.success("Learn more about our services by contacting us today!")
+        st.write("Colorful, clean UI, safer defaults, backtests, paper trading, and live automation with popular brokers.")
+        st.markdown("</div>", unsafe_allow_html=True)
+    with c3:
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+        st.markdown("### Risk Disclaimer")
+        st.write("Algorithmic trading executes orders using pre-defined rules for entries, exits, and risk management.Trading involves risk. Past performance does not guarantee future returns. Trade responsibly.")
+        
+        st.markdown("""
+        ---
+        ### ⚠️ Risk Disclaimer
+        
+        1. **Informational Purpose Only**  
+           All content, services, or solutions provided by **Shree Software** are for **informational and educational purposes only**. They do not constitute financial, legal, or professional advice.
+        
+        2. **No Guaranteed Outcomes**  
+           While we aim to provide accurate and timely information, **we do not guarantee any specific results, profits, or success** from using our services.
+        
+        3. **User Responsibility**  
+           Clients and users must exercise **due diligence**, make **informed decisions**, and consult qualified professionals when necessary before acting on any information or solutions provided.
+        
+        4. **Limitation of Liability**  
+           **Shree Software shall not be liable** for any direct, indirect, or consequential loss or damage resulting from the use of our services, content, or advice.
+        
+        5. **Third-Party Dependencies**  
+           We may provide data, tools, or links from third-party sources. **We are not responsible for the accuracy, completeness, or outcomes** associated with such third-party information.
+        
+        6. **Market / Technology Risks** *(if applicable)*  
+           For financial or technical solutions, market conditions, system failures, or software limitations may impact results. Users must acknowledge these **inherent risks**.
+        ---
+        """)
+        st.write("Trading involves risk. Past performance does not guarantee future returns. Trade responsibly.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.divider()
+
+    st.subheader("Quick KPIs")
+    k1, k2, k3, k4 = st.columns(4)
+    with k1:
+        kpi_card("Capital", f"₹{st.session_state.capital:,.0f}", "var(--blue)")
+    with k2:
+        kpi_card("Risk / Trade", f"{st.session_state.risk_per_trade_pct:.1f}%", "var(--amber)")
+    with k3:
+        kpi_card("Max Trades", str(st.session_state.max_trades), "var(--purple)")
+    with k4:
+        connected = st.session_state.connected_broker or "—"
+        color = "var(--green)" if connected != "—" else "var(--red)"
+        kpi_card("Broker", connected, color)
+
+    st.divider()
+    st.info("Use the sidebar to explore Strategies, connect Broker APIs, and run the live Dashboard.")
+
+# ------------------------------------------------------------
+# Backtest Strategies
+# ------------------------------------------------------------
+elif MENU == "Backtest":
+    st.title("Backtest Strategies")
+    import streamlit as st
+    import pandas as pd
+    import yfinance as yf
+    import plotly.graph_objects as go
+    from datetime import datetime, timedelta
+    
+    st.set_page_config(layout="wide")
+    st.title("Nifty 3PM Base Zone Strategy - Multi-Day Backtest")
+    
+    
+    
+    def plot_nifty_multiday(df, trading_days):
+        """
+        Plots Nifty 15-min candles for multiple trading days with each previous day's 3PM Open/Close
+        marked only on the next trading day and extending only until 3PM candle.
+        
+        Parameters:
+        - df : DataFrame with columns ['Datetime', 'Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI']
+        - trading_days : list of sorted trading dates (datetime.date)
+        """
+        
+        fig = go.Figure()
+        
+        for i in range(1, len(trading_days)):
+            day0 = trading_days[i-1]  # Previous day (for Base Zone)
+            day1 = trading_days[i]    # Current day
+            
+            # Filter data for current day only
+            df_day1 = df[df['Datetime'].dt.date == day1]
+            
+            # Add candlestick trace for current day
+            fig.add_trace(go.Candlestick(
+                x=df_day1['Datetime'],
+                open=df_day1['Open_^NSEI'],
+                high=df_day1['High_^NSEI'],
+                low=df_day1['Low_^NSEI'],
+                close=df_day1['Close_^NSEI'],
+                name=f"{day1}"
+            ))
+            
+            # Get 3 PM candle of previous day (Base Zone)
+            candle_3pm = df[df['Datetime'].dt.date == day0]
+            candle_3pm = candle_3pm[(candle_3pm['Datetime'].dt.hour == 15) &
+                                    (candle_3pm['Datetime'].dt.minute == 0)]
+            
+            if not candle_3pm.empty:
+                open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
+                close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
+                
+                # Get day1 3PM candle time for line end
+                day1_3pm_candle = df_day1[(df_day1['Datetime'].dt.hour == 15) &
+                                           (df_day1['Datetime'].dt.minute == 0)]
+                if not day1_3pm_candle.empty:
+                    x_end = day1_3pm_candle['Datetime'].iloc[0]
+                    x_start = df_day1['Datetime'].min()
+                    
+                    # Horizontal line for Open
+                    fig.add_shape(
+                        type="line",
+                        x0=x_start,
+                        x1=x_end,
+                        y0=open_3pm,
+                        y1=open_3pm,
+                        line=dict(color="blue", width=1, dash="dot"),
+                    )
+                    
+                    # Horizontal line for Close
+                    fig.add_shape(
+                        type="line",
+                        x0=x_start,
+                        x1=x_end,
+                        y0=close_3pm,
+                        y1=close_3pm,
+                        line=dict(color="red", width=1, dash="dot"),
+                    )
+        
+        # Layout adjustments
+        fig.update_layout(
+            title="Nifty 15-min Candles with Previous Day 3PM Open/Close Lines (to next day 3PM)",
+            xaxis_rangeslider_visible=False,
+            xaxis=dict(
+                rangebreaks=[
+                    dict(bounds=["sat", "mon"]),          # Hide weekends
+                    dict(bounds=[15.5, 9.25], pattern="hour")  # Hide off-hours
+                ]
+            )
+        )
+        
+        return fig
+        
+    
+    ##############################################################################
+    def display_3pm_candle_info(df, day):
+        """
+        Display the 3PM candle Open and Close prices for a given day (datetime.date).
+        
+        Parameters:
+        - df: DataFrame with 'Datetime' column (timezone-aware datetime)
+        - day: datetime.date object representing the trading day
+        
+        Returns:
+        - (open_price, close_price) tuple or (None, None) if candle not found
+        """
+        candle = df[(df['Datetime'].dt.date == day) &
+                    (df['Datetime'].dt.hour == 15) &
+                    (df['Datetime'].dt.minute == 0)]
+        
+        if candle.empty:
+            st.warning(f"No 3:00 PM candle found for {day}")
+            return None, None
+        
+        open_price = candle.iloc[0]['Open_^NSEI']
+        close_price = candle.iloc[0]['Close_^NSEI']
+        
+        #st.info(f"3:00 PM Candle for {day}: Open = {open_price}, Close = {close_price}")
+        #st.write(f"🔵 3:00 PM Open for {day}: {open_price}")
+        #st.write(f"🔴 3:00 PM Close for {day}: {close_price}")
+        
+        return open_price, close_price
+    
+    
+    #import streamlit as st
+    
+    def display_current_candle(df):
+        """
+        Display the latest candle OHLC prices from a DataFrame with a 'Datetime' column.
+        Assumes df is sorted by datetime ascending.
+        
+        Parameters:
+        - df: DataFrame with columns ['Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI', 'Datetime']
+        """
+        st.write(df.columns)
+        
+        
+        st.info(f"Current Candle @ {local_dt.strftime('%Y-%m-%d %H:%M')} (Asia/Kolkata)")
+    
+        if df.empty:
+            st.warning("No candle data available.")
+            return
+        
+        current_candle = df.iloc[-1]
+        
+        #st.info(f"Current Candle @ {current_candle['Datetime']}")
+        st.write(f"Open: {current_candle['Open_^NSEI']}")
+        st.write(f"High: {current_candle['High_^NSEI']}")
+        st.write(f"Low: {current_candle['Low_^NSEI']}")
+        st.write(f"Close: {current_candle['Close_^NSEI']}")
+    
+    # After you get last_day and df_plot
+    #import pandas as pd
+    #import streamlit as st
+    
+    def display_current_trend(df):
+        """
+        Display only the trend (Bullish/Bearish/Doji) of the latest candle.
+    
+        Parameters:
+        - df: DataFrame with columns ['Open_^NSEI', 'Close_^NSEI']
+        """
+        if df.empty:
+            st.warning("No candle data available.")
+            return
+        
+        current_candle = df.iloc[-1]
+        open_price = current_candle['Open_^NSEI']
+        close_price = current_candle['Close_^NSEI']
+        
+        if close_price > open_price:
+            trend_text = "Bullish 🔥"
+            trend_color = "green"
+        elif close_price < open_price:
+            trend_text = "Bearish ❄️"
+            trend_color = "red"
+        else:
+            trend_text = "Doji / Neutral ⚪"
+            trend_color = "gray"
+        
+        st.markdown(f"<span style='color:{trend_color}; font-weight:bold; font-size:20px;'>Trend: {trend_text}</span>", unsafe_allow_html=True)
+    
+    
+    
+    #import pandas as pd
+    
+    def condition_1_trade_signal(nifty_df):
+        """
+        Parameters:
+        - nifty_df: pd.DataFrame with columns ['Datetime', 'Open', 'High', 'Low', 'Close']
+          'Datetime' is timezone-aware pandas Timestamp.
+          Data must cover trading day 0 3PM candle and trading day 1 9:30AM candle.
+          
+        Returns:
+        - dict with keys:
+          - 'buy_signal': bool
+          - 'buy_price': float (close of first candle next day if buy_signal True)
+          - 'stoploss': float (10% below buy_price)
+          - 'take_profit': float (10% above buy_price)
+          - 'entry_time': pd.Timestamp of buy candle close time
+          - 'message': str for info/logging
+        """
+        
+        # Step 1: Identify trading days
+        unique_days = sorted(nifty_df['Datetime'].dt.date.unique())
+        if len(unique_days) < 2:
+            return {'buy_signal': False, 'message': 'Not enough trading days in data.'}
+        
+        day0 = unique_days[-2]
+        day1 = unique_days[-1]
+        
+        # Step 2: Get 3PM candle of day0 closing at 3:15 PM
+        candle_3pm = nifty_df[
+            (nifty_df['Datetime'].dt.date == day0) &
+            (nifty_df['Datetime'].dt.hour == 15) &
+            (nifty_df['Datetime'].dt.minute == 0)
+        ]
+        if candle_3pm.empty:
+            return {'buy_signal': False, 'message': '3 PM candle on day0 not found.'}
+        open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
+        close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
+        
+        # Step 3: Get first 15-min candle of day1 closing at 9:30 AM (9:15-9:30)
+        candle_930 = nifty_df[
+            (nifty_df['Datetime'].dt.date == day1) &
+            (nifty_df['Datetime'].dt.hour == 9) &
+            (nifty_df['Datetime'].dt.minute == 15)
+        ]
+        if candle_930.empty:
+            return {'buy_signal': False, 'message': '9:30 AM candle on day1 not found.'}
+        open_930 = candle_930.iloc[0]['Open_^NSEI']
+        close_930 = candle_930.iloc[0]['Close_^NSEI']
+        high_930 = candle_930.iloc[0]['High_^NSEI']
+        low_930 = candle_930.iloc[0]['Low_^NSEI']
+        close_time_930 = candle_930.iloc[0]['Datetime']
+        
+        # Step 4: Check if candle cuts both lines from below to above and closes above both lines
+        # "cuts lines from below to upwards" means low < open_3pm and close > open_3pm, same for close_3pm
+        
+        crossed_open_line = (low_930 < open_3pm) and (close_930 > open_3pm)
+        crossed_close_line = (low_930 < close_3pm) and (close_930 > close_3pm)
+        closes_above_both = (close_930 > open_3pm) and (close_930 > close_3pm)
+        
+        if crossed_open_line and crossed_close_line and closes_above_both:
+            buy_price = close_930  # use close of 9:30 candle as buy price
+            stoploss = buy_price * 0.9  # 10% trailing stoploss below buy price
+            take_profit = buy_price * 1.10  # 10% profit booking target
+            return {
+                'buy_signal': True,
+                'buy_price': buy_price,
+                'stoploss': stoploss,
+                'take_profit': take_profit,
+                'entry_time': close_time_930,
+                'message': 'Buy signal triggered: Crossed above 3PM open and close lines.'
+            }
+        
+        return {'buy_signal': False, 'message': 'No buy signal: conditions not met.'}
+     #######################################################################################################################################   
+    def condition_1_trade_signal_for_candle(nifty_df, candle_time):
+        """
+        Check buy condition for a specific candle_time on day1.
+        candle_time: pd.Timestamp of candle close time to check (e.g. 9:30 AM, 9:45 AM, ...)
+        
+        Returns buy signal dict if condition met, else no signal.
+        """
+        unique_days = sorted(nifty_df['Datetime'].dt.date.unique())
+        if len(unique_days) < 2:
+            return {'buy_signal': False, 'message': 'Not enough trading days.'}
+        
+        day0 = unique_days[-2]
+        day1 = unique_days[-1]
+        
+        # 3PM candle day0
+        candle_3pm = nifty_df[
+            (nifty_df['Datetime'].dt.date == day0) &
+            (nifty_df['Datetime'].dt.hour == 15) &
+            (nifty_df['Datetime'].dt.minute == 0)
+        ]
+        if candle_3pm.empty:
+            return {'buy_signal': False, 'message': '3 PM candle day0 not found.'}
+        open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
+        close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
+        
+        # The candle on day1 at candle_time
+        candle = nifty_df[nifty_df['Datetime'] == candle_time]
+        if candle.empty:
+            return {'buy_signal': False, 'message': f'No candle found at {candle_time}.'}
+        
+        open_c = candle.iloc[0]['Open_^NSEI']
+        close_c = candle.iloc[0]['Close_^NSEI']
+        low_c = candle.iloc[0]['Low_^NSEI']
+        close_time = candle.iloc[0]['Datetime']
+        
+        crossed_open_line = (low_c < open_3pm) and (close_c > open_3pm)
+        crossed_close_line = (low_c < close_3pm) and (close_c > close_3pm)
+        closes_above_both = (close_c > open_3pm) and (close_c > close_3pm)
+        
+        if crossed_open_line and crossed_close_line and closes_above_both:
+            buy_price = close_c
+            stoploss = buy_price * 0.9
+            take_profit = buy_price * 1.10
+            return {
+                'buy_signal': True,
+                'buy_price': buy_price,
+                'stoploss': stoploss,
+                'take_profit': take_profit,
+                'entry_time': close_time,
+                'message': 'Buy signal triggered.'
+            }
+        
+        return {'buy_signal': False, 'message': 'Condition not met.'}
+    
+    
+    #import pandas as pd
+    #import streamlit as st
+    
+    def display_todays_candles_with_trend(df):
+        """
+        Display all today's candles with OHLC + Trend column in Streamlit.
+    
+        Args:
+        - df: DataFrame with columns ['Datetime', 'Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI']
+              'Datetime' must be timezone-aware or convertible to datetime.
+    
+        Output:
+        - Shows table in Streamlit with added Trend column.
+        """
+        if df.empty:
+            st.warning("No candle data available.")
+            return
+        
+        # Get today date from last datetime in df (assumes df sorted)
+        today_date = df['Datetime'].dt.date.max()
+        
+        # Filter today's data
+        todays_df = df[df['Datetime'].dt.date == today_date].copy()
+        if todays_df.empty:
+            st.warning(f"No data for today: {today_date}")
+            return
+        
+        # Calculate Trend column
+        def calc_trend(row):
+            if row['Close_^NSEI'] > row['Open_^NSEI']:
+                return "Bullish 🔥"
+            elif row['Close_^NSEI'] < row['Open_^NSEI']:
+                return "Bearish ❄️"
+            else:
+                return "Doji ⚪"
+        
+        todays_df['Trend'] = todays_df.apply(calc_trend, axis=1)
+        
+        # Format datetime for display
+        todays_df['Time'] = todays_df['Datetime'].dt.strftime('%H:%M')
+        
+        # Select and reorder columns to display
+        display_df = todays_df[['Time', 'Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI', 'Trend']].copy()
+        display_df.rename(columns={
+            'Open_^NSEI': 'Open',
+            'High_^NSEI': 'High',
+            'Low_^NSEI': 'Low',
+            'Close_^NSEI': 'Close'
+        }, inplace=True)
+        
+        #st.write(f"All 15-min candles for today ({today_date}):")
+        #st.table(display_df.tail(5))
+    
+    ###########################################################################################
+    import pandas as pd
+    import streamlit as st
+    
+    def display_todays_candles_with_trend_and_signal(df):
+        """
+        Display all today's candles with OHLC + Trend + Signal columns in Streamlit.
+    
+        Args:
+        - df: DataFrame with columns ['Datetime', 'Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI']
+              'Datetime' must be timezone-aware or convertible to datetime.
+    
+        Output:
+        - Shows table in Streamlit with added Trend and Signal columns.
+        """
+        if df.empty:
+            st.warning("No candle data available.")
+            return
+        
+        # Get today date from last datetime in df (assumes df sorted)
+        today_date = df['Datetime'].dt.date.max()
+        
+        # Filter today's data
+        todays_df = df[df['Datetime'].dt.date == today_date].copy()
+        if todays_df.empty:
+            st.warning(f"No data for today: {today_date}")
+            return
+        
+        # Calculate Trend column
+        def calc_trend(row):
+            if row['Close_^NSEI'] > row['Open_^NSEI']:
+                return "Bullish 🔥"
+            elif row['Close_^NSEI'] < row['Open_^NSEI']:
+                return "Bearish ❄️"
+            else:
+                return "Doji ⚪"
+        
+        todays_df['Trend'] = todays_df.apply(calc_trend, axis=1)
+        
+        # Calculate Signal column
+        signals = []
+        for i in range(len(todays_df)):
+            if i == 0:
+                # No previous candle, so no signal
+                signals.append("-")
+            else:
+                prev_high = todays_df.iloc[i-1]['High_^NSEI']
+                prev_low = todays_df.iloc[i-1]['Low_^NSEI']
+                curr_close = todays_df.iloc[i]['Close_^NSEI']
+                curr_trend = todays_df.iloc[i]['Trend']
+                
+                if curr_trend == "Bullish 🔥" and curr_close > prev_high:
+                    signals.append("Buy")
+                elif curr_trend == "Bearish ❄️" and curr_close < prev_low:
+                    signals.append("Sell")
+                else:
+                    signals.append("-")
+    
+              
+        
+        todays_df['Signal'] = signals
+        
+        # Format datetime for display
+        todays_df['Time'] = todays_df['Datetime'].dt.strftime('%H:%M')
+        
+        # Select and reorder columns to display
+        display_df = todays_df[['Time', 'Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI', 'Trend', 'Signal']].copy()
+        display_df.rename(columns={
+            'Open_^NSEI': 'Open',
+            'High_^NSEI': 'High',
+            'Low_^NSEI': 'Low',
+            'Close_^NSEI': 'Close'
+        }, inplace=True)
+        
+        #st.write(f"All 15-min candles for today ({today_date}):")
+        #st.table(display_df)
+    
+    
+    ###################################################################################################
+    
+    import pandas as pd
+    
+    def get_nearest_weekly_expiry(today):
+        """
+        Placeholder: implement your own logic to find nearest weekly expiry date
+        For demo, returns today + 7 days (Saturday)
+        """
+        return today + pd.Timedelta(days=7)
+    
+    def trading_signal_all_conditions(df, quantity=10*750):
+        """
+        Evaluate all 4 conditions and return trade signals if any triggered.
+    
+        Returns:
+        dict with keys:
+        - 'condition': 1/2/3/4
+        - 'option_type': 'CALL' or 'PUT'
+        - 'buy_price': float (price from 9:30 candle close for now)
+        - 'stoploss': float (10% trailing SL below buy price)
+        - 'take_profit': float (10% above buy price)
+        - 'quantity': int (10 lots = 7500 assumed)
+        - 'expiry': datetime.date
+        - 'entry_time': pd.Timestamp
+        - 'message': explanation string
+        Or None if no signal.
+        """
+        spot_price = df['Close_^NSEI'].iloc[-1]  # last close price
+        df = df.copy()
+        df['Date'] = df['Datetime'].dt.date
+        unique_days = sorted(df['Date'].unique())
+        if len(unique_days) < 2:
+            return None  # not enough data
+        
+        day0 = unique_days[-2]
+        day1 = unique_days[-1]
+        
+        # 1) Get day0 3PM candle (15:00 - 15:15)
+        candle_3pm = df[(df['Date'] == day0) & 
+                        (df['Datetime'].dt.hour == 15) & 
+                        (df['Datetime'].dt.minute == 0)]
+        if candle_3pm.empty:
+            return None
+        
+        open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
+        close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
+    
+        # 2) Day1 first 15-min candle (9:15 - 9:30)
+        candle_930 = df[(df['Date'] == day1) & 
+                        (df['Datetime'].dt.hour == 9) & 
+                        (df['Datetime'].dt.minute == 15)]
+        if candle_930.empty:
+            return None
+        
+        open_930 = candle_930.iloc[0]['Open_^NSEI']
+        close_930 = candle_930.iloc[0]['Close_^NSEI']
+        high_930 = candle_930.iloc[0]['High_^NSEI']
+        low_930 = candle_930.iloc[0]['Low_^NSEI']
+        entry_time = candle_930.iloc[0]['Datetime']
+        
+        # 3) Day1 open price = first tick open or 9:15 candle open assumed here
+        day1_open_price = open_930
+    
+        # Calculate nearest weekly expiry (example, user replace with correct method)
+        expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+    
+        # Helper values
+        buy_price = close_930
+        stoploss = buy_price * 0.9
+        take_profit = buy_price * 1.10
+    
+        # Detect gap up / gap down vs day0 close
+        gap_up = day1_open_price > close_3pm
+        gap_down = day1_open_price < close_3pm
+        within_range = (day1_open_price >= open_3pm) and (day1_open_price <= close_3pm)
+    
+        # Condition 1
+        # Candle cuts the 3PM open & close lines from below upwards and closes above both
+        cond1_cuts_open = (low_930 < open_3pm) and (close_930 > open_3pm)
+        cond1_cuts_close = (low_930 < close_3pm) and (close_930 > close_3pm)
+        cond1_closes_above_both = (close_930 > open_3pm) and (close_930 > close_3pm)
+    
+        if cond1_cuts_open and cond1_cuts_close and cond1_closes_above_both:
+            return {
+                'condition': 1,
+                'option_type': 'CALL',
+                'buy_price': buy_price,
+                'stoploss': stoploss,
+                'take_profit': take_profit,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Condition 1 met: Buy nearest ITM CALL option.',
+                'spot_price': spot_price
+            }
+    
+        # Condition 2: Major gap down + 9:30 candle closes below 3PM open & close lines
+        if gap_down and (close_930 < open_3pm) and (close_930 < close_3pm):
+            # Reference candle 2 = first 9:30 candle
+            ref_high = high_930
+            ref_low = low_930
+            
+            # Look for next candle after 9:30 to cross below low of ref candle 2
+            # We'll scan candles after 9:30 for this signal:
+            day1_after_930 = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+            for _, next_candle in day1_after_930.iterrows():
+                if next_candle['Low_^NSEI'] < ref_low:
+                    # Signal to buy PUT option
+                    buy_price_put = next_candle['Close_^NSEI']
+                    stoploss_put = buy_price_put * 0.9
+                    take_profit_put = buy_price_put * 1.10
+                    return {
+                        'condition': 2,
+                        'option_type': 'PUT',
+                        'buy_price': buy_price_put,
+                        'stoploss': stoploss_put,
+                        'take_profit': take_profit_put,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 2 met: Gap down + next candle crosses low of 9:30 candle, buy nearest ITM PUT.',
+                        'spot_price': spot_price
+                    }
+            # If no such candle crossed, no trade yet
+        
+        # Condition 3: Major gap up + 9:30 candle closes above 3PM open & close lines
+        if gap_up and (close_930 > open_3pm) and (close_930 > close_3pm):
+            # Reference candle 2 = first 9:30 candle
+            ref_high = high_930
+            ref_low = low_930
+            
+            # Look for next candle after 9:30 to cross above high of ref candle 2
+            day1_after_930 = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+            for _, next_candle in day1_after_930.iterrows():
+                if next_candle['High_^NSEI'] > ref_high:
+                    buy_price_call = next_candle['Close_^NSEI']
+                    stoploss_call = buy_price_call * 0.9
+                    take_profit_call = buy_price_call * 1.10
+                    return {
+                        'condition': 3,
+                        'option_type': 'CALL',
+                        'buy_price': buy_price_call,
+                        'stoploss': stoploss_call,
+                        'take_profit': take_profit_call,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 3 met: Gap up + next candle crosses high of 9:30 candle, buy nearest ITM CALL.',
+                        'spot_price': spot_price
+                    }
+            # No trade if not crossed yet
+        
+        # Condition 4:
+        # Candle cuts the 3PM open & close lines from above downwards and closes below both
+        cond4_cuts_open = (high_930 > open_3pm) and (close_930 < open_3pm)
+        cond4_cuts_close = (high_930 > close_3pm) and (close_930 < close_3pm)
+        cond4_closes_below_both = (close_930 < open_3pm) and (close_930 < close_3pm)
+    
+        if cond4_cuts_open and cond4_cuts_close and cond4_closes_below_both:
+            return {
+                'condition': 4,
+                'option_type': 'PUT',
+                'buy_price': buy_price,
+                'stoploss': stoploss,
+                'take_profit': take_profit,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Condition 4 met: Buy nearest ITM PUT option.',
+                'spot_price': spot_price
+            }
+        # No condition met
+        return None
+    
+    
+    
+    #########################################################################################################
+    
+    #import pandas as pd
+    #import requests
+    #import pandas as pd
+    
+    def get_live_nifty_option_chain():
+        url = "https://www.nseindia.com/api/option-chain-indices?symbol=NIFTY"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                          "(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Referer": "https://www.nseindia.com/option-chain",
+            "Connection": "keep-alive",
+        }
+    
+        session = requests.Session()
+        # First request to get cookies
+        session.get("https://www.nseindia.com", headers=headers)
+    
+        # Now get option chain JSON
+        response = session.get(url, headers=headers)
+        data = response.json()
+    
+        records = []
+        for record in data['records']['data']:
+            strike_price = record['strikePrice']
+            expiry_dates = data['records']['expiryDates']
+            # Calls data
+            if 'CE' in record:
+                ce = record['CE']
+                ce_row = {
+                    'strikePrice': strike_price,
+                    'expiryDate': ce['expiryDate'],
+                    'optionType': 'CE',
+                    'lastPrice': ce.get('lastPrice', None),
+                    'bidQty': ce.get('bidQty', None),
+                    'askQty': ce.get('askQty', None),
+                    'openInterest': ce.get('openInterest', None),
+                    'changeinOpenInterest': ce.get('changeinOpenInterest', None),
+                    'impliedVolatility': ce.get('impliedVolatility', None),
+                    'underlying': ce.get('underlying', None),
+                }
+                records.append(ce_row)
+            # Puts data
+            if 'PE' in record:
+                pe = record['PE']
+                pe_row = {
+                    'strikePrice': strike_price,
+                    'expiryDate': pe['expiryDate'],
+                    'optionType': 'PE',
+                    'lastPrice': pe.get('lastPrice', None),
+                    'bidQty': pe.get('bidQty', None),
+                    'askQty': pe.get('askQty', None),
+                    'openInterest': pe.get('openInterest', None),
+                    'changeinOpenInterest': pe.get('changeinOpenInterest', None),
+                    'impliedVolatility': pe.get('impliedVolatility', None),
+                    'underlying': pe.get('underlying', None),
+                }
+                records.append(pe_row)
+    
+        option_chain_df = pd.DataFrame(records)
+        # Convert expiryDate column to datetime
+        option_chain_df['expiryDate'] = pd.to_datetime(option_chain_df['expiryDate'])
+    
+        return option_chain_df
+    
+    # Usage:
+    #option_chain_df = get_live_nifty_option_chain()
+    #st.write(option_chain_df.head())
+    
+    ################################################################################################
+    def find_nearest_itm_option():
+        import nsepython
+        from nsepython import nse_optionchain_scrapper
+    
+    
+        option_chain = nse_optionchain_scrapper('NIFTY')
+        df = []
+        
+        for item in option_chain['records']['data']:
+            strike = item['strikePrice']
+            expiry = item['expiryDate']
+            if 'CE' in item:
+                ce = item['CE']
+                ce['strikePrice'] = strike
+                ce['expiryDate'] = expiry
+                ce['optionType'] = 'CE'
+                df.append(ce)
+            if 'PE' in item:
+                pe = item['PE']
+                pe['strikePrice'] = strike
+                pe['expiryDate'] = expiry
+                pe['optionType'] = 'PE'
+                df.append(pe)
+        
+        #import pandas as pd
+        option_chain_df = pd.DataFrame(df)
+        option_chain_df['expiryDate'] = pd.to_datetime(option_chain_df['expiryDate'])
+        #st.write(option_chain_df.head())
+        return  option_chain_df
+    
+    
+    
+    ##################################################################################
+    import pandas as pd
+    
+    def option_chain_finder(option_chain_df, spot_price, option_type, lots=10, lot_size=75):
+        """
+        Find nearest ITM option in option chain DataFrame.
+    
+        Parameters:
+        - option_chain_df: pd.DataFrame with columns including ['strikePrice', 'expiryDate', 'optionType', ...]
+        - spot_price: float, current underlying price
+        - option_type: str, 'CE' for Call or 'PE' for Put
+        - lots: int, number of lots to trade (default 10)
+        - lot_size: int, lot size per option contract (default 75)
+    
+        Returns:
+        - dict with keys:
+            'strikePrice', 'expiryDate', 'optionType', 'total_quantity', 'option_data' (pd.Series row)
+        """
+    
+        # Ensure expiryDate is datetime
+        if not pd.api.types.is_datetime64_any_dtype(option_chain_df['expiryDate']):
+            option_chain_df['expiryDate'] = pd.to_datetime(option_chain_df['expiryDate'])
+    
+        today = pd.Timestamp.today().normalize()
+    
+        # Find nearest expiry on or after today
+        expiries = option_chain_df.loc[option_chain_df['expiryDate'] >= today, 'expiryDate'].unique()
+        if len(expiries) == 0:
+            raise ValueError("No expiry dates found on or after today.")
+        nearest_expiry = min(expiries)
+    
+        # Filter for nearest expiry and option type
+        df_expiry = option_chain_df[
+            (option_chain_df['expiryDate'] == nearest_expiry) &
+            (option_chain_df['optionType'] == option_type)
+        ]
+    
+        if df_expiry.empty:
+            raise ValueError(f"No options found for expiry {nearest_expiry.date()} and type {option_type}")
+    
+        # Find nearest ITM strike
+        if option_type == "CALL":
+            itm_strikes = df_expiry[df_expiry['strikePrice'] <= spot_price]
+            if itm_strikes.empty:
+                # fallback to minimum strike (OTM)
+                nearest_strike = df_expiry['strikePrice'].min()
+            else:
+                nearest_strike = itm_strikes['strikePrice'].max()
+        else:  # 'PE'
+            itm_strikes = df_expiry[df_expiry['strikePrice'] >= spot_price]
+            if itm_strikes.empty:
+                # fallback to maximum strike (OTM)
+                nearest_strike = df_expiry['strikePrice'].max()
+            else:
+                nearest_strike = itm_strikes['strikePrice'].min()
+    
+        # Get option row
+        option_row = df_expiry[df_expiry['strikePrice'] == nearest_strike].iloc[0]
+    
+        total_qty = lots * lot_size
+    
+        return {
+            'strikePrice': nearest_strike,
+            'expiryDate': nearest_expiry,
+            'optionType': option_type,
+            'total_quantity': total_qty,
+            'option_data': option_row
+        }
+    
+    ###########################################################
+    
+    import pandas as pd
+    from datetime import timedelta
+    
+    def generate_trade_log_from_option(result, trade_signal):
+        if result is None or trade_signal is None:
+            return None
+        # Determine exit reason and price
+        stoploss_hit = False
+        target_hit = False
+        
+        #exit_time = pd.to_datetime(exit_time)
+        #result.index = pd.to_datetime(result.index)
+    
+        
+        
+        
+    
+        option = result['option_data']
+        qty = result['total_quantity']
+    
+        condition = trade_signal['condition']
+        entry_time = trade_signal['entry_time']
+        message = trade_signal['message']
+    
+        buy_price = option.get('lastPrice', trade_signal.get('buy_price'))
+        expiry = option.get('expiryDate', trade_signal.get('expiry'))
+        option_type = option.get('optionType', trade_signal.get('option_type'))
+    
+        stoploss = buy_price * 0.9
+        take_profit = buy_price * 1.10
+        partial_qty = qty // 2
+        time_exit = entry_time + timedelta(minutes=16)
+    
+        
+    
+        
+    
+        trade_log = {
+            "Condition": condition,
+            "Option Type": option_type,
+            "Strike Price": option.get('strikePrice'),
+            #"Exit Price": exit_price,  # ✅ new column
+            "Buy Premium": buy_price,
+            "Stoploss (Trailing 10%)": stoploss,
+            "Take Profit (10% rise)": take_profit,
+            "Quantity": qty,
+            "Partial Profit Booking Qty (50%)": partial_qty,
+            "Expiry Date": expiry.strftime('%Y-%m-%d') if hasattr(expiry, 'strftime') else expiry,
+            "Entry Time": entry_time.strftime('%Y-%m-%d %H:%M:%S') if hasattr(entry_time, 'strftime') else entry_time,
+            "Time Exit (16 mins after entry)": time_exit.strftime('%Y-%m-%d %H:%M:%S'),
+            "Trade Message": message
+            #"Trade Details": row["Trade Details"],
+            #"Exit Reason": reason
+        }
+    
+        # Add condition-specific details
+        if condition == 1:
+            trade_log["Trade Details"] = (
+                "Buy nearest ITM CALL option. Stoploss trailing 10% below buy premium. "
+                "Book 50% qty profit when premium rises 10%. "
+                "Time exit after 16 minutes if no target hit."
+            )
+        elif condition == 2:
+            trade_log["Trade Details"] = (
+                "Major gap down. Buy nearest ITM PUT option when next candle crosses low of 9:30 candle. "
+                "Stoploss trailing 10% below buy premium."
+            )
+        elif condition == 3:
+            trade_log["Trade Details"] = (
+                "Major gap up. Buy nearest ITM CALL option. Stoploss trailing 10% below buy premium. "
+                "Book 50% qty profit when premium rises 10%. "
+                "Time exit after 16 minutes if no target hit."
+            )
+        elif condition == 4:
+            trade_log["Trade Details"] = (
+                "Buy nearest ITM PUT option. Stoploss trailing 10% below buy premium. "
+                "Book 50% qty profit when premium rises 10%. "
+                "Time exit after 16 minutes if no target hit."
+            )
+        else:
+            trade_log["Trade Details"] = "No specific trade details available."
+    
+        trade_log_df = pd.DataFrame([trade_log])
+        return trade_log_df
+    
+    ################################################################################################################
+    
+    #import pandas as pd
+    #import matplotlib.pyplot as plt
+    
+    #import matplotlib.pyplot as plt
+    
+    def plot_option_trade(option_symbol, entry_time, exit_time, entry_price, exit_price, reason_exit, pnl):
+        """
+        Plot option price movement with entry/exit markers and P&L.
+        """
+        #import yfinance as yf
+        #import pandas as pd
+    
+        # Fetch historical intraday data for the option
+        data = yf.download(option_symbol, start=entry_time.date(), end=exit_time.date() + pd.Timedelta(days=1), interval="5m")
+    
+        if data.empty:
+            st.warning(f"No historical data found for {option_symbol}")
+            return
+    
+        # Plot price movement
+        fig, ax = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
+    
+        # Price chart
+        ax[0].plot(data.index, data['Close'], label='Option Price', color='blue')
+        ax[0].axvline(entry_time, color='green', linestyle='--', label='Entry')
+        ax[0].axvline(exit_time, color='red', linestyle='--', label='Exit')
+        ax[0].scatter(entry_time, entry_price, color='green', s=80, zorder=5)
+        ax[0].scatter(exit_time, exit_price, color='red', s=80, zorder=5)
+        ax[0].set_ylabel("Price")
+        ax[0].legend()
+        ax[0].set_title(f"Trade on {option_symbol} | Exit Reason: {reason_exit}")
+    
+        # P&L curve
+        data['P&L'] = (data['Close'] - entry_price) * (1 if exit_price > entry_price else -1)
+        ax[1].plot(data.index, data['P&L'], label="P&L", color='orange')
+        ax[1].axhline(0, color='black', linestyle='--')
+        ax[1].set_ylabel("P&L")
+        ax[1].legend()
+    
+        plt.tight_layout()
+        st.pyplot(fig)
+    ###################################################################################
+    
+    #import streamlit as st
+    #from playsound import playsound
+    import time
+    
+    def price_alert(current_price, high, low, sound_file="alert.mp3"):
+        """
+        Play alert if price crosses high or low.
+    
+        Parameters:
+        - current_price: float, current market price
+        - high: float, high threshold
+        - low: float, low threshold
+        - sound_file: str, path to alert sound
+        """
+        if current_price > high:
+            st.warning(f"⚠️ Price above HIGH! Current: {current_price}, High: {high}")
+            playsound(sound_file)
+        elif current_price < low:
+            st.warning(f"⚠️ Price below LOW! Current: {current_price}, Low: {low}")
+            playsound(sound_file)
+        else:
+            st.write(f"Current Price: {current_price}")
+    
+    # -----------------------------
+    # Example usage in Streamlit
+    # -----------------------------
+    #st.title("Price Alert Function Example")
+    
+    #high = st.number_input("Set High Price", value=200)
+    #low = st.number_input("Set Low Price", value=180)
+    
+    # Simulate live price (replace with real API later)
+    #current_price = st.number_input("Current Price", value=190)
+    
+    #if st.button("Check Alert"):
+        #price_alert(current_price, high, low)
+    ########################################################################################################
+    
+    import pandas as pd
+    import numpy as np
+    
+    def trading_signal_all_condition(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Function to generate trading signals based on conditions:
+        - 3PM candle (day 0) open/close marked
+        - Next day first 15-min breakout check
+        - EMA20 crossover + Volume breakout (if volume available)
+    
+        Parameters:
+            df (pd.DataFrame): NIFTY 15-min OHLC data with columns
+                               ['Datetime','Open_^NSEI','High_^NSEI','Low_^NSEI','Close_^NSEI']
+                               (optional 'Volume')
+    
+        Returns:
+            pd.DataFrame: df with extra columns ['EMA20','Signal']
+        """
+        
+        df = df.copy()
+        
+        # Ensure datetime is in pandas datetime
+        df['Datetime'] = pd.to_datetime(df['Datetime'])
+        df = df.sort_values("Datetime").reset_index(drop=True)
+        
+        # Rename columns to generic OHLC
+        df = df.rename(columns={
+            'Open_^NSEI': 'Open',
+            'High_^NSEI': 'High',
+            'Low_^NSEI': 'Low',
+            'Close_^NSEI': 'Close'
+        })
+        
+        # Add EMA20
+        df['EMA20'] = df['Close'].ewm(span=20, adjust=False).mean()
+        
+        # Initialize signal column
+        df['Signal'] = np.nan
+        
+        # Step 1: Find 3:15 PM candle (previous day reference)
+        df['Time'] = df['Datetime'].dt.time
+        df['Date'] = df['Datetime'].dt.date
+        
+        reference_levels = {}  # Store {date: (open, close)}
+        
+        for d in df['Date'].unique():
+            day_data = df[df['Date'] == d]
+            # Find 3:15 PM candle (close at 15:15)
+            ref_candle = day_data[day_data['Time'] == pd.to_datetime("15:15").time()]
+            if not ref_candle.empty:
+                o = ref_candle['Open'].values[0]
+                c = ref_candle['Close'].values[0]
+                reference_levels[d] = (o, c)
+        
+        # Step 2: Next day 9:30 AM breakout
+        for d in reference_levels.keys():
+            next_days = [x for x in df['Date'].unique() if x > d]
+            if not next_days:
+                continue
+            next_day = next_days[0]
+            
+            first_candle = df[(df['Date'] == next_day) & (df['Time'] == pd.to_datetime("09:30").time())]
+            if not first_candle.empty:
+                open_val = reference_levels[d][0]
+                close_val = reference_levels[d][1]
+                fc = first_candle.iloc[0]
+                
+                if fc['High'] > max(open_val, close_val):  # Breakout above
+                    df.loc[first_candle.index, 'Signal'] = "Breakout_Up"
+                elif fc['Low'] < min(open_val, close_val):  # Breakdown below
+                    df.loc[first_candle.index, 'Signal'] = "Breakout_Down"
+        
+        # Step 3: EMA20 + Volume condition (if volume exists)
+        if 'Volume' in df.columns:
+            df['Prev_Close'] = df['Close'].shift(1)
+            df['Prev_EMA20'] = df['EMA20'].shift(1)
+            
+            vol_ma = df['Volume'].rolling(20).mean()
+            
+            for i in range(1, len(df)):
+                if (
+                    df.loc[i, 'Close'] > df.loc[i, 'EMA20'] 
+                    and df.loc[i-1, 'Prev_Close'] <= df.loc[i-1, 'Prev_EMA20']
+                ):
+                    if df.loc[i, 'Volume'] > vol_ma.iloc[i]:
+                        df.loc[i, 'Signal'] = "EMA20_Buy"
+                
+                elif (
+                    df.loc[i, 'Close'] < df.loc[i, 'EMA20'] 
+                    and df.loc[i-1, 'Prev_Close'] >= df.loc[i-1, 'Prev_EMA20']
+                ):
+                    if df.loc[i, 'Volume'] > vol_ma.iloc[i]:
+                        df.loc[i, 'Signal'] = "EMA20_Sell"
+            
+            df = df.drop(columns=['Prev_Close','Prev_EMA20'])
+        
+        # Clean up temp cols
+        df = df.drop(columns=['Time','Date'])
+        
+        return df
+    
+    
+    
+    
+    ##################################################New function Change #######################################################
+    
+    def trading_signal_all_conditions1_old_working(df, quantity=10*75, return_all_signals=False):
+        """
+        Evaluate trading conditions based on Base Zone strategy with modified stop loss logic:
+        - CALL stop loss = recent swing low (before entry)
+        - PUT stop loss = recent swing high (before entry)
+        """
+    
+        signals = []
+        spot_price = df['Close_^NSEI'].iloc[-1]
+        df = df.copy()
+        df['Date'] = df['Datetime'].dt.date
+        unique_days = sorted(df['Date'].unique())
+        if len(unique_days) < 2:
+            return None
+    
+        day0 = unique_days[-2]
+        day1 = unique_days[-1]
+    
+        candle_3pm = df[(df['Date'] == day0) &
+                        (df['Datetime'].dt.hour == 15) &
+                        (df['Datetime'].dt.minute == 0)]
+        if candle_3pm.empty:
+            return None
+    
+        base_open = candle_3pm.iloc[0]['Open_^NSEI']
+        base_close = candle_3pm.iloc[0]['Close_^NSEI']
+        base_low = min(base_open, base_close)
+        base_high = max(base_open, base_close)
+    
+        candle_915 = df[(df['Date'] == day1) &
+                        (df['Datetime'].dt.hour == 9) &
+                        (df['Datetime'].dt.minute == 15)]
+        if candle_915.empty:
+            return None
+    
+        H1 = candle_915.iloc[0]['High_^NSEI']
+        L1 = candle_915.iloc[0]['Low_^NSEI']
+        C1 = candle_915.iloc[0]['Close_^NSEI']
+        entry_time = candle_915.iloc[0]['Datetime']
+    
+        expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+        day1_after_915 = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+    
+        # Helper to find recent swing high and low before a given time
+        def get_recent_swing(df, current_time):
+            recent_data = df[(df['Datetime'] < current_time)].tail(10)  # last 10 candles before entry
+            swing_high = recent_data['High_^NSEI'].max()
+            swing_low = recent_data['Low_^NSEI'].min()
+            return swing_high, swing_low
+    
+        # Get recent swing values before 09:15
+        swing_high, swing_low = get_recent_swing(df[df['Date'] == day1], entry_time)
+    
+        # Condition 1: CALL breakout
+        if (L1 < base_high and H1 > base_low) and (C1 > base_high):
+            sig = {
+                'condition': 1,
+                'option_type': 'CALL',
+                'buy_price': H1,
+                'stoploss': swing_low,             # Updated stoploss
+                'take_profit': H1 * 1.10,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Condition 1: Bullish breakout above Base Zone → Buy CALL above H1',
+                'spot_price': spot_price
+            }
+            signals.append(sig)
+            if not return_all_signals:
+                return sig
+    
+        if C1 < base_low:
+            for _, next_candle in day1_after_915.iterrows():
+                swing_high, swing_low = get_recent_swing(df[df['Date'] == day1], next_candle['Datetime'])
+    
+                # Condition 2: PUT continuation
+                if next_candle['Low_^NSEI'] < L1:
+                    sig = {
+                        'condition': 2,
+                        'option_type': 'PUT',
+                        'buy_price': L1,
+                        'stoploss': swing_high,        # Updated stoploss
+                        'take_profit': L1 * 0.90,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 2: Gap down confirmed → Buy PUT below L1',
+                        'spot_price': spot_price
+                    }
+                    signals.append(sig)
+                    if not return_all_signals:
+                        return sig
+    
+                # Flip rule 2.7: CALL
+                if next_candle['Close_^NSEI'] > base_high:
+                    ref_high = next_candle['High_^NSEI']
+                    sig_flip = {
+                        'condition': 2.7,
+                        'option_type': 'CALL',
+                        'buy_price': ref_high,
+                        'stoploss': swing_low,        # Updated stoploss
+                        'take_profit': ref_high * 1.10,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 2 Flip: Later candle closed above Base Zone → Buy CALL above Candle 2 high',
+                        'spot_price': spot_price
+                    }
+                    signals.append(sig_flip)
+                    if not return_all_signals:
+                        return sig_flip
+    
+        if C1 > base_high:
+            for _, next_candle in day1_after_915.iterrows():
+                swing_high, swing_low = get_recent_swing(df[df['Date'] == day1], next_candle['Datetime'])
+    
+                # Condition 3: CALL continuation
+                if next_candle['High_^NSEI'] > H1:
+                    sig = {
+                        'condition': 3,
+                        'option_type': 'CALL',
+                        'buy_price': H1,
+                        'stoploss': swing_low,        # Updated stoploss
+                        'take_profit': H1 * 1.10,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 3: Gap up confirmed → Buy CALL above H1',
+                        'spot_price': spot_price
+                    }
+                    signals.append(sig)
+                    if not return_all_signals:
+                        return sig
+    
+                # Flip rule 3.7: PUT
+                if next_candle['Close_^NSEI'] < base_low:
+                    ref_low = next_candle['Low_^NSEI']
+                    sig_flip = {
+                        'condition': 3.7,
+                        'option_type': 'PUT',
+                        'buy_price': ref_low,
+                        'stoploss': swing_high,       # Updated stoploss
+                        'take_profit': ref_low * 0.90,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 3 Flip: Later candle closed below Base Zone → Buy PUT below Candle 3 low',
+                        'spot_price': spot_price
+                    }
+                    signals.append(sig_flip)
+                    if not return_all_signals:
+                        return sig_flip
+    
+        # Condition 4: PUT breakdown
+        if (L1 < base_high and H1 > base_low) and (C1 < base_low):
+            sig = {
+                'condition': 4,
+                'option_type': 'PUT',
+                'buy_price': L1,
+                'stoploss': swing_high,             # Updated stoploss
+                'take_profit': L1 * 0.90,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Condition 4: Bearish breakdown below Base Zone → Buy PUT below L1',
+                'spot_price': spot_price
+            }
+            signals.append(sig)
+            if not return_all_signals:
+                return sig
+    
+        return signals if signals else None
+    #######################################################################################################################################
+    
+    def trading_signal_all_conditions1_trail_sl(df, quantity=10*75, return_all_signals=False):
+        """
+        Evaluate trading conditions based on Base Zone strategy with Trailing Stop Loss:
+        - CALL stop loss = recent swing low (before and after entry, updated dynamically)
+        - PUT stop loss = recent swing high (before and after entry, updated dynamically)
+        """
+    
+        signals = []
+        spot_price = df['Close_^NSEI'].iloc[-1]
+        df = df.copy()
+        df['Date'] = df['Datetime'].dt.date
+        unique_days = sorted(df['Date'].unique())
+        if len(unique_days) < 2:
+            return None
+    
+        day0 = unique_days[-2]
+        day1 = unique_days[-1]
+    
+        candle_3pm = df[(df['Date'] == day0) &
+                        (df['Datetime'].dt.hour == 15) &
+                        (df['Datetime'].dt.minute == 0)]
+        if candle_3pm.empty:
+            return None
+    
+        base_open = candle_3pm.iloc[0]['Open_^NSEI']
+        base_close = candle_3pm.iloc[0]['Close_^NSEI']
+        base_low = min(base_open, base_close)
+        base_high = max(base_open, base_close)
+    
+        candle_915 = df[(df['Date'] == day1) &
+                        (df['Datetime'].dt.hour == 9) &
+                        (df['Datetime'].dt.minute == 15)]
+        if candle_915.empty:
+            return None
+    
+        H1 = candle_915.iloc[0]['High_^NSEI']
+        L1 = candle_915.iloc[0]['Low_^NSEI']
+        C1 = candle_915.iloc[0]['Close_^NSEI']
+        entry_time = candle_915.iloc[0]['Datetime']
+    
+        expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+        day1_after_915 = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+    
+        # Helper to find recent swing high and low before a given time
+        def get_recent_swing(df, current_time):
+            recent_data = df[(df['Datetime'] < current_time)].tail(10)  # last 10 candles
+            swing_high = recent_data['High_^NSEI'].max()
+            swing_low = recent_data['Low_^NSEI'].min()
+            return swing_high, swing_low
+    
+        # Initial recent swing values before 09:15
+        swing_high, swing_low = get_recent_swing(df[df['Date'] == day1], entry_time)
+    
+        # Condition 1: CALL breakout
+        if (L1 < base_high and H1 > base_low) and (C1 > base_high):
+            sig = {
+                'condition': 1,
+                'option_type': 'CALL',
+                'buy_price': H1,
+                'stoploss': swing_low,  # initial SL
+                'take_profit': H1 * 1.10,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Condition 1: Bullish breakout above Base Zone → Buy CALL above H1',
+                'spot_price': spot_price
+            }
+    
+            # Trailing Stop Loss for CALL
+            for _, candle in day1_after_915.iterrows():
+                new_swing_high, new_swing_low = get_recent_swing(df[df['Date'] == day1], candle['Datetime'])
+                if new_swing_low > sig['stoploss']:
+                    sig['stoploss'] = new_swing_low  # trail SL upward
+            signals.append(sig)
+            if not return_all_signals:
+                return sig
+    
+        if C1 < base_low:
+            for _, next_candle in day1_after_915.iterrows():
+                swing_high, swing_low = get_recent_swing(df[df['Date'] == day1], next_candle['Datetime'])
+    
+                # Condition 2: PUT continuation
+                if next_candle['Low_^NSEI'] < L1:
+                    sig = {
+                        'condition': 2,
+                        'option_type': 'PUT',
+                        'buy_price': L1,
+                        'stoploss': swing_high,  # initial SL
+                        'take_profit': L1 * 0.90,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 2: Gap down confirmed → Buy PUT below L1',
+                        'spot_price': spot_price
+                    }
+    
+                    # Trailing Stop Loss for PUT
+                    for _, candle in day1_after_915.iterrows():
+                        new_swing_high, new_swing_low = get_recent_swing(df[df['Date'] == day1], candle['Datetime'])
+                        if new_swing_high < sig['stoploss']:
+                            sig['stoploss'] = new_swing_high  # trail SL downward
+                    signals.append(sig)
+                    if not return_all_signals:
+                        return sig
+    
+                # Flip rule 2.7: CALL
+                if next_candle['Close_^NSEI'] > base_high:
+                    ref_high = next_candle['High_^NSEI']
+                    sig_flip = {
+                        'condition': 2.7,
+                        'option_type': 'CALL',
+                        'buy_price': ref_high,
+                        'stoploss': swing_low,
+                        'take_profit': ref_high * 1.10,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 2 Flip: Later candle closed above Base Zone → Buy CALL above Candle 2 high',
+                        'spot_price': spot_price
+                    }
+    
+                    # Trailing Stop Loss for CALL flip
+                    for _, candle in day1_after_915.iterrows():
+                        new_swing_high, new_swing_low = get_recent_swing(df[df['Date'] == day1], candle['Datetime'])
+                        if new_swing_low > sig_flip['stoploss']:
+                            sig_flip['stoploss'] = new_swing_low
+                    signals.append(sig_flip)
+                    if not return_all_signals:
+                        return sig_flip
+    
+        if C1 > base_high:
+            for _, next_candle in day1_after_915.iterrows():
+                swing_high, swing_low = get_recent_swing(df[df['Date'] == day1], next_candle['Datetime'])
+    
+                # Condition 3: CALL continuation
+                if next_candle['High_^NSEI'] > H1:
+                    sig = {
+                        'condition': 3,
+                        'option_type': 'CALL',
+                        'buy_price': H1,
+                        'stoploss': swing_low,
+                        'take_profit': H1 * 1.10,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 3: Gap up confirmed → Buy CALL above H1',
+                        'spot_price': spot_price
+                    }
+    
+                    # Trailing Stop Loss for CALL
+                    for _, candle in day1_after_915.iterrows():
+                        new_swing_high, new_swing_low = get_recent_swing(df[df['Date'] == day1], candle['Datetime'])
+                        if new_swing_low > sig['stoploss']:
+                            sig['stoploss'] = new_swing_low
+                    signals.append(sig)
+                    if not return_all_signals:
+                        return sig
+    
+                # Flip rule 3.7: PUT
+                if next_candle['Close_^NSEI'] < base_low:
+                    ref_low = next_candle['Low_^NSEI']
+                    sig_flip = {
+                        'condition': 3.7,
+                        'option_type': 'PUT',
+                        'buy_price': ref_low,
+                        'stoploss': swing_high,
+                        'take_profit': ref_low * 0.90,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 3 Flip: Later candle closed below Base Zone → Buy PUT below Candle 3 low',
+                        'spot_price': spot_price
+                    }
+    
+                    # Trailing Stop Loss for PUT flip
+                    for _, candle in day1_after_915.iterrows():
+                        new_swing_high, new_swing_low = get_recent_swing(df[df['Date'] == day1], candle['Datetime'])
+                        if new_swing_high < sig_flip['stoploss']:
+                            sig_flip['stoploss'] = new_swing_high
+                    signals.append(sig_flip)
+                    if not return_all_signals:
+                        return sig_flip
+    
+        # Condition 4: PUT breakdown
+        if (L1 < base_high and H1 > base_low) and (C1 < base_low):
+            sig = {
+                'condition': 4,
+                'option_type': 'PUT',
+                'buy_price': L1,
+                'stoploss': swing_high,
+                'take_profit': L1 * 0.90,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Condition 4: Bearish breakdown below Base Zone → Buy PUT below L1',
+                'spot_price': spot_price
+            }
+    
+            # Trailing Stop Loss for PUT
+            for _, candle in day1_after_915.iterrows():
+                new_swing_high, new_swing_low = get_recent_swing(df[df['Date'] == day1], candle['Datetime'])
+                if new_swing_high < sig['stoploss']:
+                    sig['stoploss'] = new_swing_high
+            signals.append(sig)
+            if not return_all_signals:
+                return sig
+    
+        return signals if signals else None
+    
+    ######################################################take profit with trailing SL #######################################################################################
+    
+    
+    
+    
+    def trading_signal_all_conditions1(df, quantity=10*75, return_all_signals=False):
+        """
+        Evaluate trading conditions based on Base Zone strategy with:
+        - CALL stop loss = recent swing low (last 10 candles)
+        - PUT stop loss = recent swing high (last 10 candles)
+        - Dynamic trailing stop loss based on swing points
+        - Take Profit triggered by trailing SL (exit when price hits SL)
+        """
+    
+        signals = []
+        spot_price = df['Close_^NSEI'].iloc[-1]
+        df = df.copy()
+        df['Date'] = df['Datetime'].dt.date
+        unique_days = sorted(df['Date'].unique())
+        if len(unique_days) < 2:
+            return None
+    
+        day0 = unique_days[-2]  # Previous day
+        day1 = unique_days[-1]  # Current day
+    
+        # Get Base Zone from 3 PM candle of previous day
+        candle_3pm = df[(df['Date'] == day0) &
+                        (df['Datetime'].dt.hour == 15) &
+                        (df['Datetime'].dt.minute == 0)]
+        if candle_3pm.empty:
+            return None
+    
+        base_open = candle_3pm.iloc[0]['Open_^NSEI']
+        base_close = candle_3pm.iloc[0]['Close_^NSEI']
+        base_low = min(base_open, base_close)
+        base_high = max(base_open, base_close)
+    
+        # Get 09:15 candle of current day
+        candle_915 = df[(df['Date'] == day1) &
+                        (df['Datetime'].dt.hour == 9) &
+                        (df['Datetime'].dt.minute == 15)]
+        if candle_915.empty:
+            return None
+    
+        H1 = candle_915.iloc[0]['High_^NSEI']
+        L1 = candle_915.iloc[0]['Low_^NSEI']
+        C1 = candle_915.iloc[0]['Close_^NSEI']
+        entry_time = candle_915.iloc[0]['Datetime']
+    
+        expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+        day1_after_915 = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+    
+        # Helper: Get recent swing points from last 10 candles
+        def get_recent_swing(current_time):
+            recent_data = df[(df['Date'] == day1) & (df['Datetime'] < current_time)].tail(10)
+            swing_high = recent_data['High_^NSEI'].max()
+            swing_low = recent_data['Low_^NSEI'].min()
+            return swing_high, swing_low
+    
+        # Helper: Update trailing stop loss
+        def update_trailing_sl(option_type, current_sl, current_time):
+            new_high, new_low = get_recent_swing(current_time)
+            if option_type == 'CALL':  # SL below recent swing low
+                if new_low > current_sl:
+                    return new_low
+            elif option_type == 'PUT':  # SL above recent swing high
+                if new_high < current_sl:
+                    return new_high
+            return current_sl
+    
+        # Common function to monitor trade after entry
+        def monitor_trade(sig):
+            current_sl = sig['stoploss']
+            for _, candle in day1_after_915.iterrows():
+                # Update trailing stop loss dynamically
+                current_sl = update_trailing_sl(sig['option_type'], current_sl, candle['Datetime'])
+                sig['stoploss'] = current_sl
+    
+                # Exit if price hits SL
+                if sig['option_type'] == 'CALL' and candle['Low_^NSEI'] <= current_sl:
+                    sig['exit_price'] = current_sl
+                    sig['status'] = 'Exited at Trailing SL'
+                    break
+                elif sig['option_type'] == 'PUT' and candle['High_^NSEI'] >= current_sl:
+                    sig['exit_price'] = current_sl
+                    sig['status'] = 'Exited at Trailing SL'
+                    break
+            return sig
+    
+        # Condition 1: CALL breakout
+        if (L1 < base_high and H1 > base_low) and (C1 > base_high):
+            sig = {
+                'condition': 1,
+                'option_type': 'CALL',
+                'buy_price': H1,
+                'stoploss': get_recent_swing(entry_time)[1],  # swing low
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Condition 1: Bullish breakout above Base Zone → Buy CALL above H1',
+                'spot_price': spot_price
+            }
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            if not return_all_signals:
+                return sig
+    
+        # Condition 2: PUT continuation after gap down
+        if C1 < base_low:
+            for _, next_candle in day1_after_915.iterrows():
+                swing_high, swing_low = get_recent_swing(next_candle['Datetime'])
+                if next_candle['Low_^NSEI'] < L1:
+                    sig = {
+                        'condition': 2,
+                        'option_type': 'PUT',
+                        'buy_price': L1,
+                        'stoploss': swing_high,  # swing high
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 2: Gap down confirmed → Buy PUT below L1',
+                        'spot_price': spot_price
+                    }
+                    sig = monitor_trade(sig)
+                    signals.append(sig)
+                    if not return_all_signals:
+                        return sig
+    
+        # Condition 3: CALL continuation after gap up
+        if C1 > base_high:
+            for _, next_candle in day1_after_915.iterrows():
+                swing_high, swing_low = get_recent_swing(next_candle['Datetime'])
+                if next_candle['High_^NSEI'] > H1:
+                    sig = {
+                        'condition': 3,
+                        'option_type': 'CALL',
+                        'buy_price': H1,
+                        'stoploss': swing_low,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 3: Gap up confirmed → Buy CALL above H1',
+                        'spot_price': spot_price
+                    }
+                    sig = monitor_trade(sig)
+                    signals.append(sig)
+                    if not return_all_signals:
+                        return sig
+    
+        # Condition 4: PUT breakdown
+        if (L1 < base_high and H1 > base_low) and (C1 < base_low):
+            sig = {
+                'condition': 4,
+                'option_type': 'PUT',
+                'buy_price': L1,
+                'stoploss': get_recent_swing(entry_time)[0],  # swing high
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Condition 4: Bearish breakdown below Base Zone → Buy PUT below L1',
+                'spot_price': spot_price
+            }
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            if not return_all_signals:
+                return sig
+    
+        return signals if signals else None
+    
+    
+    
+    
+    ###########################################################################################################################################
+    
+    
+    def trading_signal_all_conditions1_old(df, quantity=10*75, return_all_signals=False):
+        """
+        Evaluate trading conditions based on Base Zone strategy.
+    
+        Parameters:
+        - df: pd.DataFrame with columns ['Datetime','Open_^NSEI','High_^NSEI','Low_^NSEI','Close_^NSEI']
+        - quantity: total quantity to trade (default 10 lots = 750)
+        - return_all_signals: if True, returns list of all possible signals; else returns first found
+    
+        Returns:
+        - None if no signals
+        - dict for first signal (if return_all_signals=False)
+        - list of dicts for all signals (if return_all_signals=True)
+        """
+    
+        signals = []
+        spot_price = df['Close_^NSEI'].iloc[-1]  # latest price
+        df = df.copy()
+        df['Date'] = df['Datetime'].dt.date
+        unique_days = sorted(df['Date'].unique())
+        if len(unique_days) < 2:
+            return None  # not enough data
+    
+        day0 = unique_days[-2]
+        day1 = unique_days[-1]
+    
+        # Step 1: Base Zone
+        candle_3pm = df[(df['Date'] == day0) &
+                        (df['Datetime'].dt.hour == 15) &
+                        (df['Datetime'].dt.minute == 0)]
+        if candle_3pm.empty:
+            return None
+    
+        base_open = candle_3pm.iloc[0]['Open_^NSEI']
+        base_close = candle_3pm.iloc[0]['Close_^NSEI']
+        base_low = min(base_open, base_close)
+        base_high = max(base_open, base_close)
+    
+        # Step 2: First candle Day1
+        candle_915 = df[(df['Date'] == day1) &
+                        (df['Datetime'].dt.hour == 9) &
+                        (df['Datetime'].dt.minute == 15)]
+        if candle_915.empty:
+            return None
+    
+        H1 = candle_915.iloc[0]['High_^NSEI']
+        L1 = candle_915.iloc[0]['Low_^NSEI']
+        C1 = candle_915.iloc[0]['Close_^NSEI']
+        entry_time = candle_915.iloc[0]['Datetime']
+    
+        expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+    
+        day1_after_915 = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+    
+        # --- Condition 1 ---
+        if (L1 < base_high and H1 > base_low) and (C1 > base_high):
+            sig = {
+                'condition': 1,
+                'option_type': 'CALL',
+                'buy_price': H1,
+                'stoploss': H1 * 0.9,
+                'take_profit': H1 * 1.10,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Condition 1: Bullish breakout above Base Zone → Buy CALL above H1',
+                'spot_price': spot_price
+            }
+            signals.append(sig)
+            if not return_all_signals:
+                return sig
+    
+        # --- Condition 2 ---
+        if C1 < base_low:
+            for _, next_candle in day1_after_915.iterrows():
+                if next_candle['Low_^NSEI'] < L1:
+                    sig = {
+                        'condition': 2,
+                        'option_type': 'PUT',
+                        'buy_price': L1,
+                        'stoploss': L1 * 1.10,
+                        'take_profit': L1 * 0.90,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 2: Gap down confirmed → Buy PUT below L1',
+                        'spot_price': spot_price
+                    }
+                    signals.append(sig)
+                    if not return_all_signals:
+                        return sig
+                # Flip rule 2.7
+                if next_candle['Close_^NSEI'] > base_high:
+                    ref_high = next_candle['High_^NSEI']
+                    sig_flip = {
+                        'condition': 2.7,
+                        'option_type': 'CALL',
+                        'buy_price': ref_high,
+                        'stoploss': ref_high * 0.9,
+                        'take_profit': ref_high * 1.10,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 2 Flip: Later candle closed above Base Zone → Buy CALL above Candle 2 high',
+                        'spot_price': spot_price
+                    }
+                    signals.append(sig_flip)
+                    if not return_all_signals:
+                        return sig_flip
+    
+        # --- Condition 3 ---
+        if C1 > base_high:
+            for _, next_candle in day1_after_915.iterrows():
+                if next_candle['High_^NSEI'] > H1:
+                    sig = {
+                        'condition': 3,
+                        'option_type': 'CALL',
+                        'buy_price': H1,
+                        'stoploss': H1 * 0.9,
+                        'take_profit': H1 * 1.10,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 3: Gap up confirmed → Buy CALL above H1',
+                        'spot_price': spot_price
+                    }
+                    signals.append(sig)
+                    if not return_all_signals:
+                        return sig
+                # Flip rule 3.7
+                if next_candle['Close_^NSEI'] < base_low:
+                    ref_low = next_candle['Low_^NSEI']
+                    sig_flip = {
+                        'condition': 3.7,
+                        'option_type': 'PUT',
+                        'buy_price': ref_low,
+                        'stoploss': ref_low * 1.10,
+                        'take_profit': ref_low * 0.90,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 3 Flip: Later candle closed below Base Zone → Buy PUT below Candle 3 low',
+                        'spot_price': spot_price
+                    }
+                    signals.append(sig_flip)
+                    if not return_all_signals:
+                        return sig_flip
+                        sig
+                        {
+                'take_profit': L1 * 0.90,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Condition 4: Bearish breakdown below Base Zone → Buy PUT below L1',
+                'spot_price': spot_price
+                        }
+            signals.append(sig)
+            if not return_all_signals:
+                return sig
+    
+        return signals if signals else None
+    
+    ###################################################################################################################################################
+    
+    
+    def compute_trade_pnl_old(signal_log_df, df):
+        """
+        Compute PnL and exit reason for each signal in signal_log_df based on price data in df.
+        Returns updated DataFrame with Sell Price, PnL, and Exit Reason.
+        """
+        trade_results = []
+    
+        for _, row in signal_log_df.iterrows():
+            day = row['Date']
+            entry_time = row['Entry Time']
+            exit_time = row['Time Exit (16 mins after entry)']
+            buy_premium = row['Buy Premium']
+            qty = row['Quantity']
+            stoploss = row['Stoploss (Trailing 10%)']
+            take_profit = row['Take Profit (10% rise)']
+            option_type = row['Option Selected']
+    
+            # Filter df for the trading day and after entry
+    
+        # --- Condition 4 ---
+        if (L1 < base_high and H1 > base_low) and (C1 < base_low):
+            sig = {
+                'condition': 4,
+                'option_type': 'PUT',
+                'buy_price': L1,
+                'stoploss': L1 * 1.10
+            }
+            day_df = df[df['Datetime'].dt.date == day]
+            day_after_entry = day_df[day_df['Datetime'] >= entry_time].sort_values('Datetime')
+    
+            sell_price = None
+            exit_reason = "Time Exit"
+    
+            for _, candle in day_after_entry.iterrows():
+                price = candle['Close_^NSEI']  # You can use option price if available
+                # Check Take Profit
+                if take_profit and price >= take_profit:
+                    sell_price = take_profit
+                    exit_reason = "Take Profit"
+                    exit_time = candle['Datetime']
+                    break
+                # Check Stoploss
+                elif stoploss and price <= stoploss:
+                    sell_price = stoploss
+                    exit_reason = "Stoploss"
+                    exit_time = candle['Datetime']
+                    break
+    
+            # If neither TP nor SL hit, sell at last available price (time exit)
+            if sell_price is None:
+                sell_price = day_after_entry['Close_^NSEI'].iloc[0]  # fallback
+    
+            pnl = (sell_price - buy_premium) * qty if option_type.upper() == "CE" else (buy_premium - sell_price) * qty
+    
+            trade_results.append({
+                **row.to_dict(),
+                "Sell Price": sell_price,
+                "Exit Reason": exit_reason,
+                "Actual Exit Time": exit_time,
+                "PnL": pnl
+            })
+    
+        return pd.DataFrame(trade_results)
+    
+    ###############################################################################################
+    
+    def compute_trade_pnl(signal_log_df, df):
+        """
+        Compute PnL and exit reason for each signal in signal_log_df based on price data in df.
+        Returns updated DataFrame with Sell Price, PnL, and Exit Reason.
+        """
+        trade_results = []
+    
+        for _, row in signal_log_df.iterrows():
+            day = row['Date']
+            entry_time = row['Entry Time']
+            exit_time = row['Time Exit (16 mins after entry)']
+            buy_premium = row['Buy Premium']
+            qty = row['Quantity']
+            stoploss = row['Stoploss (Trailing 10%)']
+            take_profit = row['Take Profit (10% rise)']
+            option_type = row['Option Selected']
+    
+            # Filter df for the trading day and after entry
+            day_df = df[df['Datetime'].dt.date == day]
+            day_after_entry = day_df[(day_df['Datetime'] >= entry_time) & (day_df['Datetime'] <= exit_time)].sort_values('Datetime')
+    
+            sell_price = None
+            actual_exit_time = exit_time
+            exit_reason = "Time Exit"
+    
+            for _, candle in day_after_entry.iterrows():
+                price = candle['Close_^NSEI']  # Spot price used for simulation; replace with option price if available
+                
+                # Check Take Profit for CALL or PUT
+                if take_profit and (
+                    (option_type.upper() == "CE" and price >= take_profit) or
+                    (option_type.upper() == "PE" and price <= take_profit)
+                ):
+                    sell_price = take_profit
+                    exit_reason = "Take Profit"
+                    actual_exit_time = candle['Datetime']
+                    break
+    
+                # Check Stoploss
+                elif stoploss and (
+                    (option_type.upper() == "CE" and price <= stoploss) or
+                    (option_type.upper() == "PE" and price >= stoploss)
+                ):
+                    sell_price = stoploss
+                    exit_reason = "Stoploss"
+                    actual_exit_time = candle['Datetime']
+                    break
+    
+            # If neither TP nor SL hit, exit at last available price (time exit)
+            if sell_price is None:
+                sell_price = day_after_entry['Close_^NSEI'].iloc[-1]
+    
+            # Compute PnL
+            pnl = (sell_price - buy_premium) * qty if option_type.upper() == "CE" else (buy_premium - sell_price) * qty
+    
+            trade_results.append({
+                **row.to_dict(),
+                "Sell Price": sell_price,
+                "Exit Reason": exit_reason,
+                "Actual Exit Time": actual_exit_time,
+                "PnL": pnl
+            })
+    
+        return pd.DataFrame(trade_results)
+    
+    
+    
+    
+    #####################################################################################
+    
+    
+    def compute_performance1(signal_df, brokerage_per_trade=20, gst_rate=0.18, stamp_duty_rate=0.00015):
+        """
+        Compute performance summary from signal log with PnL and include daily costs.
+        
+        Returns:
+        - summary_df: Overall performance summary (including Total Expense)
+        - pnl_per_day: Daily PnL with Total PnL, Net Expense, and Net PnL
+        """
+        day_capital_needed=0
+        total_trades = len(signal_df)
+        winning_trades = signal_df[signal_df['PnL'] > 0]
+        losing_trades = signal_df[signal_df['PnL'] <= 0]
+        
+        total_pnl = signal_df['PnL'].sum()
+        avg_pnl = signal_df['PnL'].mean() if total_trades > 0 else 0
+        max_pnl = signal_df['PnL'].max() if total_trades > 0 else 0
+        min_pnl = signal_df['PnL'].min() if total_trades > 0 else 0
+        
+        win_pct = len(winning_trades) / total_trades * 100 if total_trades > 0 else 0
+        loss_pct = len(losing_trades) / total_trades * 100 if total_trades > 0 else 0
+        
+        # ✅ Group by date and calculate daily metrics
+        pnl_per_day = signal_df.groupby('Date').agg({
+            'PnL': 'sum',
+            'Quantity': 'sum'
+        }).reset_index()
+        
+        # ✅ Add Net Expense and Net PnL
+        cost_per_trade_list = []
+        net_pnl_list = []
+        capital_needed_list = []
+        capital_after_list = []
+        
+        for idx, row in pnl_per_day.iterrows():
+            day_trades = signal_df[signal_df['Date'] == row['Date']]
+            day_expense = 0
+            
+            for _, trade in day_trades.iterrows():
+                turnover = trade['Buy Premium'] * trade['Quantity'] * 2  # Buy + Sell
+                brokerage = brokerage_per_trade
+                gst = brokerage * gst_rate
+                stamp_duty = turnover * stamp_duty_rate
+                total_cost = brokerage + gst + stamp_duty
+                day_expense += total_cost
+    
+                 # Calculate capital needed for each trade
+                trade_capital = trade['Buy Premium'] * trade['Quantity']
+                day_capital_needed += trade_capital
+            
+            cost_per_trade_list.append(round(day_expense, 2))
+            net_pnl_list.append(round(row['PnL'] - day_expense, 2))
+            capital_needed_list.append(round(day_capital_needed, 2))
+        
+        pnl_per_day['Total PnL'] = pnl_per_day['PnL'].round(2)
+        pnl_per_day['Net Expense'] = cost_per_trade_list
+        pnl_per_day['Net PnL'] = net_pnl_list
+        pnl_per_day['Capital Needed'] = capital_needed_list  # ✅ Added
+        pnl_per_day['Capital After'] = capital_after_list  # ✅ Added
+        
+        # ✅ Drop old raw PnL column for clarity (optional)
+        pnl_per_day = pnl_per_day[['Date', 'Total PnL', 'Net Expense', 'Net PnL']]
+        
+        # ✅ Compute total expense
+        total_expense = sum(cost_per_trade_list)
+        
+        # ✅ Summary for overall performance
+        summary = {
+            "Total Trades": total_trades,
+            "Winning Trades": len(winning_trades),
+            "Losing Trades": len(losing_trades),
+            "Win %": round(win_pct, 2),
+            "Loss %": round(loss_pct, 2),
+            "Total PnL": round(total_pnl, 2),
+            "Average PnL": round(avg_pnl, 2),
+            "Max PnL": round(max_pnl, 2),
+            "Min PnL": round(min_pnl, 2),
+            "Total Expense": round(total_expense, 2),  # ✅ Added this line
+            "Net PnL (After Expenses)": round(sum(net_pnl_list), 2),
+            "Final Capital": round(current_capital, 2)
+        }
+        
+        summary_df = pd.DataFrame([summary])
+        return summary_df, pnl_per_day
+    
+    ###################################################################################
+    
+    
+    def compute_performance(signal_df, brokerage_per_trade=20, gst_rate=0.18, stamp_duty_rate=0.00015, starting_capital=0):
+        """
+        Compute performance summary from signal log with PnL and include daily costs.
+        
+        Returns:
+        - summary_df: Overall performance summary (including Total Expense)
+        - pnl_per_day: Daily PnL with Total PnL, Net Expense, and Net PnL
+        """
+        import pandas as pd
+        
+        total_trades = len(signal_df)
+        winning_trades = signal_df[signal_df['PnL'] > 0]
+        losing_trades = signal_df[signal_df['PnL'] <= 0]
+        
+        total_pnl = signal_df['PnL'].sum()
+        avg_pnl = signal_df['PnL'].mean() if total_trades > 0 else 0
+        max_pnl = signal_df['PnL'].max() if total_trades > 0 else 0
+        min_pnl = signal_df['PnL'].min() if total_trades > 0 else 0
+        
+        win_pct = len(winning_trades) / total_trades * 100 if total_trades > 0 else 0
+        loss_pct = len(losing_trades) / total_trades * 100 if total_trades > 0 else 0
+        
+        # Group by date and calculate daily PnL
+        pnl_per_day = signal_df.groupby('Date').agg({'PnL': 'sum', 'Quantity': 'sum'}).reset_index()
+        
+        cost_per_trade_list = []
+        net_pnl_list = []
+        capital_needed_list = []
+        capital_after_list = []
+        
+        current_capital = starting_capital  # Initialize overall capital tracker
+        
+        for idx, row in pnl_per_day.iterrows():
+            day_trades = signal_df[signal_df['Date'] == row['Date']]
+            day_expense = 0
+            day_capital_needed = 0  # Initialize daily capital before summing
+            
+            for _, trade in day_trades.iterrows():
+                turnover = trade['Buy Premium'] * trade['Quantity'] * 2  # Buy + Sell
+                brokerage = brokerage_per_trade
+                gst = brokerage * gst_rate
+                stamp_duty = turnover * stamp_duty_rate
+                total_cost = brokerage + gst + stamp_duty
+                day_expense += total_cost
+    
+                # Calculate capital needed for each trade
+                trade_capital = trade['Buy Premium'] * trade['Quantity']
+                day_capital_needed += trade_capital
+            
+            # Update capital after daily PnL
+            current_capital += row['PnL'] - day_expense
+            
+            cost_per_trade_list.append(round(day_expense, 2))
+            net_pnl_list.append(round(row['PnL'] - day_expense, 2))
+            capital_needed_list.append(round(day_capital_needed, 2))
+            capital_after_list.append(round(current_capital, 2))
+        
+        pnl_per_day['Total PnL'] = pnl_per_day['PnL'].round(2)
+        pnl_per_day['Net Expense'] = cost_per_trade_list
+        pnl_per_day['Net PnL'] = net_pnl_list
+        pnl_per_day['Capital Needed'] = capital_needed_list
+        pnl_per_day['Capital After'] = capital_after_list
+        
+        pnl_per_day = pnl_per_day[['Date', 'Total PnL', 'Net Expense', 'Net PnL', 'Capital Needed', 'Capital After']]
+        
+        total_expense = sum(cost_per_trade_list)
+        
+        summary = {
+            "Total Trades": total_trades,
+            "Winning Trades": len(winning_trades),
+            "Losing Trades": len(losing_trades),
+            "Win %": round(win_pct, 2),
+            "Loss %": round(loss_pct, 2),
+            "Total PnL": round(total_pnl, 2),
+            "Average PnL": round(avg_pnl, 2),
+            "Max PnL": round(max_pnl, 2),
+            "Min PnL": round(min_pnl, 2),
+            "Total Expense": round(total_expense, 2),
+            "Net PnL (After Expenses)": round(sum(net_pnl_list), 2),
+            "Final Capital": round(current_capital, 2)
+        }
+        
+        summary_df = pd.DataFrame([summary])
+        return summary_df, pnl_per_day
+    
+    
+    ##########################################################################################################################
+    
+    def calculate_trade_cost(buy_price, sell_price, quantity, option_type="CE", brokerage_type="fixed"):
+        """
+        Calculate total cost/charges per trade.
+        
+        Params:
+        - buy_price: Entry price per unit
+        - sell_price: Exit price per unit
+        - quantity: Number of units
+        - option_type: "CE" or "PE"
+        - brokerage_type: "fixed" or "percentage"
+        
+        Returns total charges
+        """
+        turnover = (buy_price + sell_price) * quantity
+    
+        # Brokerage
+        if brokerage_type == "fixed":
+            brokerage = 20  # assume ₹20 per trade
+        else:  # percentage
+            brokerage = turnover * 0.0003  # 0.03%
+    
+        # Exchange Transaction Charges
+        exchange_charges = turnover * 0.0000325  # 0.00325%
+    
+        # GST on brokerage (18%)
+        gst = 0.18 * brokerage
+    
+        # SEBI Charges (approx)
+        sebi_charges = turnover * 0.000001
+    
+        # Stamp Duty (approx)
+        stamp_duty = turnover * 0.00003
+    
+        total_charges = brokerage + exchange_charges + gst + sebi_charges + stamp_duty
+        return total_charges
+    
+    ##################################################################################
+    
+    def compute_trade_pnl_with_costs(signal_log_df, df):
+        """
+        Compute PnL, exit reason, and capital impact per trade.
+        """
+        trade_results = []
+    
+        capital = 0  # running capital (cumulative PnL)
+        
+    
+        for _, row in signal_log_df.iterrows():
+            day = row['Date']
+            entry_time = row['Entry Time']
+            exit_time = row['Time Exit (16 mins after entry)']
+            buy_premium = row['Buy Premium']
+            qty = row['Quantity']
+            stoploss = row['Stoploss (Trailing 10%)']
+            take_profit = row['Take Profit (10% rise)']
+            option_type = row['Option Selected']
+            # Capital needed for this trade (premium × quantity)
+            capital_needed = buy_premium * qty
+    
+            day_df = df[df['Datetime'].dt.date == day]
+            day_after_entry = day_df[day_df['Datetime'] >= entry_time].sort_values('Datetime')
+    
+            sell_price = None
+            exit_reason = "Time Exit"
+    
+            for _, candle in day_after_entry.iterrows():
+                price = candle['Close_^NSEI']  # Option price if available
+                if take_profit and price >= take_profit:
+                    sell_price = take_profit
+                    exit_reason = "Take Profit"
+                    exit_time = candle['Datetime']
+                    break
+                elif stoploss and price <= stoploss:
+                    sell_price = stoploss
+                    exit_reason = "Stoploss"
+                    exit_time = candle['Datetime']
+                    break
+    
+            if sell_price is None:
+                sell_price = day_after_entry['Close_^NSEI'].iloc[0]  # fallback
+    
+            raw_pnl = (sell_price - buy_premium) * qty if option_type.upper() == "CE" else (buy_premium - sell_price) * qty
+    
+            # Calculate brokerage & charges
+            total_charges = calculate_trade_cost(buy_premium, sell_price, qty, option_type)
+            
+            net_pnl = raw_pnl - total_charges
+            capital += net_pnl
+    
+            trade_results.append({
+                **row.to_dict(),
+                "Sell Price": sell_price,
+                "Exit Reason": exit_reason,
+                "Actual Exit Time": exit_time,
+                "Raw PnL": raw_pnl,
+                "Total Charges": total_charges,
+                "Net PnL": net_pnl,
+                "Capital Needed": capital_needed,  # ✅ Added column
+                "Capital After Trade": capital
+            })
+    
+        return pd.DataFrame(trade_results)
+    ####################################### New Log ########################################################
+    
+    
+    def get_nearest_itm_option(spot_price, option_type="CALL", strike_step=50):
+        """
+        Returns the nearest ITM strike for given spot price and option type.
+        Example: If spot = 19765 and option_type = CALL → 19750 (nearest ITM call).
+                 If spot = 19765 and option_type = PUT  → 19800 (nearest ITM put).
+        """
+        spot_price = round(spot_price / strike_step) * strike_step  # round to nearest strike
+    
+        if option_type.upper() == "CALL":
+            return spot_price - strike_step  # ITM Call = one step below spot
+        elif option_type.upper() == "PUT":
+            return spot_price + strike_step  # ITM Put = one step above spot
+        else:
+            raise ValueError("option_type must be either 'CALL' or 'PUT'")
+    
+    #################################################################################################################################
+    
+    
+    
+    import pandas as pd
+    
+    def trading_signal_all_conditions2_newlogic(df, quantity=10*75, return_all_signals=False):
+        """
+        Revised Base Zone Strategy (returns signal dict(s) that include 'message' key)
+        """
+        signals = []
+        df = df.copy()
+        df['Date'] = df['Datetime'].dt.date
+    
+        unique_days = sorted(df['Date'].unique())
+        if len(unique_days) < 2:
+            return None
+    
+        day0 = unique_days[-2]
+        day1 = unique_days[-1]
+    
+        # Base Zone: Day0 15:00 (15:00-15:15 candle)
+        candle_base = df[(df['Date'] == day0) &
+                         (df['Datetime'].dt.hour == 15) &
+                         (df['Datetime'].dt.minute == 0)]
+        if candle_base.empty:
+            return None
+    
+        base_open = candle_base.iloc[0]['Open_^NSEI']
+        base_close = candle_base.iloc[0]['Close_^NSEI']
+        base_low = min(base_open, base_close)
+        base_high = max(base_open, base_close)
+    
+        # Day1 first 15-min candle (09:15-09:30)
+        candle1 = df[(df['Date'] == day1) &
+                     (df['Datetime'].dt.hour == 9) &
+                     (df['Datetime'].dt.minute == 15)]
+        if candle1.empty:
+            return None
+    
+        H1 = candle1.iloc[0]['High_^NSEI']
+        L1 = candle1.iloc[0]['Low_^NSEI']
+        C1 = candle1.iloc[0]['Close_^NSEI']
+        entry_time = candle1.iloc[0]['Datetime']
+        spot_price = df['Close_^NSEI'].iloc[-1]
+    
+        # expiry & strike helpers must exist in your module:
+        expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+    
+        def make_signal(condition, option_type, trigger_level, trigger_time, ref_candle_label, message):
+            strike = get_nearest_itm_option(spot_price, option_type)
+            entry_price = trigger_level  # placeholder: in live you would fetch option premium at fill
+            return {
+                'condition': condition,
+                'message': message,
+                'ref_candle': ref_candle_label,
+                'option_type': option_type,
+                'strike': strike,
+                'trigger_level': trigger_level,
+                'entry_time': pd.to_datetime(trigger_time),
+                'expiry': expiry,
+                'quantity': quantity,
+                'spot_price': spot_price,
+                # Order management / risk fields (as per your rules)
+                'sl_init': round(entry_price * 0.90, 4),          # 10% trailing SL from entry
+                'partial_profit': round(entry_price * 1.10, 4),   # 10% target for 50% book
+                'trail_sl_rule': '10% trailing SL on option premium (ratchet up only)',
+                'time_exit_mins': 16,
+            }
+    
+        # ---------- Condition 1: Break above Base Zone on Day1 open ----------
+        # Cuts Base Zone (intersects) and closes above base_high
+        if (H1 >= base_low and L1 <= base_high) and (C1 > base_high):
+            msg = f"Cond 1: Candle cuts Base Zone and closes above base_high ({base_high}). Entry CALL above H1={H1}."
+            sig = make_signal(1, 'CALL', H1, entry_time, 'Candle 1', msg)
+            signals.append(sig)
+            if not return_all_signals:
+                return sig
+    
+        # ---------- Condition 2: Major Gap Down ----------
+        # First candle closes entirely below Base Zone
+        if C1 < base_low:
+            # Primary entry: next candles break below L1
+            day1_after = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+            triggered = False
+            for _, nxt in day1_after.iterrows():
+                if nxt['Low_^NSEI'] <= L1:
+                    msg = f"Cond 2: Gap down confirmed. Enter PUT when price <= L1 ({L1})."
+                    sig = make_signal(2, 'PUT', L1, nxt['Datetime'], 'Reference Candle 2', msg)
+                    signals.append(sig)
+                    triggered = True
+                    if not return_all_signals:
+                        return sig
+                    break
+                # Flip / recovery: later candle closes above Base Zone -> flip to CALL (2.7)
+                if nxt['Close_^NSEI'] > base_high:
+                    msg = f"Cond 2.7 Flip: Price closed above Base Zone. Enter CALL above high {nxt['High_^NSEI']}."
+                    sig = make_signal(2.7, 'CALL', nxt['High_^NSEI'], nxt['Datetime'], 'Candle 2 (flip)', msg)
+                    signals.append(sig)
+                    triggered = True
+                    if not return_all_signals:
+                        return sig
+                    break
+            # continue to next condition if not triggered
+    
+        # ---------- Condition 3: Major Gap Up ----------
+        if C1 > base_high:
+            day1_after = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+            triggered = False
+            for _, nxt in day1_after.iterrows():
+                if nxt['High_^NSEI'] >= H1:
+                    msg = f"Cond 3: Gap up confirmed. Enter CALL when price >= H1 ({H1})."
+                    sig = make_signal(3, 'CALL', H1, nxt['Datetime'], 'Reference Candle 3', msg)
+                    signals.append(sig)
+                    triggered = True
+                    if not return_all_signals:
+                        return sig
+                    break
+                # Flip to PUT (3.7) if later candle closes below Base Zone
+                if nxt['Close_^NSEI'] < base_low:
+                    msg = f"Cond 3.7 Flip: Price closed below Base Zone. Enter PUT below low {nxt['Low_^NSEI']}."
+                    sig = make_signal(3.7, 'PUT', nxt['Low_^NSEI'], nxt['Datetime'], 'Candle 3 (flip)', msg)
+                    signals.append(sig)
+                    triggered = True
+                    if not return_all_signals:
+                        return sig
+                    break
+    
+        # ---------- Condition 4: Break below Base Zone on Day1 open ----------
+        if (H1 >= base_low and L1 <= base_high) and (C1 < base_low):
+            msg = f"Cond 4: Candle cuts Base Zone and closes below base_low ({base_low}). Entry PUT below L1={L1}."
+            sig = make_signal(4, 'PUT', L1, entry_time, 'Candle 4', msg)
+            signals.append(sig)
+            if not return_all_signals:
+                return sig
+    
+        return signals if signals else None
+    
+    
+    ####################################################################################################################################
+    import ta   # technical analysis library for EMA, ATR etc.###########
+    
+    def trading_signal_all_conditions2_improved(df, quantity=10*75, return_all_signals=False):
+        """
+        Improved Base Zone Strategy - NIFTY Index Options (15-min candles)
+    
+        Enhancements:
+        - Volume filter
+        - ATR-based SL & Target
+        - Trend filter using 200 EMA
+        - Adaptive time-based exit
+        - Skip abnormal Base Zone days
+    
+        Parameters
+        ----------
+        df : pd.DataFrame
+            Must contain ['Datetime','Open_^NSEI','High_^NSEI','Low_^NSEI','Close_^NSEI','Volume_^NSEI']
+        quantity : int
+            Total units (default 10 lots = 750, since 1 lot = 75)
+        return_all_signals : bool
+            If True -> return list of all signals
+            If False -> return first valid signal
+    
+        Returns
+        -------
+        dict or list(dict) or None
+        """
+    
+        signals = []
+        df = df.copy()
+        df['Date'] = df['Datetime'].dt.date
+    
+        # Add indicators
+        df['EMA200'] = ta.trend.ema_indicator(df['Close_^NSEI'], window=200)
+        df['ATR'] = ta.volatility.average_true_range(df['High_^NSEI'], df['Low_^NSEI'], df['Close_^NSEI'], window=14)
+    
+        unique_days = sorted(df['Date'].unique())
+        if len(unique_days) < 2:
+            return None  # Not enough history
+    
+        day0 = unique_days[-2]
+        day1 = unique_days[-1]
+    
+        # --- Step 1: Base Zone ---
+        candle_base = df[(df['Date'] == day0) &
+                         (df['Datetime'].dt.hour == 15) &
+                         (df['Datetime'].dt.minute == 0)]
+        if candle_base.empty:
+            return None
+    
+        base_open = candle_base.iloc[0]['Open_^NSEI']
+        base_close = candle_base.iloc[0]['Close_^NSEI']
+        base_low = min(base_open, base_close)
+        base_high = max(base_open, base_close)
+        base_range = base_high - base_low
+    
+        # Skip abnormal zones (too narrow or too wide)
+        if base_range < 0.001 * base_close or base_range > 0.015 * base_close:
+            return None
+    
+        # --- Step 2: Day 1 first candle ---
+        candle1 = df[(df['Date'] == day1) &
+                     (df['Datetime'].dt.hour == 9) &
+                     (df['Datetime'].dt.minute == 15)]
+        if candle1.empty:
+            return None
+    
+        H1 = candle1.iloc[0]['High_^NSEI']
+        L1 = candle1.iloc[0]['Low_^NSEI']
+        C1 = candle1.iloc[0]['Close_^NSEI']
+        entry_time = candle1.iloc[0]['Datetime']
+        spot_price = df['Close_^NSEI'].iloc[-1]
+    
+        expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+    
+        # --- Volume Filter ---
+        avg_vol = df[df['Date'] == day0]['Volume_^NSEI'].mean()
+        if candle1.iloc[0]['Volume_^NSEI'] < 1.0 * avg_vol:  # Require at least 20% higher volume
+            return None
+    
+        # --- Helper for creating a signal ---
+        def make_signal(condition, option_type, trigger_level, entry_time, message):
+            strike = get_nearest_itm_option(spot_price, option_type)  # placeholder
+            entry_price = trigger_level  # placeholder, in practice fetch option premium
+    
+            atr_val = df['ATR'].iloc[-1] or 50  # fallback ATR ~ 50 points
+    
+            return {
+                'condition': condition,
+                'option_type': option_type,
+                'strike': strike,
+                'trigger_level': trigger_level,
+                'entry_time': entry_time,
+                'expiry': expiry,
+                'quantity': quantity,
+                'spot_price': spot_price,
+                'sl_init': round(entry_price - 0.5 * atr_val, 2),   # SL = 0.5 * ATR
+                'target1': round(entry_price + 1.0 * atr_val, 2),   # Target = 1 ATR
+                'trail_sl_rule': 'Trail SL by 0.3*ATR every new high/low',
+                'time_exit': 'Exit by 11:00 AM (morning trade) or 3:00 PM (afternoon trade)',
+                'message': message
+            }
+    
+        # --- Step 3: Apply Conditions ---
+    
+        # Condition 1: Bullish breakout
+        if (L1 <= base_high and H1 >= base_low) and (C1 > base_high) and (C1 > candle1.iloc[0]['EMA200']):
+            sig = make_signal(1, 'CALL', H1, entry_time,
+                              'Condition 1: Bullish breakout → Buy CALL above H1')
+            signals.append(sig)
+            if not return_all_signals: return sig
+    
+        # Condition 2: Major Gap Down
+        if C1 < base_low and C1 < candle1.iloc[0]['EMA200']:
+            day1_after = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+            for _, nxt in day1_after.iterrows():
+                if nxt['Low_^NSEI'] <= L1:
+                    sig = make_signal(2, 'PUT', L1, nxt['Datetime'],
+                                      'Condition 2: Gap down confirmed → Buy PUT below L1')
+                    signals.append(sig)
+                    if not return_all_signals: return sig
+                    break
+                if nxt['Close_^NSEI'] > base_high:  # Flip 2.7
+                    ref_high = nxt['High_^NSEI']
+                    sig = make_signal(2.7, 'CALL', ref_high, nxt['Datetime'],
+                                      'Condition 2 Flip: Close above Base Zone → Buy CALL above ref high')
+                    signals.append(sig)
+                    if not return_all_signals: return sig
+                    break
+    
+        # Condition 3: Major Gap Up
+        if C1 > base_high and C1 > candle1.iloc[0]['EMA200']:
+            day1_after = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+            for _, nxt in day1_after.iterrows():
+                if nxt['High_^NSEI'] >= H1:
+                    sig = make_signal(3, 'CALL', H1, nxt['Datetime'],
+                                      'Condition 3: Gap up confirmed → Buy CALL above H1')
+                    signals.append(sig)
+                    if not return_all_signals: return sig
+                    break
+                if nxt['Close_^NSEI'] < base_low:  # Flip 3.7
+                    ref_low = nxt['Low_^NSEI']
+                    sig = make_signal(3.7, 'PUT', ref_low, nxt['Datetime'],
+                                      'Condition 3 Flip: Close below Base Zone → Buy PUT below ref low')
+                    signals.append(sig)
+                    if not return_all_signals: return sig
+                    break
+    
+        # Condition 4: Bearish breakdown
+        if (L1 <= base_high and H1 >= base_low) and (C1 < base_low) and (C1 < candle1.iloc[0]['EMA200']):
+            sig = make_signal(4, 'PUT', L1, entry_time,
+                              'Condition 4: Bearish breakdown → Buy PUT below L1')
+            signals.append(sig)
+            if not return_all_signals: return sig
+    
+        return signals if signals else None
+    
+    ################################################################################################
+    
+    
+    def trading_signal_all_conditions_2_improved(df, quantity=10*750, return_all_signals=False):
+        """
+        Evaluate trading conditions based on Base Zone strategy.
+        
+        ✅ Includes:
+            - Support Flip trades (2.7 & 3.7)
+            - Time filter (avoid trades after 14:30)
+            - Skip abnormal Base Zones (too tight or too wide)
+        
+        Parameters:
+        - df: pd.DataFrame with columns ['Datetime','Open_^NSEI','High_^NSEI','Low_^NSEI','Close_^NSEI']
+        - quantity: trade size
+        - return_all_signals: if True, returns all signals list instead of last signal
+    
+        Returns:
+        - dict or list of signals
+        """
+        signals = []
+        spot_price = df['Close_^NSEI'].iloc[-1]
+        
+        # Ensure datetime is pandas datetime
+        df['Datetime'] = pd.to_datetime(df['Datetime'])
+        df['Date'] = df['Datetime'].dt.date
+        unique_days = sorted(df['Date'].unique())
+        
+        if len(unique_days) < 2:
+            return None  # Need at least 2 days of data
+    
+        # Day 0 (previous day) Base Zone calculation
+        day0 = unique_days[-2]
+        day1 = unique_days[-1]
+        
+        prev_day_data = df[df['Date'] == day0]
+        today_data = df[df['Date'] == day1]
+    
+        # Base Zone from 15:00 - 15:15 candle
+        base_candle = prev_day_data[(prev_day_data['Datetime'].dt.time >= pd.to_datetime('15:00').time()) & 
+                                    (prev_day_data['Datetime'].dt.time <= pd.to_datetime('15:15').time())]
+    
+        if base_candle.empty:
+            return None
+        
+        base_open = base_candle['Open_^NSEI'].iloc[0]
+        base_close = base_candle['Close_^NSEI'].iloc[0]
+        base_low = min(base_open, base_close)
+        base_high = max(base_open, base_close)
+        base_range = base_high - base_low
+        
+        # ✅ Skip abnormal Base Zones
+        if base_range < 5 or base_range > 100:  # too tight or too wide
+            return None
+    
+        # Day 1 first candle (09:15 - 09:30)
+        first_candle = today_data[(today_data['Datetime'].dt.time >= pd.to_datetime('09:15').time()) & 
+                                  (today_data['Datetime'].dt.time <= pd.to_datetime('09:30').time())]
+    
+        if first_candle.empty:
+            return None
+    
+        H1 = first_candle['High_^NSEI'].iloc[0]
+        L1 = first_candle['Low_^NSEI'].iloc[0]
+    
+        # Loop through today's data to check breakout
+        for i, row in today_data.iterrows():
+            current_time = row['Datetime'].time()
+            
+            # ✅ Time filter: Avoid trades after 14:30
+            if current_time >= pd.to_datetime('14:30').time():
+                break
+    
+            price_high = row['High_^NSEI']
+            price_low = row['Low_^NSEI']
+    
+            # Buy Condition: Breaks above base_high
+            if price_high > base_high:
+                signals.append({
+                    'signal': 'BUY',
+                    'price': price_high,
+                    'time': row['Datetime'],
+                    'reason': 'Breakout Above Base Zone',
+                    'quantity': quantity
+                })
+                base_high = price_high  # ✅ Flip support (Base High updates)
+            
+            # Sell Condition: Breaks below base_low
+            elif price_low < base_low:
+                signals.append({
+                    'signal': 'SELL',
+                    'price': price_low,
+                    'time': row['Datetime'],
+                    'reason': 'Breakout Below Base Zone',
+                    'quantity': quantity
+                })
+                base_low = price_low  # ✅ Flip support (Base Low updates)
+    
+        return signals if return_all_signals else (signals[-1] if signals else None)
+    
+    ##################################START To Execute ################################################
+    
+    data_source = st.radio("Select Data Source", ["Yahoo Finance", "Upload CSV"])
+    if data_source == "Upload CSV":
+        uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+        if uploaded_file:
+            df = pd.read_csv(uploaded_file)
+            df['Datetime'] = pd.to_datetime(df['Datetime'])
+            start_date = df['Datetime'].min().date()
+            end_date = df['Datetime'].max().date()
+            
+        else:
+            st.stop()
+    else:
+           start_date = st.date_input("Select Start Date", value=datetime.today() - timedelta(days=15))
+           end_date = st.date_input("Select End Date", value=datetime.today())
+    
+    if start_date >= end_date:
+        st.warning("End date must be after start date")
+        st.stop()
+    
+    # ✅ Download full data for range (start-1 day to end)
+    download_start = start_date - timedelta(days=1)  # To include previous day for first day
+    df = yf.download("^NSEI", start=download_start, end=end_date + timedelta(days=1), interval="15m")
+    if df.empty:
+        st.warning("No data for selected range")
+        st.stop()
+    df.columns = ['_'.join(col).strip() for col in df.columns.values]
+    
+    df.reset_index(inplace=True)
+    df.rename(columns={'index': 'Datetime'}, inplace=True)  # Ensure proper name
+    #st.write(df.columns)
+    #st.write(df.columns.tolist())
+    
+    # ✅ Normalize columns
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in df.columns]
+    
+    df['Datetime'] = pd.to_datetime(df['Datetime'])
+    if df['Datetime'].dt.tz is None:
+        df['Datetime'] = df['Datetime'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
+    else:
+        df['Datetime'] = df['Datetime'].dt.tz_convert('Asia/Kolkata')
+    
+    # ✅ Filter only NSE trading hours
+    df = df[(df['Datetime'].dt.time >= datetime.strptime("09:15", "%H:%M").time()) &
+            (df['Datetime'].dt.time <= datetime.strptime("15:30", "%H:%M").time())]
+    
+    # ✅ Get all unique trading days
+    unique_days = sorted(df['Datetime'].dt.date.unique())
+    
+    # ✅ Filter for user-selected range
+    unique_days = [d for d in unique_days if start_date <= d <= end_date]
+    
+    if len(unique_days) < 2:
+        st.warning("Not enough trading days in the selected range")
+        st.stop()
+    
+    # ✅ Initialize combined trade log
+    combined_trade_log = []
+    # trading_days = list of unique trading days in selected range
+    
+    trading_days = sorted([d for d in df['Datetime'].dt.date.unique() if start_date <= d <= end_date])
+    
+    fig = plot_nifty_multiday(df, trading_days)
+    st.plotly_chart(fig, use_container_width=True)
+    
+    
+    # Initialize empty list to store signals
+    signal_log_list = []
+    # ✅ Loop through each day (starting from 2nd day in range)
+    for i in range(1, len(unique_days)):
+        day0 = unique_days[i-1]
+        day1 = unique_days[i]
+    
+        day_df = df[df['Datetime'].dt.date.isin([day0, day1])]
+    
+        # Call your trading signal function
+        signal = trading_signal_all_conditions1(day_df)
+        #
+        #signal = trading_signal_all_conditions2(day_df) 
+    
+        #signal = trading_signal_all_conditions2_newlogic(day_df)  
+        #signal = trading_signal_all_conditions_2_improved(day_df) 
+        
+    #######################################################################################
+        
+    
+        ##################################################################
+        
+        #trading_signal_debug(df)
+        
+        #signal = trading_signal_all_conditions2_improved(day_df)
+        
+        #st.write(signal)
+        if signal:
+            #st.write(f"### {day1} → Signal detected: {signal['message']}")
+            #st.table(pd.DataFrame([signal]))
+    
+            # Get option chain and trade log
+            result_chain = find_nearest_itm_option()
+            spot_price = signal['spot_price']
+            ot = "CE" if signal["option_type"].upper() == "CALL" else "PE"
+            result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)
+            
+            # Extract the option selected info
+            option_data = result['option_data']
+            strike_price = option_data.get('strikePrice')
+            buy_premium = option_data.get('lastPrice')
+            identifier = option_data.get('identifier')
+    
+            # Construct signal log dictionary
+            sig_log = {
+                "Date": day1,  # Add the trading day
+                "Condition Type": signal['condition'],
+                "Entry Time": signal['entry_time'],
+                "Spot Price": spot_price,
+                "Option Selected": ot,
+                "Identifier": identifier,
+                "Strike Price": strike_price,
+                "Buy Premium": buy_premium,
+                "Stoploss (Trailing 10%)": buy_premium * 0.9 if buy_premium else None,
+                "Take Profit (10% rise)": buy_premium * 1.1 if buy_premium else None,
+                "Quantity": signal['quantity'],
+                "Partial Profit Booking Qty (50%)": signal['quantity'] / 2,
+                "Expiry Date": signal['expiry'],
+                "Time Exit (16 mins after entry)": signal['entry_time'] + pd.Timedelta(minutes=16)
+            }
+            # Append to list
+            signal_log_list.append(sig_log)
+            trade_log_df = generate_trade_log_from_option(result, signal)
+            
+            # Drop Trade details column
+            if 'Trade details' in trade_log_df.columns:
+                trade_log_df = trade_log_df.drop(columns=['Trade details'])
+            
+            #st.table(trade_log_df)
+    
+            # Append to combined trade log
+            combined_trade_log.append(trade_log_df)
+    
+    #df_plot = df[df['Datetime'].dt.date == selected_date]
+    # Get all unique trading days in the data within the selected range
+    unique_days = sorted(df['Datetime'].dt.date.unique())
+    trading_days = [d for d in unique_days if start_date <= d <= end_date]
+    
+    # Loop through each day
+    for i in range(1, len(trading_days)):
+        day0 = trading_days[i-1]  # Previous day (for Base Zone)
+        day1 = trading_days[i]    # Current day (for signals)
+        
+        df_plot = df[df['Datetime'].dt.date.isin([day0, day1])]
+        
+        # Now you can use df_plot safely
+        open_3pm, close_3pm = display_3pm_candle_info(df_plot, day0)
+    
+    #open_3pm, close_3pm = display_3pm_candle_info(df_plot, selected_date)
+    
+    
+    #open_3pm, close_3pm = display_3pm_candle_info(df_plot, selected_date)
+    
+    ##################################################################################
+    # Convert to DataFrame
+    if signal_log_list:
+        signal_log_df = pd.DataFrame(signal_log_list)
+        st.write("### Signal Log")
+        st.dataframe(signal_log_df)
+        
+        # Optional: download as CSV
+        csv = signal_log_df.to_csv(index=False).encode('utf-8')
+        st.download_button(label="Download Signal Log CSV", data=csv, file_name="signal_log.csv", mime="text/csv")
+    else:
+        st.write("No trade signals detected for the selected period.")
+    
+    ##################################################################################
+    # ✅ Combine all logs into one DataFrame
+    if combined_trade_log:
+        all_trades = pd.concat(combined_trade_log, ignore_index=True)
+        st.write("### Combined Trade Log for Selected Period")
+        st.dataframe(all_trades)
+    
+        # ✅ Download button
+        csv = all_trades.to_csv(index=False).encode('utf-8')
+        st.download_button(label="Download Trade Log CSV", data=csv, file_name="multi_day_trade_log.csv", mime="text/csv")
+    else:
+        st.write("No trade signals found for the selected period.")
+    
+    ##################################################################################
+    
+    if signal_log_list:
+        # Compute PnL and Exit Reason
+        signal_log_df_with_pnl = compute_trade_pnl(signal_log_df, df)
+        
+        st.write("### Signal Log with PnL & Exit Reason")
+        st.dataframe(signal_log_df_with_pnl)
+    
+        # Optional: download CSV
+        csv = signal_log_df_with_pnl.to_csv(index=False).encode('utf-8')
+        st.download_button(label="Download Signal Log with PnL CSV", data=csv, file_name="signal_log_pnl.csv", mime="text/csv")
+    
+    ##################################################################################
+    
+    if signal_log_list:
+        signal_log_df_with_costs = compute_trade_pnl_with_costs(signal_log_df, df)
+        
+        st.write("### Signal Log with PnL, Costs & Capital")
+        st.dataframe(signal_log_df_with_costs)
+    
+        # Download CSV
+        csv = signal_log_df_with_costs.to_csv(index=False).encode('utf-8')
+        st.download_button(label="Download Trade Log with Costs CSV", data=csv, file_name="trade_log_with_costs.csv", mime="text/csv")
+    
+    ##################################################################################
+    
+    if signal_log_list:
+        # Compute PnL and Exit Reason first
+        signal_log_df_with_pnl = compute_trade_pnl(signal_log_df, df)
+        
+        # Performance summary
+        perf_summary_df, pnl_per_day = compute_performance(signal_log_df_with_pnl)
+        
+        
+        
+        st.write("### PnL Per Day")
+        st.table(pnl_per_day)
+    
+        st.write("### Performance Summary")
+        st.table(perf_summary_df)
+        
+        # Optional: download CSV
+        csv_perf = perf_summary_df.to_csv(index=False).encode('utf-8')
+        st.download_button(label="Download Performance Summary CSV", data=csv_perf, file_name="performance_summary.csv", mime="text/csv")
+        
+        csv_daily = pnl_per_day.to_csv(index=False).encode('utf-8')
+        st.download_button(label="Download Daily PnL CSV", data=csv_daily, file_name="pnl_per_day.csv", mime="text/csv")
+    
+    ##################################################################################
+    
+    def get_option_data(strike, expiry, option_type, start_date, end_date, interval='15minute'):
+        """
+        Fetch historical option premium OHLC data using nsepy.
+        """
+        opt = get_history(symbol='NIFTY',
+                          start=start_date,
+                          end=end_date,
+                          index=True,
+                          option_type=option_type.upper()[0],  # 'C' or 'P'
+                          strike_price=strike,
+                          expiry_date=expiry)
+        if opt is None or opt.empty:
+            return None
+        
+        # Resample if needed to 15-min OHLC
+        df = opt[['Open', 'High', 'Low', 'Close']].copy()
+        df.index.name = 'Datetime'
+        df = df.resample('15T').agg({
+            'Open': 'first',
+            'High': 'max',
+            'Low': 'min',
+            'Close': 'last'
+        }).dropna().reset_index()
+        return df
+        
+    def get_option_data_realtime(strike, expiry, option_type):
+        """
+        Fetch intraday option chain and simulate 15-min OHLC for specified contract.
+        """
+        data = nse_optionchain_scrapper("NIFTY")
+        records = []
+        now = datetime.now()
+        row = data[(data['strikePrice'] == strike) & (data['type'] == option_type.upper())]
+        if row.empty:
+            return None
+        premium = row['lastPrice'].iloc[0]
+        
+        # Simulate single candle (since NSE provides snapshot only)
+        df = pd.DataFrame({
+            'Datetime': [now],
+            'Open': [premium],
+            'High': [premium],
+            'Low': [premium],
+            'Close': [premium]
+        })
+        return df
+        
+    def track_trade_exit(signal, option_prices_df):
+        """
+        Track trade exit (SL, TP, Trailing SL, or Time Exit).
+    
+        Parameters
+        ----------
+        signal : dict
+            Signal dictionary created by trading_signal_all_conditions2
+        option_prices_df : pd.DataFrame
+            Must have ['Datetime','Open','High','Low','Close'] of the option premium (same timeframe)
+    
+        Returns
+        -------
+        dict
+            Updated signal with exit details
+        """
+        sl = signal['sl_init']
+        target1 = signal['target1']
+        highest = signal['trigger_level']
+        entry_time = signal['entry_time']
+        time_exit_limit = entry_time + pd.Timedelta(minutes=16)   # time exit after 16 min
+    
+        exit_price, exit_reason, exit_time = None, None, None
+    
+        for _, row in option_prices_df.iterrows():
+            price_high = row['High']
+            price_low = row['Low']
+            t = row['Datetime']
+    
+            # --- 1. Stoploss Hit ---
+            if price_low <= sl:
+                exit_price = sl
+                exit_reason = "SL Hit"
+                exit_time = t
+                break
+    
+            # --- 2. Target Hit (Partial Profit Booking) ---
+            if price_high >= target1:
+                highest = max(highest, price_high)  # update highest seen
+                sl = max(sl, 0.9 * highest)         # trailing SL
+                exit_price = target1
+                exit_reason = "Target1 Hit (Partial)"
+                exit_time = t
+                # Continue tracking for trailing SL (don’t break immediately)
+    
+            # --- 3. Trailing SL ---
+            highest = max(highest, price_high)
+            new_sl = 0.9 * highest
+            if new_sl > sl:
+                sl = new_sl  # ratchet SL
+    
+            if price_low <= sl and t > entry_time:
+                exit_price = sl
+                exit_reason = "Trailing SL"
+                exit_time = t
+                break
+    
+            # --- 4. Time-based Exit ---
+            if t >= time_exit_limit:
+                exit_price = row['Close']
+                exit_reason = "Time Exit"
+                exit_time = t
+                break
+    
+        if exit_price is None:  # no exit yet
+            exit_price = option_prices_df.iloc[-1]['Close']
+            exit_reason = "Open Trade"
+            exit_time = option_prices_df.iloc[-1]['Datetime']
+    
+        # Update signal
+        signal.update({
+            'exit_price': round(exit_price, 2),
+            'exit_reason': exit_reason,
+            'exit_time': exit_time,
+            'PnL': round((exit_price - signal['trigger_level']) * signal['quantity'], 2)
+                     if signal['option_type'] == 'CALL'
+                     else round((signal['trigger_level'] - exit_price) * signal['quantity'], 2)
+        })
+        return signal
+    
+    #st.write(signal)
+    # 2. Fetch option premium data for that strike
+    #option_df = get_option_data_realtime(signal['spot_price'], signal['expiry'], signal['strike'])  # 15m candles
+    
+    # 3. Track exit
+    #trade_result = track_trade_exit(signal, option_df)
+    #st.write(trade_result)
+
+
+
+# ------------------------------------------------------------
+# Backtest Strategies
+# ------------------------------------------------------------
+
+elif MENU == "Backtest1":
+    st.title("Backtest Strategies")
+
+    colA, colB = st.columns([2, 1])
+    with colA:
+        # Get strategy names
+        names = [s["name"] for s in st.session_state.strategies]
+
+        # Selectbox for strategies
+        st.session_state.selected_strategy = st.selectbox(
+            "Select strategy",
+            names,
+            index=0
+        )
+
+        # Find selected strategy details
+        selected = next(
+            (s for s in st.session_state.strategies if s["name"] == st.session_state.selected_strategy),
+            None
+        )
+    st.divider()
+    # Show description in markdown
+    if selected and "description" in selected:
+        st.markdown(f"### Strategy Info\n{selected['description']}")
+            # Ask for inputs only when strategy is selected
+        st.subheader("Backtest Parameters")
+
+        equity = st.text_input("Enter Equity Symbol (e.g. TCS, INFY, NIFTY)")
+        start_date = st.date_input("Start Date")
+        end_date = st.date_input("End Date")
+
+        capital = st.number_input("Initial Capital (₹)", value=100000, step=1000)
+        risk = st.slider("Risk per Trade (%)", 1, 10, 2)
+
+        if st.button("Run Backtest"):
+            st.success(f"Running backtest for **{equity}** using strategy **{selected['name']}** from {start_date} to {end_date}")
+
+    data_source = st.radio("Select Data Source", ["Yahoo Finance", "Upload CSV"])
+    if data_source == "Upload CSV":
+        uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+        if uploaded_file:
+            df = pd.read_csv(uploaded_file)
+            df['Datetime'] = pd.to_datetime(df['Datetime'])
+            start_date = df['Datetime'].min().date()
+            end_date = df['Datetime'].max().date()
+            
+        else:
+            st.stop()
+    else:
+           start_date = st.date_input("Select Start Date", value=datetime.today() - timedelta(days=15))
+           end_date = st.date_input("Select End Date", value=datetime.today())
+    
+    if start_date >= end_date:
+        st.warning("End date must be after start date")
+        st.stop()
+    
+    # ✅ Download full data for range (start-1 day to end)
+    download_start = start_date - timedelta(days=1)  # To include previous day for first day
+    df = yf.download("^NSEI", start=download_start, end=end_date + timedelta(days=1), interval="15m")
+    if df.empty:
+        st.warning("No data for selected range")
+        st.stop()
+    df.columns = ['_'.join(col).strip() for col in df.columns.values]
+    
+    df.reset_index(inplace=True)
+    df.rename(columns={'index': 'Datetime'}, inplace=True)  # Ensure proper name
+    #st.write(df.columns)
+    #st.write(df.columns.tolist())
+    
+    # ✅ Normalize columns
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in df.columns]
+    
+    df['Datetime'] = pd.to_datetime(df['Datetime'])
+    if df['Datetime'].dt.tz is None:
+        df['Datetime'] = df['Datetime'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
+    else:
+        df['Datetime'] = df['Datetime'].dt.tz_convert('Asia/Kolkata')
+    
+    # ✅ Filter only NSE trading hours
+    df = df[(df['Datetime'].dt.time >= datetime.strptime("09:15", "%H:%M").time()) &
+            (df['Datetime'].dt.time <= datetime.strptime("15:30", "%H:%M").time())]
+    
+    # ✅ Get all unique trading days
+    unique_days = sorted(df['Datetime'].dt.date.unique())
+    
+    # ✅ Filter for user-selected range
+    unique_days = [d for d in unique_days if start_date <= d <= end_date]
+    
+    if len(unique_days) < 2:
+        st.warning("Not enough trading days in the selected range")
+        st.stop()
+    
+    # ✅ Initialize combined trade log
+    combined_trade_log = []
+    # trading_days = list of unique trading days in selected range
+    
+    trading_days = sorted([d for d in df['Datetime'].dt.date.unique() if start_date <= d <= end_date])
+    
+    fig = plot_nifty_multiday(df, trading_days)
+    st.plotly_chart(fig, use_container_width=True)
+    ########################################################################################
+
+    # Initialize empty list to store signals
+    signal_log_list = []
+    # ✅ Loop through each day (starting from 2nd day in range)
+    for i in range(1, len(unique_days)):
+        day0 = unique_days[i-1]
+        day1 = unique_days[i]
+    
+        day_df = df[df['Datetime'].dt.date.isin([day0, day1])]
+    
+        # Call your trading signal function
+        signal = trading_signal_all_conditions1(day_df)
+        
+
+##############################################################################################################
+
+    if signal:
+        #st.write(f"### {day1} → Signal detected: {signal['message']}")
+        #st.table(pd.DataFrame([signal]))
+
+        # Get option chain and trade log
+        result_chain = find_nearest_itm_option()
+        spot_price = signal['spot_price']
+        ot = "CE" if signal["option_type"].upper() == "CALL" else "PE"
+        result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)
+        
+        # Extract the option selected info
+        option_data = result['option_data']
+        strike_price = option_data.get('strikePrice')
+        buy_premium = option_data.get('lastPrice')
+        identifier = option_data.get('identifier')
+
+        # Construct signal log dictionary
+        sig_log = {
+            "Date": day1,  # Add the trading day
+            "Condition Type": signal['condition'],
+            "Entry Time": signal['entry_time'],
+            "Spot Price": spot_price,
+            "Option Selected": ot,
+            "Identifier": identifier,
+            "Strike Price": strike_price,
+            "Buy Premium": buy_premium,
+            "Stoploss (Trailing 10%)": buy_premium * 0.9 if buy_premium else None,
+            "Take Profit (10% rise)": buy_premium * 1.1 if buy_premium else None,
+            "Quantity": signal['quantity'],
+            "Partial Profit Booking Qty (50%)": signal['quantity'] / 2,
+            "Expiry Date": signal['expiry'],
+            "Time Exit (16 mins after entry)": signal['entry_time'] + pd.Timedelta(minutes=16)
+        }
+        # Append to list
+        signal_log_list.append(sig_log)
+        trade_log_df = generate_trade_log_from_option(result, signal)
+        
+        # Drop Trade details column
+        if 'Trade details' in trade_log_df.columns:
+            trade_log_df = trade_log_df.drop(columns=['Trade details'])
+        
+        #st.table(trade_log_df)
+
+        # Append to combined trade log
+        combined_trade_log.append(trade_log_df)
+
+        #df_plot = df[df['Datetime'].dt.date == selected_date]
+        # Get all unique trading days in the data within the selected range
+        unique_days = sorted(df['Datetime'].dt.date.unique())
+        trading_days = [d for d in unique_days if start_date <= d <= end_date]
+        
+        # Loop through each day
+        for i in range(1, len(trading_days)):
+            day0 = trading_days[i-1]  # Previous day (for Base Zone)
+            day1 = trading_days[i]    # Current day (for signals)
+            
+            df_plot = df[df['Datetime'].dt.date.isin([day0, day1])]
+            
+            # Now you can use df_plot safely
+            open_3pm, close_3pm = display_3pm_candle_info(df_plot, day0)  
+
+        ##################################################################################
+        # Convert to DataFrame
+        if signal_log_list:
+            signal_log_df = pd.DataFrame(signal_log_list)
+            st.write("### Signal Log")
+            st.dataframe(signal_log_df)
+            
+            # Optional: download as CSV
+            csv = signal_log_df.to_csv(index=False).encode('utf-8')
+            st.download_button(label="Download Signal Log CSV", data=csv, file_name="signal_log.csv", mime="text/csv")
+        else:
+            st.write("No trade signals detected for the selected period.")
+        
+        ##################################################################################
+
+
+        # ✅ Combine all logs into one DataFrame
+        if combined_trade_log:
+            all_trades = pd.concat(combined_trade_log, ignore_index=True)
+            st.write("### Combined Trade Log for Selected Period")
+            st.dataframe(all_trades)
+        
+            # ✅ Download button
+            csv = all_trades.to_csv(index=False).encode('utf-8')
+            st.download_button(label="Download Trade Log CSV", data=csv, file_name="multi_day_trade_log.csv", mime="text/csv")
+        else:
+            st.write("No trade signals found for the selected period.")
+
+##################################################################################
+
+        if signal_log_list:
+            signal_log_df_with_costs = compute_trade_pnl_with_costs(signal_log_df, df)
+            
+            st.write("### Signal Log with PnL, Costs & Capital")
+            st.dataframe(signal_log_df_with_costs)
+        
+            # Download CSV
+            csv = signal_log_df_with_costs.to_csv(index=False).encode('utf-8')
+            st.download_button(label="Download Trade Log with Costs CSV", data=csv, file_name="trade_log_with_costs.csv", mime="text/csv")
+
+##################################################################################
+
+        if signal_log_list:
+            # Compute PnL and Exit Reason first
+            signal_log_df_with_pnl = compute_trade_pnl(signal_log_df, df)
+            
+            # Performance summary
+            perf_summary_df, pnl_per_day = compute_performance(signal_log_df_with_pnl)
+            
+            
+            
+            st.write("### PnL Per Day")
+            st.table(pnl_per_day)
+        
+            st.write("### Performance Summary")
+            st.table(perf_summary_df)
+            
+            # Optional: download CSV
+            csv_perf = perf_summary_df.to_csv(index=False).encode('utf-8')
+            st.download_button(label="Download Performance Summary CSV", data=csv_perf, file_name="performance_summary.csv", mime="text/csv")
+            
+            csv_daily = pnl_per_day.to_csv(index=False).encode('utf-8')
+            st.download_button(label="Download Daily PnL CSV", data=csv_daily, file_name="pnl_per_day.csv", mime="text/csv")
+        
+
+
+
+
+       
+
+ 
+########################################################################################################
+
+
+
+# ------------------------------------------------------------
+# Strategies
+# ------------------------------------------------------------
+
+elif MENU == "Strategies":
+    st.title("Strategies Library")
+
+    colA, colB = st.columns([2, 1])
+    with colA:
+        names = [s["name"] for s in st.session_state.strategies]
+        st.session_state.selected_strategy = st.selectbox("Select strategy", names, index=0)
+    with colB:
+        st.caption("Filter")
+        _min_win = st.slider("Min Win%", 0, 100, 50)
+
+    for s in st.session_state.strategies:
+        if s["metrics"]["Win%"] >= _min_win:
+            strategy_card(s["name"], s["short"], s["metrics"])
+
+    st.divider()
+
+    st.subheader("Backtest Viewer")
+    st.caption("Upload a CSV with columns: Datetime, Open, High, Low, Close, PnL (optional)")
+    up = st.file_uploader("Upload backtest CSV", type=["csv"]) 
+    if up:
+        df = pd.read_csv(up)
+        #####################################################################################################
+       
+
+
+        ######################################################################################################
+        # Try parsing datetime
+        for col in ["Datetime", "Date", "timestamp", "time"]:
+            if col in df.columns:
+                try:
+                    df["Datetime"] = pd.to_datetime(df[col])
+                    break
+                except Exception:
+                    pass
+        st.dataframe(df.head(200), use_container_width=True)
+        if {"Open","High","Low","Close","Datetime"}.issubset(df.columns):
+            plot_candles(df, title=f"{st.session_state.selected_strategy} – Price")
+        if "PnL" in df.columns:
+            plot_equity_curve(df["PnL"], title=f"{st.session_state.selected_strategy} – Equity")
+#--------------------------------------------------------------------------------------------------------
+
+
+
+elif MENU == "Zerodha Broker API":
+    from kiteconnect import KiteConnect
+    st.title("Zerodha Broker Integration")
+
+    if "kite" not in st.session_state:
+        st.session_state.kite = None
+
+    st.text_input("API Key", key="z_key")
+    st.text_input("API Secret", type="password", key="z_secret")
+
+    # Step 1: Initialize Kite
+    if st.button("Generate Login URL"):
+        try:
+            kite = KiteConnect(api_key=st.session_state.z_key)
+            login_url = kite.login_url()
+
+            st.session_state.kite = kite
+            st.session_state.api_status["Zerodha"] = False
+
+            st.success("Login URL generated. Open it, login & paste Request Token.")
+            st.write("👉 Login URL:")
+            st.code(login_url)
+            st.markdown(f"[🔗 Open Zerodha Login]({login_url})", unsafe_allow_html=True)
+        except Exception as e:
+            st.error(e)
+
+    request_token = st.text_input("Enter Request Token")
+
+    # Step 2: Generate Access Token
+    if st.button("Connect Zerodha"):
+        try:
+            kite = st.session_state.kite
+
+            data = kite.generate_session(
+                request_token=request_token,
+                api_secret=st.session_state.z_secret,
+            )
+
+            kite.set_access_token(data["access_token"])
+
+            # Save for dashboard
+            st.session_state.kite = kite
+            st.session_state.api_status["Zerodha"] = True
+            st.session_state.connected_broker = "Zerodha"
+
+            st.success("🎉 Zerodha Connected Successfully!")
+
+        except Exception as e:
+            st.error(f"Login failed: {e}")
+
+    # Status Panel
+    st.subheader("Connection Status")
+    for name, ok in st.session_state.api_status.items():
+        badge = f"<span class='badge {'success' if ok else 'danger'}'>{'Connected' if ok else 'Not Connected'}</span>"
+        st.markdown(f"**{name}**: {badge}", unsafe_allow_html=True)
+
+
+
+       
+
+# ------------------------------------------------------------
+# Zerodha Broker API Broker API
+# ------------------------------------------------------------
+elif MENU == "Zerodha1 Broker API":
+    st.title("Broker Integrations")
+    st.write("Connect your broker to enable paper/live trading. This demo stores states locally. Replace with secure key vault in production.")
+
+    brokers = ["Zerodha", "Fyers", "AliceBlue"]
+    bcol1, bcol2 = st.columns(2)
+    with bcol1:
+        sel = st.selectbox("Broker", brokers, index=0)
+        if sel == "Zerodha":
+            st.text_input("API Key", key="z_key")
+            st.text_input("API Secret", type="password", key="z_secret")
+            with st.container():
+                st.markdown("<div class='button-teal'>", unsafe_allow_html=True)
+                if st.button("Connect Zerodha"):
+                    st.session_state.api_status["Zerodha"] = True
+                    st.session_state.connected_broker = "Zerodha"
+                    st.success("Zerodha connected (demo)")
+                st.markdown("</div>", unsafe_allow_html=True)
+        elif sel == "Fyers":
+            st.text_input("Client ID", key="f_id")
+            st.text_input("Secret Key", type="password", key="f_secret")
+            st.markdown("<div class='button-amber'>", unsafe_allow_html=True)
+            if st.button("Connect Fyers"):
+                st.session_state.api_status["Fyers"] = True
+                st.session_state.connected_broker = "Fyers"
+                st.success("Fyers connected (demo)")
+            st.markdown("</div>", unsafe_allow_html=True)
+        elif sel == "AliceBlue":
+            st.text_input("User ID", key="a_id")
+            st.text_input("API Key", type="password", key="a_key")
+            st.markdown("<div class='button-purple'>", unsafe_allow_html=True)
+            if st.button("Connect AliceBlue"):
+                st.session_state.api_status["AliceBlue"] = True
+                st.session_state.connected_broker = "AliceBlue"
+                st.success("AliceBlue connected (demo)")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+    with bcol2:
+        st.subheader("Connection Status")
+        for name, ok in st.session_state.api_status.items():
+            badge = f"<span class='badge {'success' if ok else 'danger'}'>{'Connected' if ok else 'Not Connected'}</span>"
+            st.markdown(f"**{name}**: {badge}", unsafe_allow_html=True)
+        st.caption("Replace demo handlers with actual OAuth/API calls. Store tokens securely.")
+
+# ------------------------------------------------------------
+# Groww Broker API
+# ------------------------------------------------------------
+elif MENU == "Groww Broker API":
+    import os
+    import json
+    import streamlit as st
+    from groww import GrowwHttpClient
+
+    st.title("Groww Broker API")
+    st.write("Connect your Groww account for live/paper trading. This is a demo integration.")
+
+    gcol1, gcol2 = st.columns(2)
+
+    # Init session state
+    if "groww_status" not in st.session_state:
+        st.session_state.groww_status = False
+        st.session_state.groww_client = None
+
+    with gcol1:
+        st.subheader("Groww Login")
+        st.text_input("Groww Client ID", key="g_client_id")
+        st.text_input("Groww Password", type="password", key="g_password")
+        st.text_input("Groww PIN", type="password", key="g_pin")
+
+        if st.button("Connect Groww"):
+            try:
+                client = GrowwHttpClient()
+
+                login_res = client.login(
+                    st.session_state.g_client_id,
+                    st.session_state.g_password,
+                    st.session_state.g_pin
+                )
+
+                if login_res.get("success"):
+                    st.session_state.groww_status = True
+                    st.session_state.groww_client = client
+                    st.success("Groww connected successfully!")
+                else:
+                    st.error("Groww login failed. Check credentials.")
+
+            except Exception as e:
+                st.error(f"Error: {e}")
+
+    with gcol2:
+        st.subheader("Connection Status")
+        status = st.session_state.groww_status
+        badge = (
+            "<span class='badge success'>Connected</span>"
+            if status else
+            "<span class='badge danger'>Not Connected</span>"
+        )
+        st.markdown(f"**Groww**: {badge}", unsafe_allow_html=True)
+
+        st.caption("Login via Groww API (demo). Store tokens securely for production.")
+
+
+# ------------------------------------------------------------
+# Dashboard (Main Trading Panel)
+# ------------------------------------------------------------
+elif MENU == "Dashboard":
+    st.title("Trading Dashboard")
+
+    # Top colorful KPIs
+    k1, k2, k3, k4 = st.columns(4)
+    with k1:
+        kpi_card("Capital", f"₹{st.session_state.capital:,.0f}", "var(--blue)")
+    with k2:
+        kpi_card("Risk / Trade", f"{st.session_state.risk_per_trade_pct:.1f}%", "var(--amber)")
+    with k3:
+        kpi_card("Max Trades", str(st.session_state.max_trades), "var(--purple)")
+    with k4:
+        broker = st.session_state.connected_broker or "—"
+        kpi_card("Broker", broker, "var(--green)" if broker != "—" else "var(--red)")
+
+    st.divider()
+
+    left, right = st.columns([1.25, 1])
+    with left:
+        st.subheader("Strategy Control")
+        st.session_state.live_strategy = st.selectbox(
+            "Select Strategy", [s["name"] for s in st.session_state.strategies], index=0
+        )
+        cc1, cc2, cc3 = st.columns(3)
+        with cc1:
+            st.session_state.capital = st.number_input("Capital (₹)", min_value=1000.0, step=1000.0, value=float(st.session_state.capital))
+        with cc2:
+            st.session_state.risk_per_trade_pct = st.number_input("Risk per Trade (%)", min_value=0.1, max_value=10.0, step=0.1, value=float(st.session_state.risk_per_trade_pct))
+        with cc3:
+            st.session_state.max_trades = st.number_input("Max Trades", min_value=1, max_value=20, step=1, value=int(st.session_state.max_trades))
+
+        b1, b2, b3 = st.columns(3)
+        with b1:
+            if st.button("▶ Start (Paper)"):
+                st.session_state.live_running = True
+                st.success("Paper trading started (demo)")
+        with b2:
+            if st.button("⏸ Stop"):
+                st.session_state.live_running = False
+                st.warning("Stopped.")
+        with b3:
+            if st.button("⚙ Send Test Alert"):
+                add_trade_log("NIFTY", "BUY", 50, 250.5, 0.0)
+                st.info("Test alert → trade log added.")
+
+        
+        ###################################################################################
+        st.subheader("Live NIFTY 50 Market Data")
+
+        # Predefined NIFTY50 stock list (you can fetch dynamically from NSE if needed)
+        nifty50_symbols = ["^NSEI","^NSEBANK" ]
+        
+        # Fetch data
+        data = yf.download(nifty50_symbols, period="1d", interval="1m")["Close"].iloc[-1]
+        
+        # Convert to DataFrame
+        df = pd.DataFrame(data).reset_index()
+        df.columns = ["Symbol", "LTP"]
+        
+        # Calculate % Change from previous close
+        prev_close = yf.download(nifty50_symbols, period="2d", interval="1d")["Close"].iloc[-2]
+        df["Change%"] = ((df["LTP"] - prev_close.values) / prev_close.values) * 100
+        
+        # Display in Streamlit
+        #st.dataframe(df.style.format({"LTP": "{:.2f}", "Change%": "{:.2f}"}), use_container_width=True)
+
+            # Function to apply color
+        def color_change(val):
+            if val > 0:
+                return "color: green;"
+            elif val < 0:
+                return "color: red;"
+            else:
+                return "color: black;"
+
+                # Custom color function for Styler
+        def color_positive_negative(val):
+            color = 'green' if val > 0 else 'red'
+            return f'color: {color}; font-weight: bold;'
+        
+        # Apply colors to all columns
+        styled_df = df.style.format({"LTP": "{:.2f}", "Change%": "{:.2f}"}).applymap(color_positive_negative, subset=["LTP", "Change%"]).applymap(
+            lambda x: 'color: black; font-weight: bold;', subset=["Symbol"]
+        )
+        
+        # Apply style
+        #styled_df = df.style.format({"LTP": "{:.2f}", "Change%": "{:.2f}"}).applymap(color_change, subset=["Change%"])
+        
+        # Display in Streamlit
+        st.dataframe(styled_df, use_container_width=True)
+        #######################################################################################
+
+    
+
+    with right:     
+        #st.subheader("NIFTY 15-Minute(Today + Previous Day)")
+        # Fetch NIFTY 50 index data
+# Fetch NIFTY 50 index data
+        # Fetch NIFTY 50 index data
+        ticker = "^NSEI"  # NIFTY Index symbol for Yahoo Finance
+        end = datetime.now()
+        start = end - timedelta(days=2)
+        
+        # Download data
+        df = yf.download(ticker, start=start, end=end, interval="15m")
+        
+        # Ensure data is available
+        if df.empty:
+            st.error("⚠️ No 15-min data fetched from Yahoo Finance. Market may be closed or ticker invalid.")
+        else:
+            # If multi-index, flatten it
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = ['_'.join(col).strip() for col in df.columns.values]
+            # Reset index
+            df = df.reset_index()
+            # Convert to IST
+           # Ensure Datetime is in IST
+            if df['Datetime'].dt.tz is None:  
+                # naive → localize to UTC first
+                df['Datetime'] = df['Datetime'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
+            else:
+                # already tz-aware → just convert
+                df['Datetime'] = df['Datetime'].dt.tz_convert('Asia/Kolkata')
+
+            df = df.reset_index()
+
+            # Filter only market hours (09:15 - 15:30)
+            market_open = pd.to_datetime("09:15:00").time()
+            market_close = pd.to_datetime("15:30:00").time()
+            df = df[df['Datetime'].dt.time.between(market_open, market_close)]
+            #st.write(df)
+            # Remove timezone if exists
+            #df['Datetime'] = df['Datetime'].dt.tz_localize(None)
+            #st.write(df)
+            # Extract date
+            df['Date'] = df['Datetime'].dt.date
+            unique_days = sorted(df['Date'].unique())
+        
+            # Filter last 2 days
+            if len(unique_days) >= 2:
+                filtered_df = df[df['Date'].isin(unique_days[-2:])]
+            else:
+                filtered_df = df
+        
+            # Plot candlestick chart
+            def plot_candles(df, title="Candlestick Chart"):
+                fig = go.Figure(data=[go.Candlestick(
+                    x=df['Datetime'],
+                    open=df['Open_^NSEI'],
+                    high=df['High_^NSEI'],
+                    low=df['Low_^NSEI'],
+                    close=df['Close_^NSEI'],
+                    name='candlestick'
+                )])
+                # Hide non-trading gaps on x-axis
+                fig.update_xaxes(rangebreaks=[
+                    dict(bounds=["sat", "mon"]),  # hide weekends
+                    dict(bounds=[16, 9], pattern="hour"),  # hide non-market hours (after 15:30 until 09:15)
+                ])
+                # --- Find 3 PM candles ---
+               # --- Find 3 PM candles ---
+                three_pm = df[(df['Datetime'].dt.hour == 15) & (df['Datetime'].dt.minute == 0)]
+                
+                for _, row in three_pm.iterrows():
+                    start_time = row['Datetime']
+                    end_time   = start_time + timedelta(minutes=15)
+                
+                    open_price  = row['Open_^NSEI']
+                    close_price = row['Close_^NSEI']
+                
+                    # Line for Open
+                    fig.add_shape(
+                        type="line",
+                        x0=start_time, x1=end_time,
+                        y0=open_price, y1=open_price,
+                        line=dict(color="blue", width=1, dash="dot"),
+                    )
+                
+                    # Line for Close
+                    fig.add_shape(
+                        type="line",
+                        x0=start_time, x1=end_time,
+                        y0=close_price, y1=close_price,
+                        line=dict(color="red", width=1, dash="dot"),
+                    )
+                fig.update_layout(title=title, xaxis_rangeslider_visible=False)
+                st.plotly_chart(fig, use_container_width=True)
+        
+            plot_candles(filtered_df, title="NIFTY 15-Min Candlestick (Last 2 Days)")
+
+    st.divider()
+    def fetch_zerodha_data():
+        kite = st.session_state.kite
+    
+        try:
+            funds = kite.margins()["equity"]["available"]["cash"]
+            holdings = kite.holdings()
+            positions = kite.positions()["net"]
+            orders = kite.orders()
+    
+            return funds, holdings, positions, orders
+    
+        except Exception as e:
+            st.error(f"Error fetching Zerodha data: {e}")
+            return 0, [], [], []
+
+    
+    
+    if st.session_state.api_status.get("Zerodha"):
+
+        funds, holdings, positions, orders = fetch_zerodha_data()
+    
+        st.subheader("Zerodha Account Overview")
+    
+        colA, colB = st.columns(2)
+    
+        with colA:
+            st.metric("Total Funds", f"₹{funds:,.0f}")
+    
+        with colB:
+            st.metric("Open Positions", len(positions))
+    
+        st.markdown("### Holdings")
+        st.dataframe(holdings, use_container_width=True, height=200)
+    
+        st.markdown("### Positions")
+        st.dataframe(positions, use_container_width=True, height=200)
+    
+        st.markdown("### Orders")
+        st.dataframe(orders, use_container_width=True, height=200)
+
+
+    
+
+#############################################################################################################################st.subheader("Trade Logs")
+    #st.dataframe(st.session_state.trade_logs, use_container_width=True)
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+############################################################################################################################
+
+# ------------------------------------------------------------
+# Products / Pricing
+# ------------------------------------------------------------
+elif MENU == "Products":
+    st.title("Products & Pricing")
+
+    cols = st.columns(3)
+    for i, plan in enumerate(st.session_state.pricing):
+        with cols[i]:
+            st.markdown("<div class='card'>", unsafe_allow_html=True)
+            st.markdown(f"### {plan['name']}")
+            st.markdown(f"#### ₹{plan['price']}/month")
+            for feat in plan['features']:
+                st.write(f"• {feat}")
+            st.button(f"Subscribe {plan['name']}")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+    st.divider()
+    st.subheader("What you get")
+    c1, c2, c3, c4 = st.columns(4)
+    with c1: st.write("Automation")
+    with c2: st.write("Backtesting")
+    with c3: st.write("Paper Trading")
+    with c4: st.write("Live Alerts")
+
+# ------------------------------------------------------------
+# Support
+# ------------------------------------------------------------
+elif MENU == "Support":
+    st.title("Support & Resources")
+
+    st.subheader("Documentation")
+    st.write("• Getting Started  • Strategy Guide  • API Setup  • FAQ")
+
+    st.subheader("FAQ")
+    for q, a in st.session_state.faq:
+        with st.expander(q):
+            st.write(a)
+
+    st.subheader("Contact Us")
+    with st.form("contact_form"):
+        name = st.text_input("Name")
+        email = st.text_input("Email")
+        message = st.text_area("Message")
+        submitted = st.form_submit_button("Send")
+        if submitted:
+            st.success("Thanks! We'll get back to you shortly (demo).")
+
+
+
+
+    #######################################################################################################
+elif MENU =="Live Trade":
+    st.set_page_config(layout="wide")
+    # Place at the very top of your script (or just before plotting)
+    #st_autorefresh(interval=60000, limit=None, key="refresh")
+    
+    st.title("Nifty 15-min Chart for Selected Date & Previous Day")
+    
+    # Select date input (default today)
+    selected_date = st.date_input("Select date", value=datetime.today())
+    
+    # Calculate date range to download (7 days before selected_date to day after selected_date)
+    start_date = selected_date - timedelta(days=7)
+    end_date = selected_date + timedelta(days=1)
+    
+    # Download data for ^NSEI from start_date to end_date
+    df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="15m")
+    
+    if df.empty:
+        st.warning("No data downloaded for the selected range.")
+        st.stop()
+    df.reset_index(inplace=True)
+    
+    if 'Datetime_' in df.columns:
+        df.rename(columns={'Datetime_': 'Datetime'}, inplace=True)
+    elif 'Date' in df.columns:
+        df.rename(columns={'Date': 'Datetime'}, inplace=True)
+    # Add any other detected name if needed
+    
+    
+    #st.write(df.columns)
+    #st.write(df.head(10))
+    # Flatten columns if MultiIndex
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in df.columns]
+    
+    # Rename datetime column if needed
+    if 'Datetime' not in df.columns and 'datetime' in df.columns:
+        df.rename(columns={'datetime': 'Datetime'}, inplace=True)
+    #st.write(df.columns)
+    #st.write(df.columns)
+    # Convert to datetime & timezone aware
+    #df['Datetime'] = pd.to_datetime(df['Datetime'])
+    if df['Datetime_'].dt.tz is None:
+        df['Datetime'] = df['Datetime_'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
+    else:
+        df['Datetime'] = df['Datetime_'].dt.tz_convert('Asia/Kolkata')
+    
+    #st.write(df.columns)
+    #st.write(df.head(10))
+    
+    # Filter for last two trading days to plot
+    unique_days = df['Datetime'].dt.date.unique()
+    if len(unique_days) < 2:
+        st.warning("Not enough data for two trading days")
+    else:
+        last_day = unique_days[-2]
+        today = unique_days[-1]
+    
+        df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
+    
+        # Get last day 3PM candle open and close
+        candle_3pm = df_plot[(df_plot['Datetime'].dt.date == last_day) &
+                             (df_plot['Datetime'].dt.hour == 15) &
+                             (df_plot['Datetime'].dt.minute == 0)]
+    
+        if not candle_3pm.empty:
+            open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
+            close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
+        else:
+            open_3pm = None
+            close_3pm = None
+            st.warning("No 3:00 PM candle found for last trading day.")
+    
+        # Plot candlestick chart
+        fig = go.Figure(data=[go.Candlestick(
+            x=df_plot['Datetime'],
+            open=df_plot['Open_^NSEI'],
+            high=df_plot['High_^NSEI'],
+            low=df_plot['Low_^NSEI'],
+            close=df_plot['Close_^NSEI']
+        )])
+    
+        if open_3pm and close_3pm:
+            fig.add_hline(y=open_3pm, line_dash="dot", line_color="blue", annotation_text="3PM Open")
+            fig.add_hline(y=close_3pm, line_dash="dot", line_color="red", annotation_text="3PM Close")
+    
+    
+    
+    
+        # Draw horizontal lines as line segments only between 3PM last day and 3PM next day
+    
+        
+        fig.update_layout(title="Nifty 15-min candles - Last Day & Today", xaxis_rangeslider_visible=False)
+        fig.update_layout(
+        xaxis=dict(
+            rangebreaks=[
+                # Hide weekends (Saturday and Sunday)
+                dict(bounds=["sat", "mon"]),
+                # Hide hours outside of trading hours (NSE trading hours 9:15 to 15:30)
+                dict(bounds=[15.5, 9.25], pattern="hour"),
+            ]
+        )
+    )
+    
+    
+        st.plotly_chart(fig, use_container_width=True)
+    #------------------------------------------------------------------------------------------------    
+    def display_3pm_candle_info(df, day):
+        """
+        Display the 3PM candle Open and Close prices for a given day (datetime.date).
+        
+        Parameters:
+        - df: DataFrame with 'Datetime' column (timezone-aware datetime)
+        - day: datetime.date object representing the trading day
+        
+        Returns:
+        - (open_price, close_price) tuple or (None, None) if candle not found
+        """
+        candle = df[(df['Datetime'].dt.date == day) &
+                    (df['Datetime'].dt.hour == 15) &
+                    (df['Datetime'].dt.minute == 0)]
+        
+        if candle.empty:
+            st.warning(f"No 3:00 PM candle found for {day}")
+            return None, None
+        
+        open_price = candle.iloc[0]['Open_^NSEI']
+        close_price = candle.iloc[0]['Close_^NSEI']
+        
+        st.info(f"3:00 PM Candle for {day}: Open = {open_price}, Close = {close_price}")
+        st.write(f"🔵 3:00 PM Open for {day}: {open_price}")
+        st.write(f"🔴 3:00 PM Close for {day}: {close_price}")
+        
+        return open_price, close_price
+    
+    
+    #import streamlit as st
+    
+    def display_current_candle(df):
+        """
+        Display the latest candle OHLC prices from a DataFrame with a 'Datetime' column.
+        Assumes df is sorted by datetime ascending.
+        
+        Parameters:
+        - df: DataFrame with columns ['Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI', 'Datetime']
+        """
+        st.write(df.columns)
+        
+        
+        st.info(f"Current Candle @ {local_dt.strftime('%Y-%m-%d %H:%M')} (Asia/Kolkata)")
+    
+        if df.empty:
+            st.warning("No candle data available.")
+            return
+        
+        current_candle = df.iloc[-1]
+        
+        #st.info(f"Current Candle @ {current_candle['Datetime']}")
+        st.write(f"Open: {current_candle['Open_^NSEI']}")
+        st.write(f"High: {current_candle['High_^NSEI']}")
+        st.write(f"Low: {current_candle['Low_^NSEI']}")
+        st.write(f"Close: {current_candle['Close_^NSEI']}")
+    
+    # After you get last_day and df_plot
+    #import pandas as pd
+    #import streamlit as st
+    
+    def display_current_trend(df):
+        """
+        Display only the trend (Bullish/Bearish/Doji) of the latest candle.
+    
+        Parameters:
+        - df: DataFrame with columns ['Open_^NSEI', 'Close_^NSEI']
+        """
+        if df.empty:
+            st.warning("No candle data available.")
+            return
+        
+        current_candle = df.iloc[-1]
+        open_price = current_candle['Open_^NSEI']
+        close_price = current_candle['Close_^NSEI']
+        
+        if close_price > open_price:
+            trend_text = "Bullish 🔥"
+            trend_color = "green"
+        elif close_price < open_price:
+            trend_text = "Bearish ❄️"
+            trend_color = "red"
+        else:
+            trend_text = "Doji / Neutral ⚪"
+            trend_color = "gray"
+        
+        st.markdown(f"<span style='color:{trend_color}; font-weight:bold; font-size:20px;'>Trend: {trend_text}</span>", unsafe_allow_html=True)
+    
+    
+    
+    #import pandas as pd
+    
+    def condition_1_trade_signal(nifty_df):
+        """
+        Parameters:
+        - nifty_df: pd.DataFrame with columns ['Datetime', 'Open', 'High', 'Low', 'Close']
+          'Datetime' is timezone-aware pandas Timestamp.
+          Data must cover trading day 0 3PM candle and trading day 1 9:30AM candle.
+          
+        Returns:
+        - dict with keys:
+          - 'buy_signal': bool
+          - 'buy_price': float (close of first candle next day if buy_signal True)
+          - 'stoploss': float (10% below buy_price)
+          - 'take_profit': float (10% above buy_price)
+          - 'entry_time': pd.Timestamp of buy candle close time
+          - 'message': str for info/logging
+        """
+        
+        # Step 1: Identify trading days
+        unique_days = sorted(nifty_df['Datetime'].dt.date.unique())
+        if len(unique_days) < 2:
+            return {'buy_signal': False, 'message': 'Not enough trading days in data.'}
+        
+        day0 = unique_days[-2]
+        day1 = unique_days[-1]
+        
+        # Step 2: Get 3PM candle of day0 closing at 3:15 PM
+        candle_3pm = nifty_df[
+            (nifty_df['Datetime'].dt.date == day0) &
+            (nifty_df['Datetime'].dt.hour == 15) &
+            (nifty_df['Datetime'].dt.minute == 0)
+        ]
+        if candle_3pm.empty:
+            return {'buy_signal': False, 'message': '3 PM candle on day0 not found.'}
+        open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
+        close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
+        
+        # Step 3: Get first 15-min candle of day1 closing at 9:30 AM (9:15-9:30)
+        candle_930 = nifty_df[
+            (nifty_df['Datetime'].dt.date == day1) &
+            (nifty_df['Datetime'].dt.hour == 9) &
+            (nifty_df['Datetime'].dt.minute == 15)
+        ]
+        if candle_930.empty:
+            return {'buy_signal': False, 'message': '9:30 AM candle on day1 not found.'}
+        open_930 = candle_930.iloc[0]['Open_^NSEI']
+        close_930 = candle_930.iloc[0]['Close_^NSEI']
+        high_930 = candle_930.iloc[0]['High_^NSEI']
+        low_930 = candle_930.iloc[0]['Low_^NSEI']
+        close_time_930 = candle_930.iloc[0]['Datetime']
+        
+        # Step 4: Check if candle cuts both lines from below to above and closes above both lines
+        # "cuts lines from below to upwards" means low < open_3pm and close > open_3pm, same for close_3pm
+        
+        crossed_open_line = (low_930 < open_3pm) and (close_930 > open_3pm)
+        crossed_close_line = (low_930 < close_3pm) and (close_930 > close_3pm)
+        closes_above_both = (close_930 > open_3pm) and (close_930 > close_3pm)
+        
+        if crossed_open_line and crossed_close_line and closes_above_both:
+            buy_price = close_930  # use close of 9:30 candle as buy price
+            stoploss = buy_price * 0.9  # 10% trailing stoploss below buy price
+            take_profit = buy_price * 1.10  # 10% profit booking target
+            return {
+                'buy_signal': True,
+                'buy_price': buy_price,
+                'stoploss': stoploss,
+                'take_profit': take_profit,
+                'entry_time': close_time_930,
+                'message': 'Buy signal triggered: Crossed above 3PM open and close lines.'
+            }
+        
+        return {'buy_signal': False, 'message': 'No buy signal: conditions not met.'}
+     #######################################################################################################################################   
+    def condition_1_trade_signal_for_candle(nifty_df, candle_time):
+        """
+        Check buy condition for a specific candle_time on day1.
+        candle_time: pd.Timestamp of candle close time to check (e.g. 9:30 AM, 9:45 AM, ...)
+        
+        Returns buy signal dict if condition met, else no signal.
+        """
+        unique_days = sorted(nifty_df['Datetime'].dt.date.unique())
+        if len(unique_days) < 2:
+            return {'buy_signal': False, 'message': 'Not enough trading days.'}
+        
+        day0 = unique_days[-2]
+        day1 = unique_days[-1]
+        
+        # 3PM candle day0
+        candle_3pm = nifty_df[
+            (nifty_df['Datetime'].dt.date == day0) &
+            (nifty_df['Datetime'].dt.hour == 15) &
+            (nifty_df['Datetime'].dt.minute == 0)
+        ]
+        if candle_3pm.empty:
+            return {'buy_signal': False, 'message': '3 PM candle day0 not found.'}
+        open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
+        close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
+        
+        # The candle on day1 at candle_time
+        candle = nifty_df[nifty_df['Datetime'] == candle_time]
+        if candle.empty:
+            return {'buy_signal': False, 'message': f'No candle found at {candle_time}.'}
+        
+        open_c = candle.iloc[0]['Open_^NSEI']
+        close_c = candle.iloc[0]['Close_^NSEI']
+        low_c = candle.iloc[0]['Low_^NSEI']
+        close_time = candle.iloc[0]['Datetime']
+        
+        crossed_open_line = (low_c < open_3pm) and (close_c > open_3pm)
+        crossed_close_line = (low_c < close_3pm) and (close_c > close_3pm)
+        closes_above_both = (close_c > open_3pm) and (close_c > close_3pm)
+        
+        if crossed_open_line and crossed_close_line and closes_above_both:
+            buy_price = close_c
+            stoploss = buy_price * 0.9
+            take_profit = buy_price * 1.10
+            return {
+                'buy_signal': True,
+                'buy_price': buy_price,
+                'stoploss': stoploss,
+                'take_profit': take_profit,
+                'entry_time': close_time,
+                'message': 'Buy signal triggered.'
+            }
+        
+        return {'buy_signal': False, 'message': 'Condition not met.'}
+    
+    #####################################################################################################################################
+    open_3pm, close_3pm = display_3pm_candle_info(df_plot, selected_date)
+    
+    
+    ##########################################################################################################
+    
+    #import pandas as pd
+    #import streamlit as st
+    
+    def display_todays_candles_with_trend(df):
+        """
+        Display all today's candles with OHLC + Trend column in Streamlit.
+    
+        Args:
+        - df: DataFrame with columns ['Datetime', 'Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI']
+              'Datetime' must be timezone-aware or convertible to datetime.
+    
+        Output:
+        - Shows table in Streamlit with added Trend column.
+        """
+        if df.empty:
+            st.warning("No candle data available.")
+            return
+        
+        # Get today date from last datetime in df (assumes df sorted)
+        today_date = df['Datetime'].dt.date.max()
+        
+        # Filter today's data
+        todays_df = df[df['Datetime'].dt.date == today_date].copy()
+        if todays_df.empty:
+            st.warning(f"No data for today: {today_date}")
+            return
+        
+        # Calculate Trend column
+        def calc_trend(row):
+            if row['Close_^NSEI'] > row['Open_^NSEI']:
+                return "Bullish 🔥"
+            elif row['Close_^NSEI'] < row['Open_^NSEI']:
+                return "Bearish ❄️"
+            else:
+                return "Doji ⚪"
+        
+        todays_df['Trend'] = todays_df.apply(calc_trend, axis=1)
+        
+        # Format datetime for display
+        todays_df['Time'] = todays_df['Datetime'].dt.strftime('%H:%M')
+        
+        # Select and reorder columns to display
+        display_df = todays_df[['Time', 'Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI', 'Trend']].copy()
+        display_df.rename(columns={
+            'Open_^NSEI': 'Open',
+            'High_^NSEI': 'High',
+            'Low_^NSEI': 'Low',
+            'Close_^NSEI': 'Close'
+        }, inplace=True)
+        
+        #st.write(f"All 15-min candles for today ({today_date}):")
+        #st.table(display_df)
+    
+    ###########################################################################################
+    import pandas as pd
+    import streamlit as st
+    
+    def display_todays_candles_with_trend_and_signal(df):
+        """
+        Display all today's candles with OHLC + Trend + Signal columns in Streamlit.
+    
+        Args:
+        - df: DataFrame with columns ['Datetime', 'Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI']
+              'Datetime' must be timezone-aware or convertible to datetime.
+    
+        Output:
+        - Shows table in Streamlit with added Trend and Signal columns.
+        """
+        if df.empty:
+            st.warning("No candle data available.")
+            return
+        
+        # Get today date from last datetime in df (assumes df sorted)
+        today_date = df['Datetime'].dt.date.max()
+        
+        # Filter today's data
+        todays_df = df[df['Datetime'].dt.date == today_date].copy()
+        if todays_df.empty:
+            st.warning(f"No data for today: {today_date}")
+            return
+        
+        # Calculate Trend column
+        def calc_trend(row):
+            if row['Close_^NSEI'] > row['Open_^NSEI']:
+                return "Bullish 🔥"
+            elif row['Close_^NSEI'] < row['Open_^NSEI']:
+                return "Bearish ❄️"
+            else:
+                return "Doji ⚪"
+        
+        todays_df['Trend'] = todays_df.apply(calc_trend, axis=1)
+        
+        # Calculate Signal column
+        signals = []
+        for i in range(len(todays_df)):
+            if i == 0:
+                # No previous candle, so no signal
+                signals.append("-")
+            else:
+                prev_high = todays_df.iloc[i-1]['High_^NSEI']
+                prev_low = todays_df.iloc[i-1]['Low_^NSEI']
+                curr_close = todays_df.iloc[i]['Close_^NSEI']
+                curr_trend = todays_df.iloc[i]['Trend']
+                
+                if curr_trend == "Bullish 🔥" and curr_close > prev_high:
+                    signals.append("Buy")
+                elif curr_trend == "Bearish ❄️" and curr_close < prev_low:
+                    signals.append("Sell")
+                else:
+                    signals.append("-")
+        
+        todays_df['Signal'] = signals
+        
+        # Format datetime for display
+        todays_df['Time'] = todays_df['Datetime'].dt.strftime('%H:%M')
+        
+        # Select and reorder columns to display
+        display_df = todays_df[['Time', 'Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI', 'Trend', 'Signal']].copy()
+        display_df.rename(columns={
+            'Open_^NSEI': 'Open',
+            'High_^NSEI': 'High',
+            'Low_^NSEI': 'Low',
+            'Close_^NSEI': 'Close'
+        }, inplace=True)
+        
+        #st.write(f"All 15-min candles for today ({today_date}):")
+        #st.table(display_df)
+    
+    
+    ###################################################################################################
+    
+    import pandas as pd
+    
+    def get_nearest_weekly_expiry(today):
+        """
+        Placeholder: implement your own logic to find nearest weekly expiry date
+        For demo, returns today + 7 days (Saturday)
+        """
+        return today + pd.Timedelta(days=7)
+    
+    def trading_signal_all_conditions0(df, quantity=10*750):
+        """
+        Evaluate all 4 conditions and return trade signals if any triggered.
+    
+        Returns:
+        dict with keys:
+        - 'condition': 1/2/3/4
+        - 'option_type': 'CALL' or 'PUT'
+        - 'buy_price': float (price from 9:30 candle close for now)
+        - 'stoploss': float (10% trailing SL below buy price)
+        - 'take_profit': float (10% above buy price)
+        - 'quantity': int (10 lots = 7500 assumed)
+        - 'expiry': datetime.date
+        - 'entry_time': pd.Timestamp
+        - 'message': explanation string
+        Or None if no signal.
+        """
+        spot_price = df['Close_^NSEI'].iloc[-1]  # last close price
+        df = df.copy()
+        df['Date'] = df['Datetime'].dt.date
+        unique_days = sorted(df['Date'].unique())
+        if len(unique_days) < 2:
+            return None  # not enough data
+        
+        day0 = unique_days[-2]
+        day1 = unique_days[-1]
+        
+        # 1) Get day0 3PM candle (15:00 - 15:15)
+        candle_3pm = df[(df['Date'] == day0) & 
+                        (df['Datetime'].dt.hour == 15) & 
+                        (df['Datetime'].dt.minute == 0)]
+        if candle_3pm.empty:
+            return None
+        
+        open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
+        close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
+    
+        # 2) Day1 first 15-min candle (9:15 - 9:30)
+        candle_930 = df[(df['Date'] == day1) & 
+                        (df['Datetime'].dt.hour == 9) & 
+                        (df['Datetime'].dt.minute == 15)]
+        if candle_930.empty:
+            return None
+        
+        open_930 = candle_930.iloc[0]['Open_^NSEI']
+        close_930 = candle_930.iloc[0]['Close_^NSEI']
+        high_930 = candle_930.iloc[0]['High_^NSEI']
+        low_930 = candle_930.iloc[0]['Low_^NSEI']
+        entry_time = candle_930.iloc[0]['Datetime']
+        
+        # 3) Day1 open price = first tick open or 9:15 candle open assumed here
+        day1_open_price = open_930
+    
+        # Calculate nearest weekly expiry (example, user replace with correct method)
+        expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+    
+        # Helper values
+        buy_price = close_930
+        stoploss = buy_price * 0.9
+        take_profit = buy_price * 1.10
+    
+        # Detect gap up / gap down vs day0 close
+        gap_up = day1_open_price > close_3pm
+        gap_down = day1_open_price < close_3pm
+        within_range = (day1_open_price >= open_3pm) and (day1_open_price <= close_3pm)
+    
+        # Condition 1
+        # Candle cuts the 3PM open & close lines from below upwards and closes above both
+        cond1_cuts_open = (low_930 < open_3pm) and (close_930 > open_3pm)
+        cond1_cuts_close = (low_930 < close_3pm) and (close_930 > close_3pm)
+        cond1_closes_above_both = (close_930 > open_3pm) and (close_930 > close_3pm)
+    
+        if cond1_cuts_open and cond1_cuts_close and cond1_closes_above_both:
+            return {
+                'condition': 1,
+                'option_type': 'CALL',
+                'buy_price': buy_price,
+                'stoploss': stoploss,
+                'take_profit': take_profit,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Condition 1 met: Buy nearest ITM CALL option.',
+                'spot_price': spot_price
+            }
+    
+        # Condition 2: Major gap down + 9:30 candle closes below 3PM open & close lines
+        if gap_down and (close_930 < open_3pm) and (close_930 < close_3pm):
+            # Reference candle 2 = first 9:30 candle
+            ref_high = high_930
+            ref_low = low_930
+            
+            # Look for next candle after 9:30 to cross below low of ref candle 2
+            # We'll scan candles after 9:30 for this signal:
+            day1_after_930 = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+            for _, next_candle in day1_after_930.iterrows():
+                if next_candle['Low_^NSEI'] < ref_low:
+                    # Signal to buy PUT option
+                    buy_price_put = next_candle['Close_^NSEI']
+                    stoploss_put = buy_price_put * 0.9
+                    take_profit_put = buy_price_put * 1.10
+                    return {
+                        'condition': 2,
+                        'option_type': 'PUT',
+                        'buy_price': buy_price_put,
+                        'stoploss': stoploss_put,
+                        'take_profit': take_profit_put,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 2 met: Gap down + next candle crosses low of 9:30 candle, buy nearest ITM PUT.',
+                        'spot_price': spot_price
+                    }
+            # If no such candle crossed, no trade yet
+        
+        # Condition 3: Major gap up + 9:30 candle closes above 3PM open & close lines
+        if gap_up and (close_930 > open_3pm) and (close_930 > close_3pm):
+            # Reference candle 2 = first 9:30 candle
+            ref_high = high_930
+            ref_low = low_930
+            
+            # Look for next candle after 9:30 to cross above high of ref candle 2
+            day1_after_930 = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+            for _, next_candle in day1_after_930.iterrows():
+                if next_candle['High_^NSEI'] > ref_high:
+                    buy_price_call = next_candle['Close_^NSEI']
+                    stoploss_call = buy_price_call * 0.9
+                    take_profit_call = buy_price_call * 1.10
+                    return {
+                        'condition': 3,
+                        'option_type': 'CALL',
+                        'buy_price': buy_price_call,
+                        'stoploss': stoploss_call,
+                        'take_profit': take_profit_call,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 3 met: Gap up + next candle crosses high of 9:30 candle, buy nearest ITM CALL.',
+                        'spot_price': spot_price
+                    }
+            # No trade if not crossed yet
+        
+        # Condition 4:
+        # Candle cuts the 3PM open & close lines from above downwards and closes below both
+        cond4_cuts_open = (high_930 > open_3pm) and (close_930 < open_3pm)
+        cond4_cuts_close = (high_930 > close_3pm) and (close_930 < close_3pm)
+        cond4_closes_below_both = (close_930 < open_3pm) and (close_930 < close_3pm)
+    
+        if cond4_cuts_open and cond4_cuts_close and cond4_closes_below_both:
+            return {
+                'condition': 4,
+                'option_type': 'PUT',
+                'buy_price': buy_price,
+                'stoploss': stoploss,
+                'take_profit': take_profit,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Condition 4 met: Buy nearest ITM PUT option.',
+                'spot_price': spot_price
+            }
+        # No condition met
+        return None
+    
+    
+    
+    #########################################################################################################
+    
+    #import pandas as pd
+    #import requests
+    #import pandas as pd
+    
+    def get_live_nifty_option_chain():
+        url = "https://www.nseindia.com/api/option-chain-indices?symbol=NIFTY"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                          "(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Referer": "https://www.nseindia.com/option-chain",
+            "Connection": "keep-alive",
+        }
+    
+        session = requests.Session()
+        # First request to get cookies
+        session.get("https://www.nseindia.com", headers=headers)
+    
+        # Now get option chain JSON
+        response = session.get(url, headers=headers)
+        data = response.json()
+    
+        records = []
+        for record in data['records']['data']:
+            strike_price = record['strikePrice']
+            expiry_dates = data['records']['expiryDates']
+            # Calls data
+            if 'CE' in record:
+                ce = record['CE']
+                ce_row = {
+                    'strikePrice': strike_price,
+                    'expiryDate': ce['expiryDate'],
+                    'optionType': 'CE',
+                    'lastPrice': ce.get('lastPrice', None),
+                    'bidQty': ce.get('bidQty', None),
+                    'askQty': ce.get('askQty', None),
+                    'openInterest': ce.get('openInterest', None),
+                    'changeinOpenInterest': ce.get('changeinOpenInterest', None),
+                    'impliedVolatility': ce.get('impliedVolatility', None),
+                    'underlying': ce.get('underlying', None),
+                }
+                records.append(ce_row)
+            # Puts data
+            if 'PE' in record:
+                pe = record['PE']
+                pe_row = {
+                    'strikePrice': strike_price,
+                    'expiryDate': pe['expiryDate'],
+                    'optionType': 'PE',
+                    'lastPrice': pe.get('lastPrice', None),
+                    'bidQty': pe.get('bidQty', None),
+                    'askQty': pe.get('askQty', None),
+                    'openInterest': pe.get('openInterest', None),
+                    'changeinOpenInterest': pe.get('changeinOpenInterest', None),
+                    'impliedVolatility': pe.get('impliedVolatility', None),
+                    'underlying': pe.get('underlying', None),
+                }
+                records.append(pe_row)
+    
+        option_chain_df = pd.DataFrame(records)
+        # Convert expiryDate column to datetime
+        option_chain_df['expiryDate'] = pd.to_datetime(option_chain_df['expiryDate'])
+    
+        return option_chain_df
+    
+    # Usage:
+    #option_chain_df = get_live_nifty_option_chain()
+    #st.write(option_chain_df.head())
+
+    
+    ##############################################################################################
+
+    def trading_signal_all_conditions(df, quantity=10*75, return_all_signals=False):
+        """
+        Evaluate trading conditions based on Base Zone strategy with:
+        - CALL stop loss = recent swing low (last 10 candles)
+        - PUT stop loss = recent swing high (last 10 candles)
+        - Dynamic trailing stop loss based on swing points
+        - Time exit after 16 minutes if neither SL nor trailing SL hit
+        - Single active trade per day
+        """
+
+        signals = []
+        spot_price = df['Close_^NSEI'].iloc[-1]
+    
+        # Preprocess
+        df = df.copy()
+        df['Date'] = df['Datetime'].dt.date
+        unique_days = sorted(df['Date'].unique())
+        if len(unique_days) < 2:
+            return None
+    
+        # Day 0 and Day 1
+        day0 = unique_days[-2]  # Previous trading day
+        day1 = unique_days[-1]  # Current trading day
+    
+        # Get Base Zone from 3 PM candle of previous day
+        candle_3pm = df[(df['Date'] == day0) &
+                        (df['Datetime'].dt.hour == 15) &
+                        (df['Datetime'].dt.minute == 0)]
+        if candle_3pm.empty:
+            return None
+    
+        base_open = candle_3pm.iloc[0]['Open_^NSEI']
+        base_close = candle_3pm.iloc[0]['Close_^NSEI']
+        base_low = min(base_open, base_close)
+        base_high = max(base_open, base_close)
+    
+        # Get 09:15–09:30 candle of current day
+        candle_915 = df[(df['Date'] == day1) &
+                        (df['Datetime'].dt.hour == 9) &
+                        (df['Datetime'].dt.minute == 15)]
+        if candle_915.empty:
+            return None
+    
+        H1 = candle_915.iloc[0]['High_^NSEI']
+        L1 = candle_915.iloc[0]['Low_^NSEI']
+        C1 = candle_915.iloc[0]['Close_^NSEI']
+        entry_time = candle_915.iloc[0]['Datetime']
+    
+        expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+    
+        # Data after 09:30
+        day1_after_915 = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+    
+        # Helper functions
+        def get_recent_swing(current_time):
+            """
+            Return scalar swing_high, swing_low from last 10 candles before current_time.
+            If insufficient data return (np.nan, np.nan).
+            """
+            recent_data = df[(df['Date'] == day1) & (df['Datetime'] < current_time)].tail(10)
+            if recent_data.empty:
+                return np.nan, np.nan
+            # ensure scalar float values (not Series)
+            swing_high = recent_data['High_^NSEI'].max()
+            swing_low = recent_data['Low_^NSEI'].min()
+            # convert numpy scalars to python floats when possible
+            swing_high = float(swing_high) if not pd.isna(swing_high) else np.nan
+            swing_low = float(swing_low) if not pd.isna(swing_low) else np.nan
+            return swing_high, swing_low
+    
+        def update_trailing_sl(option_type, current_sl, current_time):
+            """
+            Safely update trailing SL using last-10-candle swing points.
+            - For CALL: SL tracks the most recent swing_low (move up only)
+            - For PUT: SL tracks the most recent swing_high (move down only)
+            """
+            new_high, new_low = get_recent_swing(current_time)
+    
+            # CALL: set/raise SL to new_low if valid
+            if option_type == 'CALL':
+                if pd.isna(new_low):
+                    # nothing to update
+                    return current_sl
+                # if current_sl is missing, initialize it
+                if current_sl is None or pd.isna(current_sl):
+                    return new_low
+                # update only if new_low is higher than current_sl (trail upward)
+                if new_low > current_sl:
+                    return new_low
+                return current_sl
+    
+            # PUT: set/lower SL to new_high if valid
+            if option_type == 'PUT':
+                if pd.isna(new_high):
+                    return current_sl
+                if current_sl is None or pd.isna(current_sl):
+                    return new_high
+                # update only if new_high is lower than current_sl (trail downward)
+                if new_high < current_sl:
+                    return new_high
+                return current_sl
+    
+            return current_sl
+    
+        def monitor_trade(sig):
+            """
+            Monitor trade after entry:
+            - update trailing SL every new 15-min candle
+            - exit when SL is hit or when 16 minutes passed since entry (time exit)
+            - safe handling when there are no monitoring candles
+            """
+            current_sl = sig.get('stoploss', None)
+            entry_dt = sig['entry_time']
+            exit_deadline = entry_dt + timedelta(minutes=16)
+    
+            # if there are no candles to monitor, exit immediately at entry (safe fallback)
+            if day1_after_915.empty:
+                sig['exit_price'] = sig.get('buy_price', spot_price)
+                sig['status'] = 'No candles to monitor - exited'
+                return sig
+    
+            exited = False
+            for _, candle in day1_after_915.iterrows():
+                # Time exit check (exit at or after deadline)
+                if candle['Datetime'] >= exit_deadline:
+                    # Exit at market (use candle close as approximation of market exit)
+                    sig['exit_price'] = candle['Close_^NSEI']
+                    sig['status'] = 'Exited due to time limit'
+                    exited = True
+                    break
+    
+                # Update trailing SL safely
+                current_sl = update_trailing_sl(sig['option_type'], current_sl, candle['Datetime'])
+                sig['stoploss'] = current_sl
+    
+                # Only check SL-hit if SL is a valid numeric value
+                if sig['option_type'] == 'CALL' and pd.notna(current_sl):
+                    if candle['Low_^NSEI'] <= current_sl:
+                        sig['exit_price'] = current_sl
+                        sig['status'] = 'Exited at Trailing SL'
+                        exited = True
+                        break
+                elif sig['option_type'] == 'PUT' and pd.notna(current_sl):
+                    if candle['High_^NSEI'] >= current_sl:
+                        sig['exit_price'] = current_sl
+                        sig['status'] = 'Exited at Trailing SL'
+                        exited = True
+                        break
+    
+            # If not exited in loop, set EOD exit (or last candle close)
+            if not exited:
+                last_close = day1_after_915.iloc[-1]['Close_^NSEI']
+                sig['exit_price'] = last_close
+                sig['status'] = 'Exited at EOD/no SL hit'
+    
+            return sig
+    
+        # Condition 1 — Break above Base Zone (CALL)
+        if (L1 < base_high and H1 > base_low) and (C1 > base_high):
+            swing_high, swing_low = get_recent_swing(entry_time)
+            sig = {
+                'condition': 1,
+                'option_type': 'CALL',
+                'buy_price': H1,
+                'stoploss': swing_low,  # may be np.nan if insufficient history
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Condition 1: Bullish breakout above Base Zone → Buy CALL above H1',
+                'spot_price': spot_price
+            }
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            if not return_all_signals:
+                return sig
+    
+        # Condition 2 — Major Gap Down (PUT) and flip 2.7
+        if C1 < base_low:
+            for _, next_candle in day1_after_915.iterrows():
+                swing_high, swing_low = get_recent_swing(next_candle['Datetime'])
+                # Primary PUT entry on break below L1
+                if next_candle['Low_^NSEI'] <= L1:
+                    sig = {
+                        'condition': 2,
+                        'option_type': 'PUT',
+                        'buy_price': L1,
+                        'stoploss': swing_high,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 2: Gap down confirmed → Buy PUT below L1',
+                        'spot_price': spot_price
+                    }
+                    sig = monitor_trade(sig)
+                    signals.append(sig)
+                    if not return_all_signals:
+                        return sig
+    
+                # Flip rule 2.7: bullish recovery -> CALL
+                if next_candle['Close_^NSEI'] > base_high:
+                    ref_high = next_candle['High_^NSEI']
+                    sig_flip = {
+                        'condition': 2.7,
+                        'option_type': 'CALL',
+                        'buy_price': ref_high,
+                        'stoploss': swing_low,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 2 Flip: Later candle closed above Base Zone → Buy CALL',
+                        'spot_price': spot_price
+                    }
+                    sig_flip = monitor_trade(sig_flip)
+                    signals.append(sig_flip)
+                    if not return_all_signals:
+                        return sig_flip
+    
+        # Condition 3 — Major Gap Up (CALL) and flip 3.7
+        if C1 > base_high:
+            for _, next_candle in day1_after_915.iterrows():
+                swing_high, swing_low = get_recent_swing(next_candle['Datetime'])
+                if next_candle['High_^NSEI'] >= H1:
+                    sig = {
+                        'condition': 3,
+                        'option_type': 'CALL',
+                        'buy_price': H1,
+                        'stoploss': swing_low,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 3: Gap up confirmed → Buy CALL above H1',
+                        'spot_price': spot_price
+                    }
+                    sig = monitor_trade(sig)
+                    signals.append(sig)
+                    if not return_all_signals:
+                        return sig
+    
+                # Flip rule 3.7: bearish recovery -> PUT
+                if next_candle['Close_^NSEI'] < base_low:
+                    ref_low = next_candle['Low_^NSEI']
+                    sig_flip = {
+                        'condition': 3.7,
+                        'option_type': 'PUT',
+                        'buy_price': ref_low,
+                        'stoploss': swing_high,
+                        'quantity': quantity,
+                        'expiry': expiry,
+                        'entry_time': next_candle['Datetime'],
+                        'message': 'Condition 3 Flip: Later candle closed below Base Zone → Buy PUT',
+                        'spot_price': spot_price
+                    }
+                    sig_flip = monitor_trade(sig_flip)
+                    signals.append(sig_flip)
+                    if not return_all_signals:
+                        return sig_flip
+    
+        # Condition 4 — Break below Base Zone on Day 1 open (PUT)
+        if (L1 < base_high and H1 > base_low) and (C1 < base_low):
+            swing_high, swing_low = get_recent_swing(entry_time)
+            sig = {
+                'condition': 4,
+                'option_type': 'PUT',
+                'buy_price': L1,
+                'stoploss': swing_high,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Condition 4: Bearish breakdown below Base Zone → Buy PUT below L1',
+                'spot_price': spot_price
+            }
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            if not return_all_signals:
+                return sig
+    
+        return signals if signals else None
+
+    
+    ################################################################################################
+    def find_nearest_itm_option():
+        import nsepython
+        from nsepython import nse_optionchain_scrapper
+    
+    
+        option_chain = nse_optionchain_scrapper('NIFTY')
+        df = []
+        
+        for item in option_chain['records']['data']:
+            strike = item['strikePrice']
+            expiry = item['expiryDate']
+            if 'CE' in item:
+                ce = item['CE']
+                ce['strikePrice'] = strike
+                ce['expiryDate'] = expiry
+                ce['optionType'] = 'CE'
+                df.append(ce)
+            if 'PE' in item:
+                pe = item['PE']
+                pe['strikePrice'] = strike
+                pe['expiryDate'] = expiry
+                pe['optionType'] = 'PE'
+                df.append(pe)
+        
+        #import pandas as pd
+        option_chain_df = pd.DataFrame(df)
+        option_chain_df['expiryDate'] = pd.to_datetime(option_chain_df['expiryDate'])
+        #st.write(option_chain_df.head())
+        return  option_chain_df
+    
+    
+    
+    ##################################################################################
+    import pandas as pd
+    
+    def option_chain_finder(option_chain_df, spot_price, option_type, lots=10, lot_size=75):
+        """
+        Find nearest ITM option in option chain DataFrame.
+    
+        Parameters:
+        - option_chain_df: pd.DataFrame with columns including ['strikePrice', 'expiryDate', 'optionType', ...]
+        - spot_price: float, current underlying price
+        - option_type: str, 'CE' for Call or 'PE' for Put
+        - lots: int, number of lots to trade (default 10)
+        - lot_size: int, lot size per option contract (default 75)
+    
+        Returns:
+        - dict with keys:
+            'strikePrice', 'expiryDate', 'optionType', 'total_quantity', 'option_data' (pd.Series row)
+        """
+    
+        # Ensure expiryDate is datetime
+        if not pd.api.types.is_datetime64_any_dtype(option_chain_df['expiryDate']):
+            option_chain_df['expiryDate'] = pd.to_datetime(option_chain_df['expiryDate'])
+    
+        today = pd.Timestamp.today().normalize()
+    
+        # Find nearest expiry on or after today
+        expiries = option_chain_df.loc[option_chain_df['expiryDate'] >= today, 'expiryDate'].unique()
+        if len(expiries) == 0:
+            raise ValueError("No expiry dates found on or after today.")
+        nearest_expiry = min(expiries)
+    
+        # Filter for nearest expiry and option type
+        df_expiry = option_chain_df[
+            (option_chain_df['expiryDate'] == nearest_expiry) &
+            (option_chain_df['optionType'] == option_type)
+        ]
+    
+        if df_expiry.empty:
+            raise ValueError(f"No options found for expiry {nearest_expiry.date()} and type {option_type}")
+    
+        # Find nearest ITM strike
+        if option_type == "CALL":
+            itm_strikes = df_expiry[df_expiry['strikePrice'] <= spot_price]
+            if itm_strikes.empty:
+                # fallback to minimum strike (OTM)
+                nearest_strike = df_expiry['strikePrice'].min()
+            else:
+                nearest_strike = itm_strikes['strikePrice'].max()
+        else:  # 'PE'
+            itm_strikes = df_expiry[df_expiry['strikePrice'] >= spot_price]
+            if itm_strikes.empty:
+                # fallback to maximum strike (OTM)
+                nearest_strike = df_expiry['strikePrice'].max()
+            else:
+                nearest_strike = itm_strikes['strikePrice'].min()
+    
+        # Get option row
+        option_row = df_expiry[df_expiry['strikePrice'] == nearest_strike].iloc[0]
+    
+        total_qty = lots * lot_size
+    
+        return {
+            'strikePrice': nearest_strike,
+            'expiryDate': nearest_expiry,
+            'optionType': option_type,
+            'total_quantity': total_qty,
+            'option_data': option_row
+        }
+    
+    ###########################################################
+    
+    import pandas as pd
+    from datetime import timedelta
+    
+    def generate_trade_log_from_option(result, trade_signal):
+        if result is None or trade_signal is None:
+            return None
+        # Determine exit reason and price
+        stoploss_hit = False
+        target_hit = False
+        
+        #exit_time = pd.to_datetime(exit_time)
+        #result.index = pd.to_datetime(result.index)
+        # ---- EXIT DETAILS + P&L ----
+         # ---- EXIT DETAILS + P&L ----
+        buy_price = result["option_data"]["lastPrice"]
+        exit_reason = trade_signal.get("status", "Open")  # e.g. "Exited at Trailing SL"
+        exit_price = trade_signal.get("exit_price", None)   
+
+        # If exit price is not already set, you can simulate based on reason:
+        if exit_price is None:
+            if "Trailing SL" in exit_reason:
+                exit_price = buy_price * 0.9
+            elif "Profit" in exit_reason:
+                exit_price = buy_price * 1.1
+            else:
+                exit_price = buy_price  # flat exit
+            
+        
+        
+        
+    
+        option = result['option_data']
+        qty = result['total_quantity']
+    
+        condition = trade_signal['condition']
+        entry_time = trade_signal['entry_time']
+        message = trade_signal['message']
+    
+        buy_price = option.get('lastPrice', trade_signal.get('buy_price'))
+        expiry = option.get('expiryDate', trade_signal.get('expiry'))
+        option_type = option.get('optionType', trade_signal.get('option_type'))
+    
+        stoploss = buy_price * 0.9
+        take_profit = buy_price * 1.10
+        partial_qty = qty // 2
+        time_exit = entry_time + timedelta(minutes=16)
+
+        # Calculate P&L
+        quantity = result["total_quantity"]
+        pnl = (exit_price - buy_price) * quantity
+        
+        # Append into trade log DataFrame
+        #trade_log["Exit Signal"] = exit_reason
+        #trade_log["Exit Price"] = exit_price
+        #trade_log["P&L"] = pnl
+
+    
+        
+    
+        
+    
+        trade_log = {
+            "Condition": condition,
+            "Option Type": option_type,
+            "Strike Price": option.get('strikePrice'),
+            #"Exit Price": exit_price,  # ✅ new column
+            "Buy Premium": buy_price,
+            "Stoploss (Trailing 10%)": stoploss,
+            "Take Profit (10% rise)": take_profit,
+            "Quantity": qty,
+            "Partial Profit Booking Qty (50%)": partial_qty,
+            "Expiry Date": expiry.strftime('%Y-%m-%d') if hasattr(expiry, 'strftime') else expiry,
+            "Entry Time": entry_time.strftime('%Y-%m-%d %H:%M:%S') if hasattr(entry_time, 'strftime') else entry_time,
+            "Time Exit (16 mins after entry)": time_exit.strftime('%Y-%m-%d %H:%M:%S'),
+            "Trade Message": message
+            #"Trade Details": row["Trade Details"],
+            #"Exit Reason": reason
+        }
+    
+        # Add condition-specific details
+        if condition == 1:
+            trade_log["Trade Details"] = (
+                "Buy nearest ITM CALL option. Stoploss trailing 10% below buy premium. "
+                "Book 50% qty profit when premium rises 10%. "
+                "Time exit after 16 minutes if no target hit."
+            )
+        elif condition == 2:
+            trade_log["Trade Details"] = (
+                "Major gap down. Buy nearest ITM PUT option when next candle crosses low of 9:30 candle. "
+                "Stoploss trailing 10% below buy premium."
+            )
+        elif condition == 3:
+            trade_log["Trade Details"] = (
+                "Major gap up. Buy nearest ITM CALL option. Stoploss trailing 10% below buy premium. "
+                "Book 50% qty profit when premium rises 10%. "
+                "Time exit after 16 minutes if no target hit."
+            )
+        elif condition == 4:
+            trade_log["Trade Details"] = (
+                "Buy nearest ITM PUT option. Stoploss trailing 10% below buy premium. "
+                "Book 50% qty profit when premium rises 10%. "
+                "Time exit after 16 minutes if no target hit."
+            )
+        else:
+            trade_log["Trade Details"] = "No specific trade details available."
+    
+        trade_log_df = pd.DataFrame([trade_log])
+        return trade_log_df
+    
+    ################################################################################################################
+    
+    #import pandas as pd
+    #import matplotlib.pyplot as plt
+    
+    #import matplotlib.pyplot as plt
+    def get_option_chain(kite, index_symbol="NIFTY"):
+        """
+        Fetch Zerodha-supported option chain for an index.
+        Returns: DataFrame with tradingsymbol, expiry, strike, type, token, lot_size
+        """
+    
+        import pandas as pd
+    
+        # Get instrument dump from Zerodha
+        instruments = kite.instruments("NFO")
+        df = pd.DataFrame(instruments)
+    
+        # Filter only index options for the given symbol
+        df = df[
+            (df["segment"] == "NFO-OPT") &
+            (df["name"] == index_symbol)
+        ].copy()
+    
+        # Process columns
+        df["expiry"] = pd.to_datetime(df["expiry"])
+        df["strike"] = df["strike"].astype(float)
+        df["type"] = df["instrument_type"]
+    
+        # Sort for readability
+        df = df.sort_values(["expiry", "strike"])
+    
+        return df[
+            ["tradingsymbol", "expiry", "strike", "type", "instrument_token", "lot_size"]
+        ].reset_index(drop=True)
+
+    
+    def plot_option_trade(option_symbol, entry_time, exit_time, entry_price, exit_price, reason_exit, pnl):
+        """
+        Plot option price movement with entry/exit markers and P&L.
+        """
+        #import yfinance as yf
+        #import pandas as pd
+    
+        # Fetch historical intraday data for the option
+        data = yf.download(option_symbol, start=entry_time.date(), end=exit_time.date() + pd.Timedelta(days=1), interval="5m")
+    
+        if data.empty:
+            st.warning(f"No historical data found for {option_symbol}")
+            return
+    
+        # Plot price movement
+        fig, ax = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
+    
+        # Price chart
+        ax[0].plot(data.index, data['Close'], label='Option Price', color='blue')
+        ax[0].axvline(entry_time, color='green', linestyle='--', label='Entry')
+        ax[0].axvline(exit_time, color='red', linestyle='--', label='Exit')
+        ax[0].scatter(entry_time, entry_price, color='green', s=80, zorder=5)
+        ax[0].scatter(exit_time, exit_price, color='red', s=80, zorder=5)
+        ax[0].set_ylabel("Price")
+        ax[0].legend()
+        ax[0].set_title(f"Trade on {option_symbol} | Exit Reason: {reason_exit}")
+    
+        # P&L curve
+        data['P&L'] = (data['Close'] - entry_price) * (1 if exit_price > entry_price else -1)
+        ax[1].plot(data.index, data['P&L'], label="P&L", color='orange')
+        ax[1].axhline(0, color='black', linestyle='--')
+        ax[1].set_ylabel("P&L")
+        ax[1].legend()
+    
+        plt.tight_layout()
+        st.pyplot(fig)
+
+    def option_chain_finder_zerodha(option_chain, spot_price, option_type="CALL", lots=1, lot_size=75):
+        """
+        Find Zerodha option closest to spot price.
+        Works for list of dicts or DataFrame.
+        """
+        import pandas as pd
+    
+        # Convert DataFrame to list of dicts if needed
+        if isinstance(option_chain, pd.DataFrame):
+            option_chain = option_chain.to_dict('records')
+    
+        # Filter by option type safely
+        filtered_chain = [opt for opt in option_chain if opt.get('instrument_type', '').upper() == option_type.upper()]
+        
+        if not filtered_chain:
+            raise ValueError(f"No options found for type {option_type}")
+    
+        # Find closest strike
+        closest_option = min(filtered_chain, key=lambda x: abs(x['strike'] - spot_price))
+    
+        # Add total quantity
+        closest_option['total_quantity'] = lots * lot_size
+    
+        return closest_option
+
+    
+    
+    
+    ###############################################################################################################
+    #run_check_for_all_candles(df)  # df = your full OHLC DataFrame
+    
+    #display_todays_candles_with_trend(df)
+    display_todays_candles_with_trend_and_signal(df)
+    ########################
+    result_chain=find_nearest_itm_option()
+    #st.write(result_chain)
+    #calling all condition in one function
+    signal = trading_signal_all_conditions(df)
+    #st.write("###  Signal")
+    #st.write(signal)
+    if signal:
+        if "kite" in st.session_state and st.session_state.kite:
+                kite = st.session_state.kite
+        # Exclude unwanted keys
+        exclude_cols = ["stoploss", "quantity", "expiry", "exit_price"]
+        
+        # Filter the signal dict
+        filtered_signal = {k: v for k, v in signal.items() if k not in exclude_cols}
+        
+        # Show message and table
+        st.write(f"Trade signal detected:\n{signal['message']}")
+        st.table(pd.DataFrame([filtered_signal]))
+        #st.write(f"Trade signal detected:\n{signal['message']}")
+        #st.table(pd.DataFrame([signal]))
+        spot_price = signal['spot_price']
+        #option_type = signal['option_type']
+        ot = "CE" if signal["option_type"].upper() == "CALL" else "PE"
+        # Find nearest ITM option to buy
+        chain = get_option_chain(kite, "NIFTY")
+            #st.dataframe(chain)
+        result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)
+        selected_option = option_chain_finder_zerodha(chain, spot_price, option_type=ot, lots=1, lot_size=75)
+        st.write(selected_option)
+       # st.write("###  find_nearest_itm_option")
+        #st.write(result)
+        # Convert dict to DataFrame, then transpose
+        st.write("Nearest ITM Call option to BUY:")
+        df_option = pd.DataFrame([result['option_data']]).T
+        df_option.columns = ["Value"]  # Rename column for clarity
+        
+        st.table(df_option)
+        #st.write(df_option)
+        #st.table(pd.DataFrame([result['option_data']]))
+    
+        st.write(f"Total Quantity: {result['total_quantity']}")
+        trade_log_df = generate_trade_log_from_option(result, signal)
+        st.write("### Trade Log for Current Signal")
+
+        #sst.write("### Trade Log for Current Signal")
+
+        for i, row in trade_log_df.iterrows():
+            st.write(f"**Trade {i+1}:**")
+            st.table(row.to_frame(name="Value"))
+        #st.write("### Trade Log for Current Signal")
+        #st.table(trade_log_df)
+    else:
+        st.write("No trade signal for today based on conditions.")
+    
+    
+    st.write("Trade log DataFrame:")
+    if 'trade_log_df' in locals():
+        st.write(trade_log_df)
+    else:
+        st.write("No trade log data available.")
+
+    #st.write(trade_log_df)
+    #st.write("Columns:", trade_log_df.columns.tolist())
+    #st.write(result_chain.tail())
+    #################################################
+    #trade_log_df = generate_trade_log_from_option(result, signal)
+    #st.table(trade_log_df)
+    # Ensure Expiry Date is a datetime
+    # Example P&L calculation
+
+    #buy_price = result['option_data']['lastPrice']
+    # exit_reason = signal.get("status", "Open")  # from signal
+    #exit_price = signal.get("exit_price", None)
+
+    # -------------------------
+    # PLACE ORDER IF CONNECTED
+    # -------------------------
+    #-----------------------------------------------------------------------------------------------------------------------------------------
+            
+
+    def find_kite_option(kite, symbol, expiry_date, strike, option_type):
+        """
+        Find exact Zerodha tradingsymbol from expiry + strike + CE/PE.
+        expiry_date must be datetime.date or string '2025-12-04'
+        """
+    
+        import pandas as pd
+    
+        df = get_option_chain(kite, symbol)
+    
+        # Convert expiry
+        expiry_date = pd.to_datetime(expiry_date)
+    
+        # Filter
+        row = df[
+            (df["expiry"] == expiry_date) &
+            (df["strike"] == float(strike)) &
+            (df["type"] == option_type.upper())
+        ]
+    
+        if row.empty:
+            return None
+    
+        return row.iloc[0].to_dict()
+
+    def nse_to_kite_symbol0(identifier: str) -> str:
+                """
+                Convert NSE Option Chain identifier (OPTIDX...) into Kite tradingsymbol.
+                Example:
+                OPTIDXNIFTY28-11-2024CE22000.00 -> NIFTY28NOV24CE22000
+                """
+            
+                # Remove prefix
+                if identifier.startswith("OPTIDX"):
+                    identifier = identifier.replace("OPTIDX", "")
+                else:
+                    return None  # Invalid identifier
+            
+                # Example: NIFTY28-11-2024CE22000.00
+                # Split expiry & others
+                import re
+            
+                # Regex: NIFTY + date + CE/PE + strike
+                pattern = r"([A-Z]+)(\d{2})-(\d{2})-(\d{4})(CE|PE)([\d\.]+)"
+                match = re.match(pattern, identifier)
+            
+                if not match:
+                    return None
+            
+                symbol, day, month, year, opt_type, strike = match.groups()
+            
+                # Convert expiry to Kite format: DD-MMM-YYYY -> DDMMMYY
+                import datetime
+                d = datetime.datetime.strptime(f"{day}-{month}-{year}", "%d-%m-%Y")
+                expiry = d.strftime("%d%b%y").upper()  # e.g. 28NOV24
+            
+                # Remove decimal from strike
+                strike = strike.replace(".00", "")
+            
+                # Final tradingsymbol
+                tradingsymbol = f"{symbol}{expiry}{opt_type}{strike}"
+            
+                return tradingsymbol
+
+    def nse_to_kite_symbol(identifier: str) -> str:
+                    """
+                    Convert NSE Option Chain identifier into Zerodha tradingsymbol.
+                    Supports weekly and monthly expiry.
+                    Example NSE format: OPTIDXNIFTY02-12-2025CE26100
+                    Output Zerodha format: NIFTY02DEC2526100CE
+                    """
+                
+                    identifier = identifier.replace("OPTIDX", "")
+                
+                    import re
+                    pattern = r"([A-Z]+)(\d{2})-(\d{2})-(\d{4})(CE|PE)([\d\.]+)"
+                    match = re.match(pattern, identifier)
+                    if not match:
+                        return None
+                
+                    symbol, day, month, year, opt_type, strike = match.groups()
+                
+                    import datetime
+                    d = datetime.datetime.strptime(f"{day}-{month}-{year}", "%d-%m-%Y")
+                    expiry = d.strftime("%d%b%y").upper()  # 02DEC25
+                
+                    strike = strike.replace(".00", "").replace(".0", "")
+                
+                    # Zerodha format = SYMBOL + EXPIRY + STRIKE + CE/PE
+                    return f"{symbol}{expiry}{strike}{opt_type}"
+
+
+
+
+    def convert_to_kite_symbol(identifier):
+                    # Example identifier: OPTIDXNIFTY25-11-2025CE26200
+                    x = identifier.replace("OPTIDX", "")  # Remove OPTIDX
+                    
+                    # Convert 25-11-2025 → 25NOV25
+                    parts = x.split("-")
+                    day = parts[0][-2:]
+                    month = datetime.datetime.strptime(parts[1], "%m").strftime("%b").upper()
+                    year = parts[2][:2]
+                
+                    # Final:
+                    # NIFTY + 25NOV25 + CE + strike
+                    underlying = x[:5]
+                    strike = x[-5:]
+                    option_type = x[-7:-5]
+        
+                    return f"{underlying}{day}{month}{year}{option_type}{strike}"
+
+    
+# ---- PLACE ORDER IN ZERODHA ----
+    try:
+            if "kite" in st.session_state and st.session_state.kite:
+                kite = st.session_state.kite
+            tradingsymbol = result['option_data']['identifier'].replace("OPTIDX", "")
+            # Example: NIFTY25-11-2025CE26200 (correct format)
+            st.write(tradingsymbol)
+            """
+            order = kite.place_order(
+                variety="regular",
+                exchange="NFO",
+                tradingsymbol=tradingsymbol,
+                transaction_type="BUY",
+                quantity=result["total_quantity"],
+                product="MIS",
+                order_type="MARKET"
+            )
+        
+            st.success(f"Order Placed Successfully! Order ID: {order}")
+            st.write(f"**Executed:** {tradingsymbol}")
+            st.write(f"**Qty:** {result['total_quantity']}")
+            st.write(f"**Side:** BUY")
+        """
+    except Exception as e:
+            st.error(f"Order Failed: {e}")     
+
+    
+
+        
+
+
+            
+
+
+
+ #-------------------------------------------------------------------------------------------------------------------------------------------------           
+    st.write("### Live Trading Section")
+    
+    if signal:
+        if "kite" in st.session_state and st.session_state.kite:
+            kite = st.session_state.kite
+            
+            st.success("Kite session connected. Ready to place trade.")
+            
+            
+            #st.write("Available keys:", list(result['option_data'].index))
+
+            # Extract option symbol & quantity
+            #option_symbol = result['option_data']['tradingsymbol']
+            #st.write(result['option_data']['tradingsymbol'])
+            option_symbol = nse_to_kite_symbol(result['option_data']['identifier'])
+            #option_symbol = convert_to_kite_symbol(result['option_data']['identifier'])
+            
+
+            qty = result['total_quantity']
+            ltp = result['option_data']['lastPrice']
+            #-------------------------------------------------------------------------------------
+            contract = find_kite_option(
+                kite,
+                symbol="NIFTY",
+                expiry_date="2025-12-04",
+                strike=26150,
+                option_type="CE"
+            )
+            
+            st.write(contract)
+
+
+            #--------------------------------------------------------------------------------------
+            
+            st.write(f"Placing order for: **{option_symbol}**")
+            st.write(f"Quantity: {qty}, LTP: {ltp}")
+            """
+            if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
+                try:
+                    order_id = kite.place_order(
+                        tradingsymbol=option_symbol,
+                        exchange=kite.EXCHANGE_NFO,
+                        transaction_type=kite.TRANSACTION_TYPE_BUY,
+                        quantity=qty,
+                        order_type=kite.ORDER_TYPE_MARKET,
+                        variety=kite.VARIETY_REGULAR,
+                        product=kite.PRODUCT_MIS  # or CNC/NRML based on your logic
+                    )
+                    st.success(f"Order Placed Successfully! Order ID: {order_id}")
+                
+                except Exception as e:
+                    st.error(f"Order Failed: {e}")
+                    """
+        else:
+            st.warning("Kite session not connected. Please login first to place live orders.")
+    else:
+        st.info("No trade signal today. No live trade executed.")
+
+    
+    
+    
+    st.write("### Trade Log Summary")
+
+    if 'trade_log_df' in locals() and not trade_log_df.empty:
+        cols_to_show = [c for c in ["Exit Signal", "Exit Price", "P&L"] if c in trade_log_df.columns]
+        st.table(trade_log_df[cols_to_show])
+    else:
+        st.write("No trade log data available.")
+
+elif MENU=="Paper Trade":
+    # Put this inside your Streamlit app file (e.g. ui_dash.py)
+    # Required packages: streamlit, kiteconnect, streamlit-autorefresh
+    # pip install kiteconnect streamlit-autorefresh
+    
+    import streamlit as st
+    from kiteconnect import KiteConnect
+    from streamlit_autorefresh import st_autorefresh
+    import time
+    import uuid
+    
+    # --- Initialize session state defaults ---
+    if "api_status" not in st.session_state:
+        st.session_state.api_status = {"Zerodha": False, "Fyers": False, "AliceBlue": False}
+    if "connected_broker" not in st.session_state:
+        st.session_state.connected_broker = None
+    if "kite" not in st.session_state:
+        st.session_state.kite = None
+    if "paper_orders" not in st.session_state:
+        st.session_state.paper_orders = []
+    if "paper_positions" not in st.session_state:
+        st.session_state.paper_positions = {}
+    if "use_paper" not in st.session_state:
+        st.session_state.use_paper = True  # default to paper mode
+    
+    # Utility: safe getter for session kite
+    def get_kite():
+        return st.session_state.get("kite", None)
+    
+    # --- Helper: fetch Zerodha data safely ---
+    def fetch_zerodha_data():
+        kite = get_kite()
+        if kite is None:
+            return {
+                "error": "No kite client in session. Connect Zerodha and provide access token.",
+                "funds": None,
+                "holdings": None,
+                "positions": None,
+                "orders": None,
+            }
+        out = {"error": None, "funds": None, "holdings": None, "positions": None, "orders": None}
+        try:
+            # margins() might vary across kite versions — return raw output if structure unexpected
+            try:
+                out["funds"] = kite.margins()  # often returns dict; show raw so user can inspect
+            except Exception as e:
+                out["funds"] = {"error": f"Unable to fetch margins: {e}"}
+    
+            try:
+                holdings = kite.holdings()
+                out["holdings"] = holdings
+            except Exception as e:
+                out["holdings"] = {"error": f"Unable to fetch holdings: {e}"}
+    
+            try:
+                positions = kite.positions()
+                # positions may contain 'net' and 'day' subkeys depending on version
+                out["positions"] = positions
+            except Exception as e:
+                out["positions"] = {"error": f"Unable to fetch positions: {e}"}
+    
+            try:
+                orders = kite.orders()
+                out["orders"] = orders
+            except Exception as e:
+                out["orders"] = {"error": f"Unable to fetch orders: {e}"}
+        except Exception as e:
+            out["error"] = f"Unexpected error while fetching: {e}"
+        return out
+    
+    # --- Helper: local paper-trade order placement (simulated) ---
+    def place_paper_order(symbol, qty, side="BUY", order_type="MARKET", price=None, product="MIS"):
+        # Create a simulated order id and append to paper_orders
+        oid = str(uuid.uuid4())[:8]
+        ts = int(time.time())
+        order = {
+            "order_id": oid,
+            "symbol": symbol,
+            "qty": qty,
+            "side": side,
+            "order_type": order_type,
+            "price": price,
+            "product": product,
+            "status": "COMPLETE" if order_type == "MARKET" else "OPEN",
+            "filled_qty": qty if order_type == "MARKET" else 0,
+            "avg_price": price if price else "market",
+            "timestamp": ts,
+        }
+        st.session_state.paper_orders.append(order)
+    
+        # update positions (very simple: net qty)
+        pos = st.session_state.paper_positions.get(symbol, {"qty": 0, "avg_price": 0.0})
+        if side == "BUY":
+            new_qty = pos["qty"] + qty
+            # naive avg price calc (if avg_price is numeric)
+            try:
+                prev_tot = pos["avg_price"] * pos["qty"]
+                new_avg = (prev_tot + (price or 0) * qty) / new_qty if new_qty != 0 else 0
+            except Exception:
+                new_avg = price or 0
+            st.session_state.paper_positions[symbol] = {"qty": new_qty, "avg_price": new_avg}
+        else:  # SELL
+            new_qty = pos["qty"] - qty
+            st.session_state.paper_positions[symbol] = {"qty": new_qty, "avg_price": pos.get("avg_price", 0)}
+    
+        return order
+    
+    # --- UI: Sidebar menu with Logout ---
+    menu = st.sidebar.selectbox("Menu", ["Home", "Zerodha Broker API", "Dashboard", "Paper Trade", "Logout"])
+    
+    # If logout chosen, clear relevant session state
+    if menu == "Logout":
+        # remove sensitive session keys
+        for k in ["kite", "connected_broker", "api_status"]:
+            if k in st.session_state:
+                del st.session_state[k]
+        # clear paper-trade state optionally
+        st.session_state.paper_orders = []
+        st.session_state.paper_positions = {}
+        st.success("Logged out and session cleared.")
+        st.stop()
+    
+    # --- Zerodha Broker API page ---
+    if menu == "Zerodha Broker API":
+        st.title("Broker Integrations")
+        st.write("Connect your broker to enable paper/live trading. For production store tokens securely.")
+    
+        brokers = ["Zerodha", "Fyers", "AliceBlue"]
+        bcol1, bcol2 = st.columns(2)
+        with bcol1:
+            sel = st.selectbox("Broker", brokers, index=0)
+            if sel == "Zerodha":
+                api_key = st.text_input("API Key", key="z_key")
+                api_secret = st.text_input("API Secret (optional)", type="password", key="z_secret")
+                access_token = st.text_input(
+                    "Access Token (paste here for demo) — for production use OAuth flow",
+                    key="z_access_token",
+                )
+    
+                st.checkbox("Use paper trading (simulate)", value=st.session_state.use_paper, key="use_paper_checkbox")
+                st.session_state.use_paper = st.session_state.use_paper_checkbox
+    
+                st.markdown("<div class='button-teal'>", unsafe_allow_html=True)
+                if st.button("Connect Zerodha"):
+                    if not api_key:
+                        st.error("Please provide API Key.")
+                    else:
+                        try:
+                            kite = KiteConnect(api_key=api_key)
+                            # If you already have access_token you can set it directly:
+                            if access_token:
+                                kite.set_access_token(access_token)
+                            # store client
+                            st.session_state.kite = kite
+                            st.session_state.api_status["Zerodha"] = True
+                            st.session_state.connected_broker = "Zerodha"
+                            st.success("Zerodha client stored in session.")
+                        except Exception as e:
+                            st.session_state.api_status["Zerodha"] = False
+                            st.error(f"Failed to create Kite client: {e}")
+                st.markdown("</div>", unsafe_allow_html=True)
+    
+            elif sel == "Fyers":
+                st.text_input("Client ID", key="f_id")
+                st.text_input("Secret Key", type="password", key="f_secret")
+                if st.button("Connect Fyers"):
+                    st.session_state.api_status["Fyers"] = True
+                    st.session_state.connected_broker = "Fyers"
+                    st.success("Fyers connected (demo)")
+            elif sel == "AliceBlue":
+                st.text_input("User ID", key="a_id")
+                st.text_input("API Key", type="password", key="a_key")
+                if st.button("Connect AliceBlue"):
+                    st.session_state.api_status["AliceBlue"] = True
+                    st.session_state.connected_broker = "AliceBlue"
+                    st.success("AliceBlue connected (demo)")
+    
+        # Connection status on right column
+        with bcol2:
+            st.subheader("Connection Status")
+            for name, ok in st.session_state.api_status.items():
+                badge_class = "success" if ok else "danger"
+                badge_text = "Connected" if ok else "Not Connected"
+                st.markdown(f"**{name}**: <span class='badge {badge_class}'>{badge_text}</span>", unsafe_allow_html=True)
+            st.caption("For demo we store Kite object in session_state. In production use secure secrets store.")
+    
+    # --- Dashboard: display funds, holdings, positions, orders ---
+    if menu == "Dashboard":
+        st.title("Zerodha Dashboard")
+        st.write("Shows funds, holdings, positions and orders (live) or simulated paper-trade state.")
+    
+        # optional autorefresh (every 60 seconds)
+        try:
+            st_autorefresh(interval=60 * 1000, limit=None, key="refresh")
+        except Exception:
+            # if import or usage failed, ignore and continue
+            pass
+    
+        data = fetch_zerodha_data()
+        if data.get("error"):
+            st.warning(data["error"])
+    
+        # show funds block
+        st.subheader("Funds / Margins")
+        if data["funds"] is None:
+            st.info("No funds fetched. Connect Zerodha or paste access token.")
+        else:
+            st.json(data["funds"])
+    
+        # holdings
+        st.subheader("Holdings")
+        if data["holdings"] is None:
+            st.info("No holdings fetched.")
+        else:
+            st.write(data["holdings"])
+    
+        # positions
+        st.subheader("Positions")
+        if data["positions"] is None:
+            st.info("No positions fetched.")
+        else:
+            st.write(data["positions"])
+    
+        # orders
+        st.subheader("Orders")
+        if data["orders"] is None:
+            st.info("No orders fetched.")
+        else:
+            st.write(data["orders"])
+    
+        # Also show paper-trade state if paper mode
+        st.subheader("Paper-trade state (local simulation)")
+        st.write("Use Paper Trade menu to place simulated orders.")
+        st.write("Paper Orders:")
+        st.write(st.session_state.paper_orders or "No paper orders yet.")
+        st.write("Paper Positions:")
+        st.write(st.session_state.paper_positions or "No paper positions yet.")
+    #-------------------------------------------------------------------------------------------------------------------------------------------------------
+    # --- Paper Trade UI ---
+    if MENU == "Paper Trade":
+        st.title("Paper Trade — NIFTY Options (Simulated)")
+        st.write("This is a local paper-trade simulator. No real orders are sent to broker when using paper mode.")
+    
+        use_paper = st.checkbox("Use paper trading (simulate)", value=st.session_state.use_paper)
+        st.session_state.use_paper = use_paper
+    
+        with st.form("paper_order_form"):
+            symbol = st.text_input("Symbol (e.g. NIFTY22NOV23000CE)", value="NIFTY23NOV23000CE")
+            qty = st.number_input("Quantity", value=1, step=1)
+            side = st.selectbox("Side", ["BUY", "SELL"])
+            ord_type = st.selectbox("Order Type", ["MARKET", "LIMIT"])
+            price = st.number_input("Limit Price (if LIMIT)", value=0.0, step=0.1)
+            submitted = st.form_submit_button("Place Order (paper)")
+    
+        if submitted:
+            if use_paper:
+                order = place_paper_order(symbol=symbol, qty=int(qty), side=side, order_type=ord_type, price=(price if price > 0 else None))
+                st.success(f"Paper order placed: {order['order_id']}")
+                #st.write(order)
+            else:
+                kite = get_kite()
+                if kite is None:
+                    st.error("No kite client available — connect Zerodha first or use paper mode.")
+                else:
+                    # Example real order (commented out by default)
+                    try:
+                        # real_order = kite.place_order(
+                        #     variety=kite.VARIETY_REGULAR,
+                        #     exchange="NFO",  # or "NSE" depending on instrument
+                        #     tradingsymbol=symbol,
+                        #     transaction_type=side,
+                        #     quantity=int(qty),
+                        #     product="MIS",
+                        #     order_type=ord_type,
+                        #     price=price if ord_type == "LIMIT" and price>0 else None,
+                        # )
+                        # st.success(f"Live order placed: {real_order}")
+                        st.info("Live order placement is disabled in this demo. Uncomment and ensure credentials to enable.")
+                    except Exception as e:
+                        st.error(f"Failed to place live order: {e}")
+    
+        st.markdown("---")
+        st.subheader("Paper Orders Log")
+        #st.write(st.session_state.paper_orders or "No paper orders yet.")
+        paper_orders = st.session_state.get("paper_orders", [])
+
+        if paper_orders:
+            df = pd.DataFrame(paper_orders)
+            st.dataframe(df, use_container_width=True)
+        else:
+            st.info("No paper orders yet.")
+        #st.table(paper_orders)
+    
+        st.subheader("Paper Positions")
+        #st.write(st.session_state.paper_positions or "No paper positions.")
+        paper_positions = st.session_state.get("paper_positions", [])
+
+        if paper_positions:
+            df_pos = pd.DataFrame(paper_positions)
+            st.dataframe(df_pos, use_container_width=True)
+        else:
+            st.info("No paper positions.")
+
+        #st.table(paper_positions)
+    
+    
+    
+#-------------------------------------
+elif MENU == "Logout":
+        st.title("Logout")
+    
+        if st.button("Logout from All Brokers"):
+            # Clear broker connections
+            st.session_state.connected_broker = None
+            st.session_state.api_status = {
+                "Zerodha": False,
+                "Fyers": False,
+                "AliceBlue": False
+            }
+    
+            # Remove Zerodha kite object if present
+            if "kite" in st.session_state:
+                st.session_state.kite = None
+    
+            st.success("You have been logged out successfully.")
+            st.info("Please reconnect your broker from the 'Zerodha Broker API' menu.")
+    
+        st.write("---")
+        st.caption("Your session is now cleared. Safe exit 👋")    
+
+#--------------------------------------------------------------------------
+elif MENU == "My Account":
+        st.title("My Account")
+        st.set_page_config(page_title="Zerodha Dashboard", layout="wide")
+        #st.title("📊 Zerodha Orders & Holdings Dashboard")
+        
+        # ---------------------------
+        # Session State
+        # ---------------------------
+        if st.session_state.api_status.get("Zerodha"):
+            kite = st.session_state.kite 
+            def fetch_zerodha_data():
+                kite = st.session_state.kite
+                # IMPORTANT: make kite available everywhere below
+     
+            
+                try:
+                    funds = kite.margins()["equity"]["available"]["cash"]
+                    holdings = kite.holdings()
+                    positions = kite.positions()["net"]
+                    orders = kite.orders()
+            
+                    return funds, holdings, positions, orders
+            
+                except Exception as e:
+                    st.error(f"Error fetching Zerodha data: {e}")
+                    return 0, [], [], []
+
+            funds, holdings, positions, orders = fetch_zerodha_data()
+        
+            st.subheader("Zerodha Account Overview")
+        
+            #colA, colB = st.columns(2)
+        
+            #with colA:
+                #st.metric("Total Funds", f"₹{funds:,.0f}")
+        
+            #with colB:
+                #st.metric("Open Positions", len(positions))
+        
+            #st.markdown("### Holdings")
+            #st.dataframe(holdings, use_container_width=True, height=200)
+        
+            #st.markdown("### Positions")
+            #st.dataframe(positions, use_container_width=True, height=200)
+        
+            #st.markdown("### Orders")
+            #st.dataframe(orders, use_container_width=True, height=200)
+            #---------------------------------------------------------------------------
+
+            # Tabs
+            tab1, tab2, tab3 = st.tabs(["👤 Account Details", "📁 Holdings", "📘 Orders"])
+        
+            # -----------------------------------------------------------
+            # TAB 1 — ACCOUNT HOLDER DETAILS
+            # -----------------------------------------------------------
+            with tab1:
+                st.subheader("👤 Account Holder Details")
+        
+                try:
+                    profile = kite.profile()  # <-- Fetch user details
+        
+                    df_profile = pd.DataFrame({
+                        "Field": ["User ID", "User Name", "Email", "Broker", "Products", "Exchanges"],
+                        "Value": [
+                            profile.get("user_id"),
+                            profile.get("user_name"),
+                            profile.get("email"),
+                            profile.get("broker"),
+                            ", ".join(profile.get("products")) if isinstance(profile.get("products"), list) else profile.get("products"),
+                            ", ".join(profile.get("exchanges")) if isinstance(profile.get("exchanges"), list) else profile.get("exchanges")
+                        ]
+                    })
+        
+                    st.table(df_profile)
+        
+                except Exception as e:
+                    st.error(f"Error fetching account details: {e}")
+        
+            # -----------------------------------------------------------
+            # TAB 2 — HOLDINGS
+            # -----------------------------------------------------------
+            with tab2:
+                st.subheader("📁 Your Holdings")
+        
+                try:
+                    holdings = kite.holdings()
+                    df_hold = pd.DataFrame(holdings)
+        
+                    if not df_hold.empty:
+                        st.dataframe(df_hold, use_container_width=True)
+                    else:
+                        st.info("No holdings found.")
+        
+                except Exception as e:
+                    st.error(f"Error fetching holdings: {e}")
+        
+            # -----------------------------------------------------------
+            # TAB 3 — ORDERS
+            # -----------------------------------------------------------
+            with tab3:
+                st.subheader("📘 Order History")
+        
+                try:
+                    orders = kite.orders()
+                    df_orders = pd.DataFrame(orders)
+        
+                    if not df_orders.empty:
+                        st.dataframe(df_orders, use_container_width=True)
+                    else:
+                        st.info("No orders found.")
+        
+                except Exception as e:
+                    st.error(f"Error fetching orders: {e}")
+
+
+# ------------------------------------------------------------
+# Footer
+# ------------------------------------------------------------
+st.markdown("---")
+st.caption("© 2025 Shree Software • This is a colorful demo UI. Replace demo handlers with your live logic, APIs, and secure storage.")

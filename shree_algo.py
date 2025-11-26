@@ -6583,6 +6583,40 @@ elif MENU =="Live Trade":
 
     
     
+    # ---- Fetch orders from Kite ----
+    orders = kite.orders()  # list of dicts
+    
+    if not orders:
+        st.write("No orders placed yet.")
+    else:
+        # Convert to DataFrame
+        df = pd.DataFrame(orders)
+    
+        # Check available columns
+        st.write("Available columns:", df.columns.tolist())
+    
+        # Select only safe columns that exist
+        cols = [c for c in [
+            "order_id", "parent_order_id", "status", "tradingsymbol", 
+            "transaction_type", "quantity", "filled_quantity",
+            "average_price", "price", "product", "order_type", "exchange", "placed_by", "exchange_timestamp"
+        ] if c in df.columns]
+    
+        df_summary = df[cols].sort_values("exchange_timestamp", ascending=False)
+    
+        st.subheader("📝 Zerodha Order Log")
+        st.dataframe(df_summary)
+    
+        # Optional: show summary stats per symbol
+        st.subheader("📊 Summary per Symbol")
+        summary = df_summary.groupby("tradingsymbol").agg({
+            "quantity": "sum",
+            "filled_quantity": "sum",
+            "average_price": "mean"
+        }).reset_index()
+        st.dataframe(summary)
+
+
     
     st.write("### Trade Log Summary")
 

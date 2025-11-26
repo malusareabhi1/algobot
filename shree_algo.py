@@ -475,22 +475,26 @@ def find_nearest_itm_option0():
     #st.write(option_chain_df.head())
     return  option_chain_df
 
-def find_nearest_itm_option(spot_price, option_type, chain):
-    """
-    Zerodha-based ATM/ITM option finder
-    """
+def find_nearest_itm_option(kite, spot_price, option_type):
+    df = load_zerodha_instruments()
+    chain = get_nifty_option_chain(df)
 
-    if option_type.upper() == "CALL":
-        opt_type = "CE"
-        valid = [c for c in chain if c.get("instrument_type") == "CE" and c.get("strike") <= spot_price]
-    else:
-        opt_type = "PE"
-        valid = [c for c in chain if c.get("instrument_type") == "PE" and c.get("strike") >= spot_price]
+    if chain.empty:
+        raise ValueError("No NIFTY options found in Zerodha instruments")
 
-    if not valid:
-        raise ValueError("No ITM option found")
+    selected = find_nearest_itm_from_zerodha(chain, spot_price, option_type)
 
-    return min(valid, key=lambda x: abs(x["strike"] - spot_price))
+    tradingsymbol = selected["tradingsymbol"]
+    ltp = get_ltp(kite, tradingsymbol)
+
+    return {
+        "tradingsymbol": tradingsymbol,
+        "strike": selected["strike"],
+        "instrument_token": selected["instrument_token"],
+        "option_type": option_type.upper(),
+        "ltp": ltp
+    }
+
 
 
 
@@ -1806,35 +1810,26 @@ elif MENU == "Backtest":
     #st.write(option_chain_df.head())
     
     ################################################################################################
-    def find_nearest_itm_option():
-        import nsepython
-        from nsepython import nse_optionchain_scrapper
+   def find_nearest_itm_option(kite, spot_price, option_type):
+        df = load_zerodha_instruments()
+        chain = get_nifty_option_chain(df)
     
+        if chain.empty:
+            raise ValueError("No NIFTY options found in Zerodha instruments")
     
-        option_chain = nse_optionchain_scrapper('NIFTY')
-        df = []
-        
-        for item in option_chain['records']['data']:
-            strike = item['strikePrice']
-            expiry = item['expiryDate']
-            if 'CE' in item:
-                ce = item['CE']
-                ce['strikePrice'] = strike
-                ce['expiryDate'] = expiry
-                ce['optionType'] = 'CE'
-                df.append(ce)
-            if 'PE' in item:
-                pe = item['PE']
-                pe['strikePrice'] = strike
-                pe['expiryDate'] = expiry
-                pe['optionType'] = 'PE'
-                df.append(pe)
-        
-        #import pandas as pd
-        option_chain_df = pd.DataFrame(df)
-        option_chain_df['expiryDate'] = pd.to_datetime(option_chain_df['expiryDate'])
-        #st.write(option_chain_df.head())
-        return  option_chain_df
+        selected = find_nearest_itm_from_zerodha(chain, spot_price, option_type)
+    
+        tradingsymbol = selected["tradingsymbol"]
+        ltp = get_ltp(kite, tradingsymbol)
+    
+        return {
+            "tradingsymbol": tradingsymbol,
+            "strike": selected["strike"],
+            "instrument_token": selected["instrument_token"],
+            "option_type": option_type.upper(),
+            "ltp": ltp
+        }
+
     
     
     
@@ -3836,6 +3831,12 @@ elif MENU == "Backtest":
     
             # Get option chain and trade log
             result_chain = find_nearest_itm_option()
+            
+            spot_price = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
+
+            result = find_nearest_itm_option(kite, spot_price, ot)
+            st.write(result)
+            
             spot_price = signal['spot_price']
             ot = "CE" if signal["option_type"].upper() == "CALL" else "PE"
             result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)

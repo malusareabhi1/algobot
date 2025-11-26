@@ -6310,7 +6310,7 @@ elif MENU =="Live Trade":
 
         
         st.write("Nearest ITM Call option to BUY:")
-        df_option = pd.DataFrame([df_option['option_data']]).T
+        df_option = pd.DataFrame([result['option_data']]).T
         df_option.columns = ["Value"]  # Rename column for clarity
         
         st.table(df_option)

@@ -6475,7 +6475,8 @@ elif MENU =="Live Trade":
     try:
             if "kite" in st.session_state and st.session_state.kite:
                 kite = st.session_state.kite
-            tradingsymbol = result['option_data']['identifier'].replace("OPTIDX", "")
+            #tradingsymbol = result['option_data']['identifier'].replace("OPTIDX", "")  #selected_option
+            tradingsymbol = selected_option['option_data']['identifier'].replace("OPTIDX", "")
             # Example: NIFTY25-11-2025CE26200 (correct format)
             st.write(tradingsymbol)
            

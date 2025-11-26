@@ -3999,7 +3999,7 @@ elif MENU == "Backtest":
         }).dropna().reset_index()
         return df
         
-    def get_option_data_realtime(strike, expiry, option_type):
+    def get_option_data_realtime0(strike, expiry, option_type):
         """
         Fetch intraday option chain and simulate 15-min OHLC for specified contract.
         """
@@ -4020,6 +4020,54 @@ elif MENU == "Backtest":
             'Close': [premium]
         })
         return df
+
+    def get_option_data_realtime(strike, expiry, option_type):
+        """
+        Fetch real-time option LTP from Zerodha & simulate 15-min OHLC.
+        Works WITHOUT NSE website.
+        """
+    
+        # Step 1: Extract all NFO option instruments
+        ins = kite.instruments("NFO")
+    
+        # Step 2: Find matching option contract
+        option_list = [
+            i for i in ins
+            if i["segment"] == "NFO-OPT"
+            and i["instrument_type"] == option_type.upper()
+            and i["strike"] == strike
+            and str(i["expiry"]) == str(expiry)      # match expiry
+        ]
+    
+        if not option_list:
+            return None  # No contract found
+    
+        option = option_list[0]  # Only one matching contract
+    
+        trading_symbol = option["tradingsymbol"]
+        exchange = option["exchange"]
+    
+        # Step 3: Get real-time LTP
+        try:
+            ltp_data = kite.ltp(f"{exchange}:{trading_symbol}")
+            premium = list(ltp_data.values())[0]["last_price"]
+        except Exception as e:
+            print("Error fetching LTP:", e)
+            return None
+    
+        # Step 4: Create simulated candle
+        now = datetime.now()
+    
+        df = pd.DataFrame({
+            "Datetime": [now],
+            "Open": [premium],
+            "High": [premium],
+            "Low": [premium],
+            "Close": [premium]
+        })
+    
+        return df
+
         
     def track_trade_exit(signal, option_prices_df):
         """

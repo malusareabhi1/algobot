@@ -15,7 +15,7 @@ import yfinance as yf
 # Page Config & Global Theming
 # ------------------------------------------------------------
 st.set_page_config(
-    page_title="Algo Trading Platform",
+    page_title="TALK AlgoLabs Trading Platform",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -959,7 +959,8 @@ def add_trade_log(symbol: str, side: str, qty: int, price: float, pnl: float):
 # Sidebar Navigation
 # ------------------------------------------------------------
 with st.sidebar:
-    st.title("⚡ Algo Trading")
+    st.image("logo.png", width=120)
+    st.title("⚡ TALK AlgoLabs")
     # Theme toggle (visual only)
     st.session_state.theme_dark = st.toggle("Dark Theme", value=st.session_state.theme_dark)
     # Mark attribute for CSS targeting

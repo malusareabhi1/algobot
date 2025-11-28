@@ -7579,18 +7579,7 @@ elif MENU == "Live Trade2":
         st.plotly_chart(fig, use_container_width=True)
         #st.write("Columns:", df.columns.tolist())
         # Build OHLCV table from your columns
-        df_table = df[['Datetime',
-                       'Open_^NSEI',
-                       'High_^NSEI',
-                       'Low_^NSEI',
-                       'Close_^NSEI',
-                       'Volume_^NSEI']].copy()
         
-        # Format datetime for readability
-        df_table['Datetime'] = df_table['Datetime'].dt.strftime("%Y-%m-%d %H:%M")
-        
-        st.subheader("15-Minute Candle OHLCV Table")
-        st.dataframe(df_table, use_container_width=True)
 #--------------------------------------------------------------------------------------------------------
 
         # --- SAFE SESSION STATE INITIALIZATION ---

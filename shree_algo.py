@@ -7602,23 +7602,27 @@ elif MENU == "Live Trade2":
             st.error("Column 'Datetime' not found in df_table.")
             st.stop()
         
-        # Safely create the variable
+        # Initialize at top
+        if "last_checked_candle" not in st.session_state:
+            st.session_state.last_checked_candle = None
+        
+        # Safely create current candle time
         current_candle_time = df_table["Datetime"].iloc[-1]
-
-        if current_candle_time != st.session_state.last_checked_candle:
-
+        
+        # Compare using .get() to avoid AttributeError
+        if current_candle_time != st.session_state.get("last_checked_candle"):
+        
+            # Update last checked
             st.session_state.last_checked_candle = current_candle_time
-    
-        # Call your strategy signal
-        signal = trading_signal_all_conditions(df_table)
-    
-        if signal:
-            st.success(f"🟢 SIGNAL GENERATED! → {signal['message']}")
-            # OPTIONAL: place live order using Zerodha
-            # place_zerodha_order(signal)
-    
+        
+            # Run your signal
+            signal = trading_signal_all_conditions(df_table)
+        
+            if signal:
+                st.success(f"New 15 min candle – SIGNAL: {signal['message']}")
         else:
-            st.warning("15-min candle closed → No signal.")
+            st.write("No new candle.")
+
 
    
 

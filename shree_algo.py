@@ -973,7 +973,7 @@ with st.sidebar:
 
     MENU = st.radio(
         "Navigate",
-        ["Home", "Strategies","My Account", "Zerodha Broker API","Groww Broker API", "Dashboard","Backtest","Live Trade","Paper Trade", "Products", "Support","Logout"],
+        ["Home", "Strategies","My Account", "Zerodha Broker API","Groww Broker API", "Dashboard","Backtest","Live Trade","Paper Trade", "Products", "Support","Live Trade2","Logout"],
         index=0,
     )
 
@@ -7441,6 +7441,96 @@ elif MENU == "My Account":
                 except Exception as e:
                     st.error(f"Error fetching orders: {e}")
 
+
+#-------------------------------------
+elif MENU == "Live Trade2":
+        st.title("Live Trade2")
+        import pandas as pd
+        from datetime import datetime, timedelta
+        import pytz
+        
+        def get_live_1minute_data(kite, symbol="NIFTY 50", interval="minute", days=2):
+            """
+            Fetches last 'days' of 1-minute historical data for NIFTY.
+            Returns clean dataframe with Datetime + OHLC (^NSEI naming)
+            """
+            ist = pytz.timezone("Asia/Kolkata")
+            to_date = datetime.now(ist)
+            from_date = to_date - timedelta(days=days)
+        
+            # NSE index token for NIFTY (for historical API)
+            instrument_token = 256265   # NIFTY 50 Index Token
+        
+            try:
+                data = kite.historical_data(
+                    instrument_token,
+                    from_date,
+                    to_date,
+                    interval,
+                    continuous=False,
+                    oi=False
+                )
+        
+                df = pd.DataFrame(data)
+                df.rename(columns={
+                    "date": "Datetime",
+                    "open":  "Open_^NSEI",
+                    "high":  "High_^NSEI",
+                    "low":   "Low_^NSEI",
+                    "close": "Close_^NSEI"
+                }, inplace=True)
+        
+                df["Datetime"] = pd.to_datetime(df["Datetime"]).dt.tz_convert("Asia/Kolkata")
+        
+                return df
+        
+            except Exception as e:
+                print("Error fetching 1-minute data:", e)
+                return pd.DataFrame()
+
+        def build_15min_candles(df_1min):
+            """
+            Converts live 1-minute candles to fresh 15-minute candles.
+            """
+            df = df_1min.copy()
+            df = df.set_index("Datetime")
+        
+            df_15 = df.resample("15T").agg({
+                "Open_^NSEI": "first",
+                "High_^NSEI": "max",
+                "Low_^NSEI": "min",
+                "Close_^NSEI": "last",
+            })
+        
+            df_15 = df_15.dropna()
+            df_15 = df_15.reset_index()
+        
+            return df_15
+
+
+        st.autorefresh(interval=30000)
+
+        df_1min_live = get_live_1minute_data()   # your function
+        
+        df_15 = build_15min_candles(df_1min_live)
+        
+        # Detect candle close
+        last15 = df_15["Datetime"].iloc[-1]
+        
+        if "last_checked" not in st.session_state:
+            st.session_state.last_checked = None
+        
+        if last15 != st.session_state.last_checked:
+        
+            st.session_state.last_checked = last15
+        
+            signal = trading_signal_all_conditions(df_15)
+        
+            if signal:
+                st.success(f"New 15m candle - SIGNAL: {signal['message']}")
+                # place_zerodha_order(signal)
+            else:
+                st.write("15m candle closed - No signal.")
 
 # ------------------------------------------------------------
 # Footer

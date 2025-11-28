@@ -7753,7 +7753,8 @@ elif MENU == "Live Trade2":
         signals = []
         for i in range(len(df)):
             candle = df.iloc[i]
-            sig = trading_signal_all_conditions(candle)  # Your function
+            #sig = trading_signal_all_conditions(candle)  # Your function
+            sig = trading_signal_single_candle(last_candle, candle_3pm)
             if sig:
                 signals.append("YES")
             else:

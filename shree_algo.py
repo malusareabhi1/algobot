@@ -7514,8 +7514,9 @@ elif MENU == "Live Trade2":
         #st.autorefresh(interval=30000)
         from streamlit_autorefresh import st_autorefresh
         st_autorefresh(interval=30000, key="refresh")
-
-        df_1min_live = get_live_1minute_data(kite)   # your function
+        if "kite" in st.session_state and st.session_state.kite:
+            kite = st.session_state.kite
+            df_1min_live = get_live_1minute_data(kite)   # your function
         
         df_15 = build_15min_candles(df_1min_live)
         

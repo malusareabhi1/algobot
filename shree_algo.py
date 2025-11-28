@@ -7581,6 +7581,107 @@ elif MENU == "Live Trade2":
         # Build OHLCV table from your columns
         
 #--------------------------------------------------------------------------------------------------------
+        def trading_signal_single_candle(candle, prev_day_3pm_open, prev_day_3pm_close, quantity=10*750):
+            """
+            Evaluate a single 15-min candle against the previous day's 3PM candle for trading signals.
+            candle: pd.Series containing 'Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI', 'Datetime'
+            prev_day_3pm_open: float, previous day 3PM candle open
+            prev_day_3pm_close: float, previous day 3PM candle close
+            """
+        
+            spot_price = candle['Close_^NSEI']
+            open_c = candle['Open_^NSEI']
+            high_c = candle['High_^NSEI']
+            low_c = candle['Low_^NSEI']
+            close_c = candle['Close_^NSEI']
+            entry_time = candle['Datetime']
+        
+            stoploss = close_c * 0.90
+            take_profit = close_c * 1.10
+            expiry = get_nearest_weekly_expiry(entry_time)  # assuming you have this function
+        
+            # Gap evaluation
+            gap_up = open_c > prev_day_3pm_close
+            gap_down = open_c < prev_day_3pm_close
+        
+            # -------------------------------
+            # CONDITION 1 – CALL
+            # -------------------------------
+            cond1 = (low_c < prev_day_3pm_open and close_c > prev_day_3pm_open and
+                     low_c < prev_day_3pm_close and close_c > prev_day_3pm_close)
+        
+            if cond1:
+                return {
+                    "condition": 1,
+                    "option_type": "CALL",
+                    "buy_price": close_c,
+                    "stoploss": stoploss,
+                    "take_profit": take_profit,
+                    "quantity": quantity,
+                    "expiry": expiry,
+                    "entry_time": entry_time,
+                    "spot_price": spot_price,
+                    "message": "Condition 1: Momentum reversal — Buy CALL."
+                }
+        
+            # -------------------------------
+            # CONDITION 2 – PUT
+            # -------------------------------
+            cond2 = gap_down and (close_c < prev_day_3pm_open) and (close_c < prev_day_3pm_close)
+            if cond2:
+                return {
+                    "condition": 2,
+                    "option_type": "PUT",
+                    "buy_price": close_c,
+                    "stoploss": stoploss,
+                    "take_profit": take_profit,
+                    "quantity": quantity,
+                    "expiry": expiry,
+                    "entry_time": entry_time,
+                    "spot_price": spot_price,
+                    "message": "Condition 2: Gap-down continuation — Buy PUT."
+                }
+        
+            # -------------------------------
+            # CONDITION 3 – CALL
+            # -------------------------------
+            cond3 = gap_up and (close_c > prev_day_3pm_open) and (close_c > prev_day_3pm_close)
+            if cond3:
+                return {
+                    "condition": 3,
+                    "option_type": "CALL",
+                    "buy_price": close_c,
+                    "stoploss": stoploss,
+                    "take_profit": take_profit,
+                    "quantity": quantity,
+                    "expiry": expiry,
+                    "entry_time": entry_time,
+                    "spot_price": spot_price,
+                    "message": "Condition 3: Gap-up continuation — Buy CALL."
+                }
+        
+            # -------------------------------
+            # CONDITION 4 – PUT
+            # -------------------------------
+            cond4 = (high_c > prev_day_3pm_open and close_c < prev_day_3pm_open and
+                     high_c > prev_day_3pm_close and close_c < prev_day_3pm_close)
+            if cond4:
+                return {
+                    "condition": 4,
+                    "option_type": "PUT",
+                    "buy_price": close_c,
+                    "stoploss": stoploss,
+                    "take_profit": take_profit,
+                    "quantity": quantity,
+                    "expiry": expiry,
+                    "entry_time": entry_time,
+                    "spot_price": spot_price,
+                    "message": "Condition 4: Momentum reversal — Buy PUT."
+                }
+        
+            return None
+
+#----------------------------------------------------------------------------------------------------------------        
 
         # --- SAFE SESSION STATE INITIALIZATION ---
         if "last_checked_candle" not in st.session_state:
@@ -7614,9 +7715,18 @@ elif MENU == "Live Trade2":
         
             # Update last checked candle
             st.session_state.last_checked_candle = current_candle_time
-        
+            # Get the last 15-min candle
+            last_candle = df_15.iloc[-1]
+            
+            # Get previous day's 3 PM candle
+            prev_day = df_15['Datetime'].dt.date.iloc[-2]
+            candle_3pm = df_15[(df_15['Datetime'].dt.date == prev_day) & 
+                               (df_15['Datetime'].dt.hour == 15) & 
+                               (df_15['Datetime'].dt.minute == 0)].iloc[0]
+
             # Run your strategy
-            signal = trading_signal_all_conditions(df_table)
+            #signal = trading_signal_all_conditions(df_table)
+            signal = trading_signal_single_candle(last_candle, candle_3pm)
         
             # Show result
             if signal:

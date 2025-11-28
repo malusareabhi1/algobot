@@ -9,7 +9,10 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import yfinance as yf
+from streamlit_autorefresh import st_autorefresh
 
+# Auto-refresh every 30 seconds
+st_autorefresh(interval=30000, key="live_data_refresh")
 #st.sidebar.image("shree.jpg",width=15)  # Correct parameter
 # ------------------------------------------------------------
 # Page Config & Global Theming

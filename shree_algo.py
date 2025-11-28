@@ -7628,6 +7628,45 @@ elif MENU == "Live Trade2":
         else:
             st.write("Waiting for new 15-min candle…")
 
+        # ---- Build OHLCV table from your columns ----
+        df_table = df[['Datetime',
+                       'Open_^NSEI',
+                       'High_^NSEI',
+                       'Low_^NSEI',
+                       'Close_^NSEI',
+                       'Volume_^NSEI']].copy()
+        
+        # Format datetime
+        df_table['Datetime'] = df_table['Datetime'].dt.strftime("%Y-%m-%d %H:%M")
+        
+        # ---- Add SIGNAL column by checking each candle ----
+        signals = []
+        for i in range(len(df)):
+            candle = df.iloc[i]
+            sig = trading_signal_all_conditions(candle)  # Your function
+            if sig:
+                signals.append("YES")
+            else:
+                signals.append("NO")
+        
+        df_table["Signal"] = signals
+        
+        
+        # ---- Color the rows ----
+        def highlight_rows(row):
+            if row["Signal"] == "YES":
+                return ['background-color: #c8f7c5'] * len(row)   # light green
+            else:
+                return ['background-color: #f7c5c5'] * len(row)   # light red
+        
+        
+        styled_table = df_table.style.apply(highlight_rows, axis=1)
+        
+        # ---- Display table ----
+        st.subheader("15-Minute Candle OHLCV Table with Signals")
+        st.dataframe(styled_table, use_container_width=True)
+        
+        
 
         
 #-------------------------------------------------------------------------------------------

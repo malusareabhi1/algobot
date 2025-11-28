@@ -7591,6 +7591,56 @@ elif MENU == "Live Trade2":
         
         st.subheader("15-Minute Candle OHLCV Table")
         st.dataframe(df_table, use_container_width=True)
+#--------------------------------------------------------------------------------------------------------
+
+        # --- SAFE SESSION STATE INITIALIZATION ---
+        if "last_checked_candle" not in st.session_state:
+            st.session_state.last_checked_candle = None
+        
+        
+        # --- BUILD OHLCV TABLE ---
+        df_table = df[['Datetime',
+                       'Open_^NSEI',
+                       'High_^NSEI',
+                       'Low_^NSEI',
+                       'Close_^NSEI',
+                       'Volume_^NSEI']].copy()
+        
+        # Format datetime (KEEP ORIGINAL FOR CALCULATIONS)
+        df_table['Datetime_fmt'] = df_table['Datetime'].dt.strftime("%Y-%m-%d %H:%M")
+        
+        # Show table
+        st.subheader("15-Minute Candle OHLCV Table")
+        st.dataframe(
+            df_table[['Datetime_fmt', 'Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI', 'Volume_^NSEI']],
+            use_container_width=True
+        )
+        
+        # --- GET CURRENT (LATEST) CANDLE TIME ---
+        current_candle_time = df_table['Datetime'].iloc[-1]     # keep as datetime
+        
+        
+        # --- CHECK IF NEW 15-MIN CANDLE FORMED ---
+        if current_candle_time != st.session_state.get("last_checked_candle"):
+        
+            # Update last checked candle
+            st.session_state.last_checked_candle = current_candle_time
+        
+            # Run your strategy
+            signal = trading_signal_all_conditions(df_table)
+        
+            # Show result
+            if signal:
+                st.success(f"NEW 15-MIN CANDLE — SIGNAL GENERATED: {signal['message']}")
+                # place_zerodha_order(signal)   # optional
+            else:
+                st.info("NEW 15-MIN CANDLE — No signal generated.")
+        
+        else:
+            st.write("Waiting for new 15-min candle…")
+
+
+        
 #-------------------------------------------------------------------------------------------
         # Make sure df_table is not empty
         if df_table.empty:

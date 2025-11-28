@@ -7511,7 +7511,9 @@ elif MENU == "Live Trade2":
             return df_15
 
 
-        st.autorefresh(interval=30000)
+        #st.autorefresh(interval=30000)
+        from streamlit_autorefresh import st_autorefresh
+        st_autorefresh(interval=30000, key="refresh")
 
         df_1min_live = get_live_1minute_data()   # your function
         

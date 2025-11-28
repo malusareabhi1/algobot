@@ -1571,8 +1571,170 @@ elif MENU == "Backtest":
         For demo, returns today + 7 days (Saturday)
         """
         return today + pd.Timedelta(days=7)
+
+    def trading_signal_all_conditions(df, quantity=10 * 750):
+        """
+        Evaluates Conditions 1–4 and returns the first valid trade signal.
+        Ensures no signal is generated before the 9:30 candle completes.
+        """
     
-    def trading_signal_all_conditions(df, quantity=10*750):
+        df = df.copy()
+        df["Date"] = df["Datetime"].dt.date
+        spot_price = df["Close_^NSEI"].iloc[-1]
+    
+        # --- Identify last 2 available days ---
+        unique_days = sorted(df["Date"].unique())
+        if len(unique_days) < 2:
+            return None
+    
+        day0 = unique_days[-2]   # previous day
+        day1 = unique_days[-1]   # current day
+    
+        # --- BLOCK EARLY EVALUATION BEFORE 9:30 ---
+        import datetime
+        now = df["Datetime"].iloc[-1]
+        if now.date() == day1 and now.time() < datetime.time(9, 30):
+            return None
+    
+        # --- Extract required candles ---
+        candle_3pm = df[(df["Date"] == day0) &
+                        (df["Datetime"].dt.hour == 15) &
+                        (df["Datetime"].dt.minute == 0)]
+    
+        if candle_3pm.empty:
+            return None
+    
+        open_3pm  = candle_3pm.iloc[0]["Open_^NSEI"]
+        close_3pm = candle_3pm.iloc[0]["Close_^NSEI"]
+    
+        candle_930 = df[(df["Date"] == day1) &
+                        (df["Datetime"].dt.hour == 9) &
+                        (df["Datetime"].dt.minute == 15)]
+    
+        if candle_930.empty:
+            return None
+    
+        # --- Extract 9:30 Candle Data ---
+        row930      = candle_930.iloc[0]
+        open_930    = row930["Open_^NSEI"]
+        close_930   = row930["Close_^NSEI"]
+        high_930    = row930["High_^NSEI"]
+        low_930     = row930["Low_^NSEI"]
+        entry_time  = row930["Datetime"]
+        day1_open   = open_930
+    
+        # --- Option Price and Risk ---
+        buy_price   = close_930
+        stoploss    = buy_price * 0.90
+        take_profit = buy_price * 1.10
+        expiry      = get_nearest_weekly_expiry(pd.to_datetime(day1))
+    
+        # --- Gap Evaluation ---
+        gap_up       = day1_open > close_3pm
+        gap_down     = day1_open < close_3pm
+    
+        # -------------------------------
+        # CONDITION 1 – CALL
+        # -------------------------------
+        cond1 = (
+            (low_930 < open_3pm) and (close_930 > open_3pm) and
+            (low_930 < close_3pm) and (close_930 > close_3pm) and
+            (close_930 > open_3pm and close_930 > close_3pm)
+        )
+    
+        if cond1:
+            return {
+                "condition": 1,
+                "option_type": "CALL",
+                "buy_price": buy_price,
+                "stoploss": stoploss,
+                "take_profit": take_profit,
+                "quantity": quantity,
+                "expiry": expiry,
+                "entry_time": entry_time,
+                "spot_price": spot_price,
+                "message": "Condition 1: Momentum reversal — Buy CALL."
+            }
+    
+        # -------------------------------
+        # CONDITION 2 – PUT on Gap-down breakdown
+        # -------------------------------
+        if gap_down and (close_930 < open_3pm) and (close_930 < close_3pm):
+    
+            ref_low = low_930
+    
+            day1_after = df[(df["Date"] == day1) &
+                            (df["Datetime"] > entry_time)].sort_values("Datetime")
+    
+            for _, candle in day1_after.iterrows():
+                if candle["Low_^NSEI"] < ref_low:
+                    buy = candle["Close_^NSEI"]
+                    return {
+                        "condition": 2,
+                        "option_type": "PUT",
+                        "buy_price": buy,
+                        "stoploss": buy * 0.90,
+                        "take_profit": buy * 1.10,
+                        "quantity": quantity,
+                        "expiry": expiry,
+                        "entry_time": candle["Datetime"],
+                        "spot_price": spot_price,
+                        "message": "Condition 2: Gap-down continuation — Buy PUT."
+                    }
+    
+        # -------------------------------
+        # CONDITION 3 – CALL on Gap-up breakout
+        # -------------------------------
+        if gap_up and (close_930 > open_3pm) and (close_930 > close_3pm):
+    
+            ref_high = high_930
+    
+            day1_after = df[(df["Date"] == day1) &
+                            (df["Datetime"] > entry_time)].sort_values("Datetime")
+    
+            for _, candle in day1_after.iterrows():
+                if candle["High_^NSEI"] > ref_high:
+                    buy = candle["Close_^NSEI"]
+                    return {
+                        "condition": 3,
+                        "option_type": "CALL",
+                        "buy_price": buy,
+                        "stoploss": buy * 0.90,
+                        "take_profit": buy * 1.10,
+                        "quantity": quantity,
+                        "expiry": expiry,
+                        "entry_time": candle["Datetime"],
+                        "spot_price": spot_price,
+                        "message": "Condition 3: Gap-up continuation — Buy CALL."
+                    }
+    
+        # -------------------------------
+        # CONDITION 4 – PUT
+        # -------------------------------
+        cond4 = (
+            (high_930 > open_3pm) and (close_930 < open_3pm) and
+            (high_930 > close_3pm) and (close_930 < close_3pm) and
+            (close_930 < open_3pm and close_930 < close_3pm)
+        )
+    
+        if cond4:
+            return {
+                "condition": 4,
+                "option_type": "PUT",
+                "buy_price": buy_price,
+                "stoploss": stoploss,
+                "take_profit": take_profit,
+                "quantity": quantity,
+                "expiry": expiry,
+                "entry_time": entry_time,
+                "spot_price": spot_price,
+                "message": "Condition 4: Momentum reversal — Buy PUT."
+            }
+    
+        return None
+
+    
+    def trading_signal_all_conditions-28nov(df, quantity=10*750):
         """
         Evaluate all 4 conditions and return trade signals if any triggered.
     

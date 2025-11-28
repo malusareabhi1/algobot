@@ -7592,6 +7592,19 @@ elif MENU == "Live Trade2":
         st.subheader("15-Minute Candle OHLCV Table")
         st.dataframe(df_table, use_container_width=True)
 #-------------------------------------------------------------------------------------------
+        # Make sure df_table is not empty
+        if df_table.empty:
+            st.warning("df_table is empty — cannot read current candle.")
+            st.stop()
+        
+        # Make sure column exists
+        if "Datetime" not in df_table.columns:
+            st.error("Column 'Datetime' not found in df_table.")
+            st.stop()
+        
+        # Safely create the variable
+        current_candle_time = df_table["Datetime"].iloc[-1]
+
         if current_candle_time != st.session_state.last_checked_candle:
 
             st.session_state.last_checked_candle = current_candle_time

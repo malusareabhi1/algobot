@@ -7594,7 +7594,7 @@ elif MENU == "Live Trade2":
 #-------------------------------------------------------------------------------------------
         if current_candle_time != st.session_state.last_checked_candle:
 
-        st.session_state.last_checked_candle = current_candle_time
+            st.session_state.last_checked_candle = current_candle_time
     
         # Call your strategy signal
         signal = trading_signal_all_conditions(df_table)

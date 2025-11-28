@@ -1734,7 +1734,7 @@ elif MENU == "Backtest":
         return None
 
     
-    def trading_signal_all_conditions-28nov(df, quantity=10*750):
+    def trading_signal_all_conditions_28nov(df, quantity=10*750):
         """
         Evaluate all 4 conditions and return trade signals if any triggered.
     

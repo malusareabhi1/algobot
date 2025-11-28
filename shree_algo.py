@@ -7717,16 +7717,21 @@ elif MENU == "Live Trade2":
             st.session_state.last_checked_candle = current_candle_time
             # Get the last 15-min candle
             last_candle = df_15.iloc[-1]
+            # Get the last candle of the df_15 table
+            last_candle = df_15.iloc[-1]
             
             # Get previous day's 3 PM candle
             prev_day = df_15['Datetime'].dt.date.iloc[-2]
-            candle_3pm = df_15[(df_15['Datetime'].dt.date == prev_day) & 
-                               (df_15['Datetime'].dt.hour == 15) & 
-                               (df_15['Datetime'].dt.minute == 0)].iloc[0]
+            candle_3pm = df_15[
+                (df_15['Datetime'].dt.date == prev_day) &
+                (df_15['Datetime'].dt.hour == 15) &
+                (df_15['Datetime'].dt.minute == 0)
+            ].iloc[0]
+            
+            # Now call function
+            sig = trading_signal_single_candle(last_candle, candle_3pm)
 
-            # Run your strategy
-            #signal = trading_signal_all_conditions(df_table)
-            signal = trading_signal_single_candle(last_candle, candle_3pm)
+            
         
             # Show result
             if signal:

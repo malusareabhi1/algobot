@@ -6469,7 +6469,15 @@ elif MENU =="Live Trade":
     result_chain=find_nearest_itm_option()
     #st.write(result_chain)
     #calling all condition in one function
-    signal = trading_signal_all_conditions(df)
+    # --- HARD BLOCK: do not detect any signal before 9:30 AM ---
+    last_time = df["Datetime"].iloc[-1].time()
+    
+    import datetime
+    if last_time < datetime.time(9, 30):
+        st.warning("Waiting for first 15-min candle (till 9:30 AM)... No signals allowed before 9:30.")
+        signal = None
+    else:
+        signal = trading_signal_all_conditions(df)
     #st.write("###  Signal")
     #st.write(signal)
     if signal:

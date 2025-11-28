@@ -7591,6 +7591,22 @@ elif MENU == "Live Trade2":
         
         st.subheader("15-Minute Candle OHLCV Table")
         st.dataframe(df_table, use_container_width=True)
+#-------------------------------------------------------------------------------------------
+        if current_candle_time != st.session_state.last_checked_candle:
+
+        st.session_state.last_checked_candle = current_candle_time
+    
+        # Call your strategy signal
+        signal = trading_signal_all_conditions(df_table)
+    
+        if signal:
+            st.success(f"🟢 SIGNAL GENERATED! → {signal['message']}")
+            # OPTIONAL: place live order using Zerodha
+            # place_zerodha_order(signal)
+    
+        else:
+            st.warning("15-min candle closed → No signal.")
+
    
 
 

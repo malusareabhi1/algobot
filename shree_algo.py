@@ -6799,8 +6799,13 @@ elif MENU =="Live Trade":
             #-------------------------------------------------------------------------------------
             
             #--------------------------------------------------------------------------------------
+            from datetime import datetime
+            import pytz
+            
+            # IST timezone
             ist = pytz.timezone("Asia/Kolkata")
-            now = datetime.now(ist).time()
+            now_dt = datetime.now(ist)     # full datetime object
+            now = now_dt.time()            # extract time only for comparisons
             #------------------------------------------------
             st.write(f"Placing order for: **{trading_symbol}**")
             st.write(f"Quantity: {qty}, LTP: {ltp}")

@@ -7577,7 +7577,7 @@ elif MENU == "Live Trade2":
     
     
         st.plotly_chart(fig, use_container_width=True)
-        st.write("Columns:", df.columns.tolist())
+        #st.write("Columns:", df.columns.tolist())
         # Build OHLCV table from your columns
         df_table = df[['Datetime',
                        'Open_^NSEI',

@@ -7476,7 +7476,7 @@ elif MENU == "Live Trade2":
     else:
         st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
 
-    st.title("Nifty 15-min Chart for Selected Date & Previous Day")
+    st.title("Nifty 15-min Chart ")
     
     # Select date input (default today)
     selected_date = st.date_input("Select date", value=datetime.today())

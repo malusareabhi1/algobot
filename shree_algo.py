@@ -7578,6 +7578,22 @@ elif MENU == "Live Trade2":
     
         st.plotly_chart(fig, use_container_width=True)
 
+            # --- Extract useful columns for table ---
+        df_table = df[['Datetime',
+                       'Open_^NSEI',
+                       'High_^NSEI',
+                       'Low_^NSEI',
+                       'Close_^NSEI',
+                       'Volume']].copy()
+        
+        # Format datetime nicely
+        df_table['Datetime'] = df_table['Datetime'].dt.strftime("%Y-%m-%d %H:%M")
+        
+        # Show the table on Streamlit
+        st.subheader("15-Minute Candle OHLCV Table")
+        st.dataframe(df_table, use_container_width=True)
+
+
    
 
 # ------------------------------------------------------------

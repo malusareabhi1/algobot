@@ -7733,7 +7733,24 @@ elif MENU == "Live Trade2":
                 return None
 
         #----------------------------------------------------------------------------
-
+        # Indian market holidays
+        in_holidays = holidays.IN()
+        
+        def last_trading_day():
+            """Return last NSE working day (Mon–Fri, excluding holidays)."""
+        
+            today = datetime.date.today()
+            one_day = datetime.timedelta(days=1)
+        
+            # Start from yesterday calendar
+            check_day = today - one_day  
+        
+            # Loop backward until we find a working day
+            while check_day.weekday() >= 5 or check_day in in_holidays:
+                check_day -= one_day
+        
+            return check_day
+        #--------------------------------------------------------------------------------
         # 🔍 Check if kite session is present
         if "kite" not in st.session_state:
             st.warning("⚠ Please connect to Zerodha first!")
@@ -7751,7 +7768,8 @@ elif MENU == "Live Trade2":
             today = datetime.now().date()
             
             # Yesterday's date
-            yesterday = today - timedelta(days=1)
+            yesterday = last_trading_day()
+            tomorrow = yesterday + datetime.timedelta(days=1)    
         
             # Fetch yesterday's full day 15-minute data
             df = yf.download("^NSEI", 

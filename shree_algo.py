@@ -7736,7 +7736,7 @@ elif MENU == "Live Trade2":
         #----------------------------------------------------------------------------
         # Indian market holidays
         import holidays   # <- FIXED
-        in_holidays = holidays.IN()
+        #in_holidays = holidays.IN()
         # Define Indian holidays
         IN_HOLIDAYS = holidays.country_holidays("IN")
         

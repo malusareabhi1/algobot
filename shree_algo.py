@@ -7581,7 +7581,15 @@ elif MENU == "Live Trade2":
         # Build OHLCV table from your columns
         
 #--------------------------------------------------------------------------------------------------------
-       
+       # Check if kite session exists
+        if "kite" not in st.session_state:
+            st.warning("⚠ Please connect first!")
+            st.stop()       # ⛔ stop running further code
+        
+        # If connected, retrieve the object
+        kite = st.session_state.kite
+        
+        st.success("✅ Connected. You can continue.")
    
 
 # ------------------------------------------------------------

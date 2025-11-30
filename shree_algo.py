@@ -7635,31 +7635,6 @@ elif MENU == "Live Trade2":
         #---------------------------------------------------------------------------------------
       
 
-        st.subheader("⏱ Live 15-min Candle Updates Every 5 Minutes")
-        
-        while True:
-        
-            candle = get_latest_today_candle()
-        
-            if candle is not None:
-                placeholder.write(
-                    f"""
-                    ### 🟢 Latest 15-Min NIFTY 50 Candle  
-                    **Time:** {candle['Datetime']}  
-                    **Open:** {candle['Open']}  
-                    **High:** {candle['High']}  
-                    **Low:** {candle['Low']}  
-                    **Close:** {candle['Close']}  
-        
-                    ### 📘 Base Zone  
-                    **Low Zone:** {base['base_low']}  
-                    **High Zone:** {base['base_high']}  
-                    """
-                )
-        
-            # Sleep 5 minutes
-            time.sleep(300)
-                
 
 # ------------------------------------------------------------
 # Footer

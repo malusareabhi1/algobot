@@ -7605,8 +7605,8 @@ elif MENU == "Live Trade2":
         # ============================================
         
         # Option lot size for NIFTY / BANKNIFTY (you can change)
-        LOT_SIZE_NIFTY = 50
-        LOT_SIZE_BANKNIFTY = 15
+        LOT_SIZE_NIFTY = 1
+        LOT_SIZE_BANKNIFTY = 1
         
         # Default settings
         LOT_SIZE = LOT_SIZE_NIFTY        # select whichever you're trading

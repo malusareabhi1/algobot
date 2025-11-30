@@ -7448,7 +7448,7 @@ elif MENU == "My Account":
 #-------------------------------------
 elif MENU == "Live Trade2":
     st.title("Live Trade2")
-    import datetime
+    #import datetime
     from streamlit_autorefresh import st_autorefresh
     import time             # Python's time module
     from datetime import time  # datetime.time (conflict!)

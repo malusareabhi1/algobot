@@ -7660,39 +7660,42 @@ elif MENU == "Live Trade2":
             base_high = max(base_open, base_close)
         
         # -------------------------------------------------------------
-        # LOOP THROUGH EVERY CANDLE AND DETECT SIGNALS
+        # LOOP THROUGH EVERY CANDLE AND DETECT SIGNALS (ONLY AFTER 9:30)
         # -------------------------------------------------------------
-        previous_day = last_day
         
-        first_candle_today = df_signal[df_signal['Datetime'].dt.date == today].head(1)
+        df_today = df_signal[df_signal['Datetime'].dt.date == today]
         
-        if not first_candle_today.empty:
-            C1 = first_candle_today.iloc[0]
+        # find 9:30 AM candle (2nd candle of the day)
+        nine_thirty_candle = df_today[df_today['Datetime'].dt.strftime("%H:%M") == "09:30"]
         
-            C1_high = C1['High']
-            C1_low  = C1['Low']
-            C1_close = C1['Close']
-            C1_index = C1.name
+        if not nine_thirty_candle.empty:
+            C = nine_thirty_candle.iloc[0]
+        
+            C_high = C['High']
+            C_low  = C['Low']
+            C_close = C['Close']
+            C_index = C.name
         
             # ---------- CONDITION 1: Break Above Base Zone ----------
-            if C1_low < base_high and C1_close > base_high:
-                df_signal.loc[C1_index, 'Signal'] = "Bullish"
-                df_signal.loc[C1_index, 'Reason'] = "Condition 1: Break Above Base Zone"
+            if C_low < base_high and C_close > base_high:
+                df_signal.loc[C_index, 'Signal'] = "Bullish"
+                df_signal.loc[C_index, 'Reason'] = "Condition 1: Break Above Base Zone"
         
             # ---------- CONDITION 2: Major Gap Down ----------
-            elif C1_close < base_low:
-                df_signal.loc[C1_index, 'Signal'] = "Bearish"
-                df_signal.loc[C1_index, 'Reason'] = "Condition 2: Major Gap Down"
+            elif C_close < base_low:
+                df_signal.loc[C_index, 'Signal'] = "Bearish"
+                df_signal.loc[C_index, 'Reason'] = "Condition 2: Major Gap Down"
         
             # ---------- CONDITION 3: Major Gap Up ----------
-            elif C1_close > base_high:
-                df_signal.loc[C1_index, 'Signal'] = "Bullish"
-                df_signal.loc[C1_index, 'Reason'] = "Condition 3: Major Gap Up"
+            elif C_close > base_high:
+                df_signal.loc[C_index, 'Signal'] = "Bullish"
+                df_signal.loc[C_index, 'Reason'] = "Condition 3: Major Gap Up"
         
             # ---------- CONDITION 4: Break Below Base Zone ----------
-            elif C1_high > base_low and C1_close < base_low:
-                df_signal.loc[C1_index, 'Signal'] = "Bearish"
-                df_signal.loc[C1_index, 'Reason'] = "Condition 4: Break Below Base Zone"
+            elif C_high > base_low and C_close < base_low:
+                df_signal.loc[C_index, 'Signal'] = "Bearish"
+                df_signal.loc[C_index, 'Reason'] = "Condition 4: Break Below Base Zone"
+
         
         # -------------------------------------------------------------
         # DISPLAY TABLE

@@ -7731,7 +7731,117 @@ elif MENU == "Live Trade2":
                 return data[trading_symbol]['last_price']
             except:
                 return None
+
+        #----------------------------------------------------------------------------
+
+        # 🔍 Check if kite session is present
+        if "kite" not in st.session_state:
+            st.warning("⚠ Please connect to Zerodha first!")
+            st.stop()
         
+        kite = st.session_state.kite
+        st.success("✅ Zerodha session connected")
+        
+        
+        # ---------------------------------------------------
+        # STEP 1: Load Yesterday 15:00–15:15 Base Candle
+        # ---------------------------------------------------
+        
+        def get_base_candle():
+            today = datetime.now().date()
+            
+            # Yesterday's date
+            yesterday = today - timedelta(days=1)
+        
+            # Fetch yesterday's full day 15-minute data
+            df = yf.download("^NSEI", 
+                             interval="15m",
+                             start=str(yesterday),
+                             end=str(today)
+                             )
+        
+            if df.empty:
+                return None
+            
+            df = df.reset_index()
+            df['Time'] = df['Datetime'].dt.strftime("%H:%M")
+        
+            # Locate the Base Candle (15:00–15:15)
+            base_candle = df[df["Time"] == "15:00"]
+        
+            if base_candle.empty:
+                return None
+        
+            row = base_candle.iloc[0]
+        
+            return {
+                "open": row["Open"],
+                "close": row["Close"],
+                "base_low": min(row["Open"], row["Close"]),
+                "base_high": max(row["Open"], row["Close"])
+            }
+        
+        
+        # ---------------------------------------------------
+        # STEP 2: Fetch today’s latest 15-minute candle
+        # ---------------------------------------------------
+        
+        def get_latest_today_candle():
+            today = datetime.now().date()
+        
+            df = yf.download("^NSEI",
+                             interval="15m",
+                             start=str(today),
+                             end=str(today + timedelta(days=1)))
+        
+            if df.empty:
+                return None
+        
+            df = df.reset_index()
+            return df.iloc[-1]  # latest candle
+        
+        
+        # ---------------------------------------------------
+        # STEP 3: Main Loop Every 5 Minutes
+        # ---------------------------------------------------
+        
+        placeholder = st.empty()
+        base = get_base_candle()
+        
+        if base is None:
+            st.error("❌ Could not fetch yesterday's Base Candle")
+            st.stop()
+        
+        # Display Base Candle
+        st.subheader("📌 Base Candle (Yesterday 15:00–15:15)")
+        st.write(base)
+        
+        
+        st.subheader("⏱ Live 15-min Candle Updates Every 5 Minutes")
+        
+        while True:
+        
+            candle = get_latest_today_candle()
+        
+            if candle is not None:
+                placeholder.write(
+                    f"""
+                    ### 🟢 Latest 15-Min NIFTY 50 Candle  
+                    **Time:** {candle['Datetime']}  
+                    **Open:** {candle['Open']}  
+                    **High:** {candle['High']}  
+                    **Low:** {candle['Low']}  
+                    **Close:** {candle['Close']}  
+        
+                    ### 📘 Base Zone  
+                    **Low Zone:** {base['base_low']}  
+                    **High Zone:** {base['base_high']}  
+                    """
+                )
+        
+            # Sleep 5 minutes
+            time.sleep(300)
+                
 
 # ------------------------------------------------------------
 # Footer

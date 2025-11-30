@@ -7741,17 +7741,16 @@ elif MENU == "Live Trade2":
         IN_HOLIDAYS = holidays.country_holidays("IN")
         
         def last_trading_day():
-            """
-            Return the last NSE trading day (Mon–Fri), skipping weekends and Indian holidays.
-            """
-            yesterday = datetime.date.today() - datetime.timedelta(days=1)
+            """Return the last NSE working day (Mon–Fri, excluding holidays)."""
+            today_date = datetime.date.today()
+            one_day = datetime.timedelta(days=1)
         
-            while True:
-                # If weekday is Mon–Fri and not a holiday, return
-                if yesterday.weekday() < 5 and yesterday not in IN_HOLIDAYS:
-                    return yesterday
-                # Otherwise, go one day back
-                yesterday -= datetime.timedelta(days=1)
+            check_day = today_date - one_day
+        
+            while check_day.weekday() >= 5 or check_day in IN_HOLIDAYS:
+                check_day -= one_day
+        
+            return check_day
         
         # Test
         print("Last trading day:", last_trading_day())

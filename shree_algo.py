@@ -7590,6 +7590,48 @@ elif MENU == "Live Trade2":
         kite = st.session_state.kite
         
         st.success("✅ Connected. You can continue.")
+        # ============================================
+        # Streamlit Page Settings
+        # ============================================
+        st.set_page_config(
+            page_title="Doctor Strategy Algo",
+            page_icon="⚡",
+            layout="wide",
+            initial_sidebar_state="expanded"
+        )
+        
+        # ============================================
+        # Global Constants
+        # ============================================
+        
+        # Option lot size for NIFTY / BANKNIFTY (you can change)
+        LOT_SIZE_NIFTY = 50
+        LOT_SIZE_BANKNIFTY = 15
+        
+        # Default settings
+        LOT_SIZE = LOT_SIZE_NIFTY        # select whichever you're trading
+        NUM_LOTS = 1                     # number of lots to trade
+        QUANTITY = LOT_SIZE * NUM_LOTS   # final quantity for order
+        
+        # Nearest strike step (NIFTY=50, BANKNIFTY=100)
+        STRIKE_STEP_NIFTY = 50
+        STRIKE_STEP_BANKNIFTY = 100
+        
+        STRIKE_STEP = STRIKE_STEP_NIFTY  # default
+        
+        # Interval for polling market data
+        POLL_INTERVAL = 2   # seconds
+        
+        # Auto-exit forced exit time
+        FORCE_EXIT_SECONDS = 600   # 10 minutes
+        
+        st.sidebar.title("⚙️ Configuration")
+        st.sidebar.write(f"Lot Size: {LOT_SIZE}")
+        st.sidebar.write(f"Quantity: {QUANTITY}")
+        st.sidebar.write(f"Strike Step: {STRIKE_STEP}")
+        st.sidebar.write(f"Polling Interval: {POLL_INTERVAL} sec")
+        st.sidebar.write(f"Forced Exit: {FORCE_EXIT_SECONDS} sec")
+
    
 
 # ------------------------------------------------------------

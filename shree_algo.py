@@ -7631,8 +7631,107 @@ elif MENU == "Live Trade2":
         st.sidebar.write(f"Strike Step: {STRIKE_STEP}")
         st.sidebar.write(f"Polling Interval: {POLL_INTERVAL} sec")
         st.sidebar.write(f"Forced Exit: {FORCE_EXIT_SECONDS} sec")
+        #---------------------------------------------------------------------------------------
+      
 
-   
+        # ============================================================
+        # Load instruments using Zerodha Kite API
+        # ============================================================
+        def load_instruments(kite):
+            """
+            Loads all instruments from Zerodha (kite.instruments()),
+            converts to pandas DataFrame, normalizes columns, and
+            filters only NFO Index Options.
+            """
+            instruments = kite.instruments("NFO")
+            df = pd.DataFrame(instruments)
+        
+            # Normalize column names
+            df.columns = df.columns.str.lower()
+        
+            # Filters: Only index options (CE/PE)
+            df = df[
+                (df["segment"] == "NFO-OPT") &
+                (df["instrument_type"].isin(["CE", "PE"]))
+            ]
+        
+            # Convert expiry to datetime
+            df["expiry"] = pd.to_datetime(df["expiry"])
+        
+            return df
+        
+        
+        # ============================================================
+        # Strike helpers
+        # ============================================================
+        def round_down_to_strike(price, step):
+            """Round price *down* to nearest strike."""
+            return int(price - (price % step))
+        
+        
+        def round_up_to_strike(price, step):
+            """Round price *up* to nearest strike."""
+            return int(price + (step - (price % step))) if price % step != 0 else price
+        
+        
+        # ============================================================
+        # Find option in Zerodha instruments list
+        # ============================================================
+        def find_option(df, symbol, strike, opt_type, expiry_date):
+            """
+            Returns a single matching option contract row
+            from Zerodha instruments DataFrame.
+            """
+            expiry_date = pd.to_datetime(expiry_date)
+        
+            subset = df[
+                (df["name"] == symbol) &
+                (df["strike"] == strike) &
+                (df["expiry"] == expiry_date) &
+                (df["instrument_type"] == opt_type)
+            ]
+        
+            if subset.empty:
+                return None
+        
+            return subset.iloc[0]
+        
+        
+        # ============================================================
+        # Nearest Weekly Expiry (Friday expiry)
+        # ============================================================
+        def nearest_weekly_expiry(today=None):
+            """
+            Finds nearest Friday expiry for NIFTY/BANKNIFTY.
+            Works for both same-week and next-week expiry.
+            """
+            if today is None:
+                today = dt.date.today()
+        
+            weekday = today.weekday()  # Monday=0 ... Sunday=6
+        
+            # If today is Friday
+            if weekday == 4:
+                return today
+        
+            # Days until Friday
+            days_to_friday = (4 - weekday) % 7
+            next_friday = today + dt.timedelta(days=days_to_friday)
+        
+            return next_friday
+        
+        
+        # ============================================================
+        # Get LTP using Zerodha
+        # ============================================================
+        def get_ltp(kite, trading_symbol):
+            """Get last traded price using Kite LTP API."""
+            try:
+                data = kite.ltp(trading_symbol)
+                return data[trading_symbol]['last_price']
+            except:
+                return None
+        
 
 # ------------------------------------------------------------
 # Footer

@@ -7734,6 +7734,7 @@ elif MENU == "Live Trade2":
 
         #----------------------------------------------------------------------------
         # Indian market holidays
+        import holidays   # <- FIXED
         in_holidays = holidays.IN()
         
         def last_trading_day():

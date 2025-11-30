@@ -7737,21 +7737,25 @@ elif MENU == "Live Trade2":
         # Indian market holidays
         import holidays   # <- FIXED
         in_holidays = holidays.IN()
+        # Define Indian holidays
+        IN_HOLIDAYS = holidays.country_holidays("IN")
         
         def last_trading_day():
-            """Return last NSE working day (Mon–Fri, excluding holidays)."""
+            """
+            Return the last NSE trading day (Mon–Fri), skipping weekends and Indian holidays.
+            """
+            yesterday = datetime.date.today() - datetime.timedelta(days=1)
         
-            today = datetime.date.today()
-            one_day = datetime.timedelta(days=1)
+            while True:
+                # If weekday is Mon–Fri and not a holiday, return
+                if yesterday.weekday() < 5 and yesterday not in IN_HOLIDAYS:
+                    return yesterday
+                # Otherwise, go one day back
+                yesterday -= datetime.timedelta(days=1)
         
-            # Start from yesterday calendar
-            check_day = today - one_day  
+        # Test
+        print("Last trading day:", last_trading_day())
         
-            # Loop backward until we find a working day
-            while check_day.weekday() >= 5 or check_day in in_holidays:
-                check_day -= one_day
-        
-            return check_day
         #--------------------------------------------------------------------------------
         # 🔍 Check if kite session is present
         if "kite" not in st.session_state:

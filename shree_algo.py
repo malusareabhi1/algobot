@@ -7633,7 +7633,80 @@ elif MENU == "Live Trade2":
         st.sidebar.write(f"Polling Interval: {POLL_INTERVAL} sec")
         st.sidebar.write(f"Forced Exit: {FORCE_EXIT_SECONDS} sec")
         #---------------------------------------------------------------------------------------
-      
+        # -------------------------------------------------------------
+        #  CREATE SIGNAL TABLE FOR EVERY 15-MIN CANDLE (Last day + Today)
+        # -------------------------------------------------------------
+        
+        # Clean dataframe for logic
+        df_signal = df_plot[['Datetime', 'Open_^NSEI', 'High_^NSEI', 'Low_^NSEI', 'Close_^NSEI']].copy()
+        df_signal.rename(columns={
+            'Open_^NSEI': 'Open',
+            'High_^NSEI': 'High',
+            'Low_^NSEI': 'Low',
+            'Close_^NSEI': 'Close'
+        }, inplace=True)
+        
+        df_signal['Signal'] = "No Signal"
+        df_signal['Reason'] = "-"
+        
+        # -------------------------------------------------------------
+        # Identify BASE ZONE (Previous Day 3:00 PM Candle)
+        # -------------------------------------------------------------
+        base_open = open_3pm
+        base_close = close_3pm
+        
+        if base_open and base_close:
+            base_low = min(base_open, base_close)
+            base_high = max(base_open, base_close)
+        
+        # -------------------------------------------------------------
+        # LOOP THROUGH EVERY CANDLE AND DETECT SIGNALS
+        # -------------------------------------------------------------
+        previous_day = last_day
+        
+        first_candle_today = df_signal[df_signal['Datetime'].dt.date == today].head(1)
+        
+        if not first_candle_today.empty:
+            C1 = first_candle_today.iloc[0]
+        
+            C1_high = C1['High']
+            C1_low  = C1['Low']
+            C1_close = C1['Close']
+            C1_index = C1.name
+        
+            # ---------- CONDITION 1: Break Above Base Zone ----------
+            if C1_low < base_high and C1_close > base_high:
+                df_signal.loc[C1_index, 'Signal'] = "Bullish"
+                df_signal.loc[C1_index, 'Reason'] = "Condition 1: Break Above Base Zone"
+        
+            # ---------- CONDITION 2: Major Gap Down ----------
+            elif C1_close < base_low:
+                df_signal.loc[C1_index, 'Signal'] = "Bearish"
+                df_signal.loc[C1_index, 'Reason'] = "Condition 2: Major Gap Down"
+        
+            # ---------- CONDITION 3: Major Gap Up ----------
+            elif C1_close > base_high:
+                df_signal.loc[C1_index, 'Signal'] = "Bullish"
+                df_signal.loc[C1_index, 'Reason'] = "Condition 3: Major Gap Up"
+        
+            # ---------- CONDITION 4: Break Below Base Zone ----------
+            elif C1_high > base_low and C1_close < base_low:
+                df_signal.loc[C1_index, 'Signal'] = "Bearish"
+                df_signal.loc[C1_index, 'Reason'] = "Condition 4: Break Below Base Zone"
+        
+        # -------------------------------------------------------------
+        # DISPLAY TABLE
+        # -------------------------------------------------------------
+        st.subheader("📘 15-Minute Candle Table with Signals")
+        
+        # Format datetime nicely
+        df_signal['Time'] = df_signal['Datetime'].dt.strftime("%Y-%m-%d  %H:%M")
+        
+        # Reorder Columns
+        df_show = df_signal[['Time', 'Open', 'High', 'Low', 'Close', 'Signal', 'Reason']]
+        
+        st.dataframe(df_show, use_container_width=True)
+          
 
 
 # ------------------------------------------------------------

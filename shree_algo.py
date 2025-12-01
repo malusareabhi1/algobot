@@ -7709,17 +7709,13 @@ elif MENU == "Live Trade2":
         
         # All your signal conditions above...
         # -----------------------------------
-        st.write("Columns in df_signal:", df_signal.columns.tolist())
-
-        # REMOVE ROWS WHERE SIGNAL = "No Signal"
+        #st.write("Columns in df_signal:", df_signal.columns.tolist())
+        df_signal.rename(columns={'Datetime': 'Time'}, inplace=True)
         df_show = df_signal[df_signal['Signal'] != "No Signal"]
-        
-        # Reorder Columns
         df_show = df_show[['Time', 'Open', 'High', 'Low', 'Close', 'Signal', 'Reason']]
-        
-        # Display only signal rows
         st.dataframe(df_show, use_container_width=True)
-
+        
+                
           
 
 

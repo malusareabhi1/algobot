@@ -7760,7 +7760,31 @@ elif MENU == "Setting":
             )
     
         
-    
+        # ---- MANUAL LOT SIZE OPTION ----
+        st.markdown("### ✋ Manual Lot Size (Optional)")
+        
+        manual_lot_size = st.number_input(
+            "Set Lot Size Manually (1–100)",
+            min_value=1,
+            max_value=100,
+            value=lot_size if lot_size > 0 else 1,
+            step=1
+        )
+        
+        # Final lot size selection (manual overrides auto)
+        final_lot_size = manual_lot_size
+        
+        st.metric("Final Lot Size Used", final_lot_size)
+        
+        # Save in session
+        st.session_state["diy_settings"] = {
+            "risk_per_trade": risk_per_trade,
+            "max_trades": max_trades,
+            "lot_size": final_lot_size,
+            "funds": funds,
+            "lot_cost_assumption": approx_lot_cost
+        }
+
         # ---- AUTO LOT SIZE ----
         st.markdown("### 📦 Auto Lot Size Calculation")
     

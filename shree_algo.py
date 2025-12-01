@@ -6971,7 +6971,7 @@ elif MENU =="Live Trade":
             # --------------------------
             data = {
                 "Metric": ["Option IV", "IV Rank", "VIX Value"],
-                "Value": [f"{option_iv*100:.2f}%", f"{iv_rank*100:.2f}%", f"{vix_value}"]
+                "Value": [f"{iv*100:.2f}%", f"{iv_rank*100:.2f}%", f"{vix_value}"]
             }
             
             df = pd.DataFrame(data)

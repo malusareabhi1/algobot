@@ -7720,7 +7720,7 @@ elif MENU == "Live Trade2":
         # Reorder Columns
         #df_show = df_signals_only[['Time', 'Open', 'High', 'Low', 'Close', 'Signal', 'Reason']]
         
-        st.dataframe(df_show, use_container_width=True)
+        #st.dataframe(df_show, use_container_width=True)
         df_show = df_signal[df_signal['Signal'].notna()][['Time', 'Open', 'High', 'Low', 'Close', 'Signal', 'Reason']]
 
         st.dataframe(df_show, use_container_width=True)

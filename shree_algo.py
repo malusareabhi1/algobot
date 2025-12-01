@@ -7809,10 +7809,13 @@ elif MENU == "Test1":
     # fix column names that yfinance sometimes prefixes (like 'Open', 'Close' etc.)
     # We will try to find columns for Open/High/Low/Close by checking substrings
     def find_col_like(cols, target):
+        target = target.lower()
         for c in cols:
-            if target.lower() in c.lower():
+            c_str = str(c).lower()
+            if target in c_str:
                 return c
         return None
+
 
     cols = df.columns.tolist()
     col_open = find_col_like(cols, 'open')

@@ -6868,36 +6868,74 @@ elif MENU =="Live Trade":
             #------------------------------------------------------------------------------------------------------------
             from datetime import datetime
 
-            def get_required_data(kite, tradingsymbol):
+            # ----------------------------
+            # 1️⃣ Expiry Parser
+            # ----------------------------
+            def parse_expiry(symbol):
+                """
+                Parse NSE option expiry from symbol like:
+                NIFTY25D0226200PE
+                BANKNIFTY25D0226200CE
+                """
+                # Remove index prefix
+                if "NIFTY" in symbol:
+                    data = symbol.replace("NIFTY", "")
+                elif "BANKNIFTY" in symbol:
+                    data = symbol.replace("BANKNIFTY", "")
+                else:
+                    st.error(f"Unknown symbol format: {symbol}")
+                    return None
+            
+                # First 5 chars = expiry code
+                expiry_code = data[:5]
+            
+                year = int("20" + expiry_code[:2])  # e.g., "25" → 2025
+                month_code = expiry_code[2]          # e.g., "D"
+                day = int(expiry_code[3:])           # e.g., "02"
+            
+                month_map = {
+                    "A":1, "B":2, "C":3, "M":4, "E":5, "F":6,
+                    "G":7, "H":8, "I":9, "J":10, "K":11, "D":12
+                }
+            
+                month = month_map.get(month_code)
+                if not month:
+                    st.error(f"Invalid month code: {month_code}")
+                    return None
+            
+                return datetime(year, month, day)
+            
+            # ----------------------------
+            # 2️⃣ Fetch LTP, spot, strike, expiry
+            # ----------------------------
+            def get_option_data(kite, symbol):
                 try:
-                    # LTP from Zerodha
-                    ltp = kite.ltp([f"NFO:{tradingsymbol}"])[f"NFO:{tradingsymbol}"]["last_price"]
+                    # LTP
+                    ltp = kite.ltp([f"NFO:{symbol}"])[f"NFO:{symbol}"]["last_price"]
             
-                    # Strike extraction
-                    strike = int(''.join(filter(str.isdigit, tradingsymbol)))
+                    # Strike = digits in symbol after expiry
+                    digits = ''.join(filter(str.isdigit, symbol))
+                    # For NIFTY25D0226200PE → strike = last 5 digits → 26200
+                    strike = int(digits[-5:])
             
-                    # Spot price
-                    if "BANKNIFTY" in tradingsymbol:
+                    # Spot
+                    if "BANKNIFTY" in symbol:
                         spot = kite.ltp(["NSE:BANKNIFTY"])["NSE:BANKNIFTY"]["last_price"]
                     else:
                         spot = kite.ltp(["NSE:NIFTY 50"])["NSE:NIFTY 50"]["last_price"]
             
-                    # Expiry extract
-                    expiry_str = tradingsymbol[len("BANKNIFTY"):len("BANKNIFTY")+5]  # example 24O24
-                    expiry_date = datetime.strptime(expiry_str, "%y%b%d")
+                    # Expiry
+                    expiry = parse_expiry(symbol)
             
-                    # Today
-                    today = datetime.now()
+                    # Time to expiry in years
+                    T = max((expiry - datetime.now()).days / 365, 1/365)
             
-                    # T = Year fraction
-                    T = max((expiry_date - today).days / 365, 1/365)
-            
-                    return ltp, spot, strike, T
-            
+                    return ltp, spot, strike, expiry, T
                 except Exception as e:
-                    st.error(f"Data fetch failed: {e}")
-                    return None, None, None, None
+                    st.error(f"Failed to fetch option data: {e}")
+                    return None, None, None, None, None
             
+                        
 
 
 

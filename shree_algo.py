@@ -6799,9 +6799,132 @@ elif MENU =="Live Trade":
 
             qty = result['total_quantity']
             ltp = result['option_data']['lastPrice']
-            #-------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+            #------------------------------------------------------------------------------------------------------------
+            #import math
+            #from datetime import datetime
             
-            #--------------------------------------------------------------------------------------
+            # ---------------- Black-Scholes Helpers -----------------
+            
+            def black_scholes_price(S, K, T, r, sigma, option_type="call"):
+                d1 = (math.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * math.sqrt(T))
+                d2 = d1 - sigma * math.sqrt(T)
+            
+                def N(x):
+                    return 0.5 * (1 + math.erf(x / math.sqrt(2)))
+            
+                if option_type == "call":
+                    return S * N(d1) - K * math.exp(-r * T) * N(d2)
+                else:
+                    return K * math.exp(-r * T) * N(-d2) - S * N(-d1)
+            
+            
+            def option_vega(S, K, T, r, sigma):
+                d1 = (math.log(S / K) + (r + 0.5 * sigma ** 2) * T) / (sigma * math.sqrt(T))
+                return S * math.sqrt(T) * (1 / math.sqrt(2 * math.pi)) * math.exp(-0.5 * d1 ** 2)
+
+            #------------------------------------------------------------------------------------------------------------
+             def calculate_iv(option_price, S, K, T, r, option_type="call"):
+                sigma = 0.20  # initial guess
+            
+                for _ in range(100):
+                    theo_price = black_scholes_price(S, K, T, r, sigma, option_type)
+                    vega = option_vega(S, K, T, r, sigma)
+            
+                    if vega < 1e-8:
+                        break
+            
+                    diff = option_price - theo_price
+                    sigma = sigma + diff / vega
+            
+                    if abs(diff) < 1e-5:
+                        break
+            
+                return max(0.01, min(sigma, 1.0))  # clamp value between 1% to 100%
+   
+            #------------------------------------------------------------------------------------------------------------
+            def iv_filter(iv, iv_rank):
+                if iv < 0.10:   # <10%
+                    return False
+                if iv > 0.35:   # >35%
+                    return False
+                if not (0.20 <= iv_rank <= 0.70):
+                    return False
+                return True
+            
+            
+            def vix_filter(vix_value):
+                return 12 <= vix_value <= 22
+            
+            
+            def combined_filter(iv, iv_rank, vix_value):
+                if iv_filter(iv, iv_rank) and vix_filter(vix_value):
+                    if iv > 0.25 or vix_value > 18:
+                        return True, "half"
+                    return True, "full"
+                return False, "none"
+
+            
+            #------------------------------------------------------------------------------------------------------------
+            def get_required_data(kite, tradingsymbol):
+                try:
+                    # LTP
+                    ltp = kite.ltp([f"NFO:{tradingsymbol}"])[f"NFO:{tradingsymbol}"]["last_price"]
+            
+                    # Extract Strike Price from Symbol (BANKNIFTY24O241000CE → 1000)
+                    strike = int(''.join(filter(str.isdigit, tradingsymbol)))
+            
+                    # Underlying (NIFTY / BANKNIFTY)
+                    if "BANKNIFTY" in tradingsymbol:
+                        spot = kite.ltp(["NSE:BANKNIFTY"])["NSE:BANKNIFTY"]["last_price"]
+                    else:
+                        spot = kite.ltp(["NSE:NIFTY 50"])["NSE:NIFTY 50"]["last_price"]
+            
+                    # Time to expiry in years
+                    expiry_str = tradingsymbol[len("BANKNIFTY"):len("BANKNIFTY")+5]  # Example: 24O24
+                    expiry_date = datetime.strptime(expiry_str, "%y%b%d")
+                    today = datetime.now()
+                    T = max((expiry_date - today).days / 365, 1/365)
+            
+                    return ltp, spot, strike, T
+            
+                except Exception as e:
+                    st.error(f"Data fetch failed: {e}")
+                    return None, None, None, None
+
+
+
+            #-----------------------------------------------------------------------------------------
+            ltp, spot, strike, T = get_required_data(kite, trading_symbol)
+            if not ltp:
+                st.stop()
+            
+            iv = calculate_iv(
+                option_price=ltp,
+                S=spot,
+                K=strike,
+                T=T,
+                r=0.06,
+                option_type="call" if "CE" in tradingsymbol else "put"
+            )
+            
+            # Example: you must calculate iv_rank separately
+            iv_rank = 0.45  # TEMP fixed
+            
+            # Fetch VIX
+            vix_value = kite.ltp(["NSE:INDIA VIX"])["NSE:INDIA VIX"]["last_price"]
+            
+            allowed, size = combined_filter(iv, iv_rank, vix_value)
+            
+            if not allowed:
+                st.error("❌ Trade Blocked by IV–VIX Filter")
+                st.stop()
+            
+            st.success(f"✅ Trade Allowed — Position: {size}")
+            
+                        
+            
+#------------------------------------------------------------------------------------------------------------------------------------------------
             from datetime import datetime
             import pytz
             

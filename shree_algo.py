@@ -7784,8 +7784,8 @@ elif MENU == "Setting":
         st.session_state["diy_settings"] = {
             "risk_per_trade": risk_per_trade,
             "max_trades": max_trades,
-            "start_time": start_time,
-            "end_time": end_time,
+            #"start_time": start_time,
+            #"end_time": end_time,
             "lot_size": lot_size,
             "funds": funds,
             "lot_cost_assumption": approx_lot_cost

@@ -6788,8 +6788,8 @@ elif MENU =="Live Trade":
             
             #st.write("Available keys:", list(result['option_data'].index))
             trading_symbol = selected_option["tradingsymbol"]
-            st.write("Trading Symbol")
-            st.write(trading_symbol)
+            #st.write("Trading Symbol")
+            #st.write(trading_symbol)
 
             # Extract option symbol & quantity
             #option_symbol = result['option_data']['tradingsymbol']
@@ -6955,8 +6955,8 @@ elif MENU =="Live Trade":
                 r=0.06,
                 option_type="call" if "CE" in trading_symbol else "put"
             )
-            st.write("IV Data ")
-            st.write(iv)
+            
+            
             # Example: you must calculate iv_rank separately
             iv_rank = 0.45  # TEMP fixed
             
@@ -6964,7 +6964,21 @@ elif MENU =="Live Trade":
             vix_value = kite.ltp(["NSE:INDIA VIX"])["NSE:INDIA VIX"]["last_price"]
             
             allowed, size = combined_filter(iv, iv_rank, vix_value)
+            #st.write("IV Data ")
+            #st.write(iv)
+            # --------------------------
+            # Create Table
+            # --------------------------
+            data = {
+                "Metric": ["Option IV", "IV Rank", "VIX Value"],
+                "Value": [f"{option_iv*100:.2f}%", f"{iv_rank*100:.2f}%", f"{vix_value}"]
+            }
             
+            df = pd.DataFrame(data)
+            
+            # Display in Streamlit
+            st.title("IV / IV Rank / VIX Table")
+            st.table(df)
             if not allowed:
                 st.error("❌ Trade Blocked by IV–VIX Filter")
                 st.stop()

@@ -6951,7 +6951,7 @@ elif MENU =="Live Trade":
                 K=strike,
                 T=T,
                 r=0.06,
-                option_type="call" if "CE" in tradingsymbol else "put"
+                option_type="call" if "CE" in trading_symbol else "put"
             )
             
             # Example: you must calculate iv_rank separately

@@ -7715,11 +7715,14 @@ elif MENU == "Live Trade2":
         
         #st.dataframe(df_show, use_container_width=True)
         # keep only rows where real signal is generated
-        df_signals_only = df_signal[df_signal["Signal"].notna() & (df_signal["Signal"] != "") & (df_signal["Signal"] != "NO_SIGNAL")]
+        #df_signals_only = df_signal[df_signal["Signal"].notna() & (df_signal["Signal"] != "") & (df_signal["Signal"] != "NO_SIGNAL")]
         
         # Reorder Columns
-        df_show = df_signals_only[['Time', 'Open', 'High', 'Low', 'Close', 'Signal', 'Reason']]
+        #df_show = df_signals_only[['Time', 'Open', 'High', 'Low', 'Close', 'Signal', 'Reason']]
         
+        st.dataframe(df_show, use_container_width=True)
+        df_show = df_signal[df_signal['Signal'].notna()][['Time', 'Open', 'High', 'Low', 'Close', 'Signal', 'Reason']]
+
         st.dataframe(df_show, use_container_width=True)
 
           

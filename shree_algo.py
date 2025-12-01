@@ -6860,8 +6860,8 @@ elif MENU =="Live Trade":
     
     # ---- Fetch orders from Kite ----
     if "kite" not in st.session_state:
-    st.error("Kite is not connected. Please connect first.")
-    st.stop()
+        st.error("Kite is not connected. Please connect first.")
+        st.stop()
 
     kite = st.session_state.kite
     orders = kite.orders()  # list of dicts

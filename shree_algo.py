@@ -7759,9 +7759,7 @@ elif MENU == "Setting":
                 value=5
             )
     
-        with colB:
-            start_time = st.time_input("Start Trading Time", value=datetime.time(9, 30))
-            end_time   = st.time_input("Stop Trading Time", value=datetime.time(14, 30))
+        
     
         # ---- AUTO LOT SIZE ----
         st.markdown("### 📦 Auto Lot Size Calculation")

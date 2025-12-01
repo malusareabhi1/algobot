@@ -976,7 +976,7 @@ with st.sidebar:
 
     MENU = st.radio(
         "Navigate",
-        ["Home", "Strategies","My Account", "Zerodha Broker API","Groww Broker API", "Dashboard","Backtest","Live Trade","Paper Trade", "Products", "Support","Live Trade2","Test1","Logout"],
+        ["Home", "Strategies","My Account", "Zerodha Broker API","Groww Broker API", "Dashboard","Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","Live Trade2","Test1","Logout"],
         index=0,
     )
 

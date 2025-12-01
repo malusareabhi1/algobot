@@ -7719,7 +7719,79 @@ elif MENU == "Live Trade2":
 elif MENU == "Test1":
     st.title("Live Trade Test1")
 
+elif MENU == "Setting":
+    st.title("Live Trade Setting")
+    # -----------------------------------------------------------
+    # AVAILABLE FUNDS + DIY SETTINGS
+    # -----------------------------------------------------------
+    st.markdown("### 💰 Available Funds")
     
+    try:
+        funds = kite.margins()["equity"]["available"]["cash"]
+        st.metric("Available Cash", f"₹{funds:,.0f}")
+    except:
+        st.error("Unable to fetch funds.")
+    
+    # -----------------------------------------------------------
+    # DIY SETTINGS PANEL
+    # -----------------------------------------------------------
+    st.markdown("### ⚙️ DIY Trading Settings")
+    
+    with st.container(border=True):
+    
+        colA, colB = st.columns(2)
+    
+        with colA:
+            risk_per_trade = st.number_input(
+                "Risk % Per Trade",
+                min_value=1.0,
+                max_value=10.0,
+                value=2.0,
+                step=0.5
+            )
+    
+            max_trades = st.number_input(
+                "Max Trades Per Day",
+                min_value=1,
+                max_value=20,
+                value=5
+            )
+    
+        with colB:
+            start_time = st.time_input("Start Trading Time", value=datetime.time(9, 30))
+            end_time   = st.time_input("Stop Trading Time", value=datetime.time(14, 30))
+    
+        # ---- AUTO LOT SIZE ----
+        st.markdown("### 📦 Auto Lot Size Calculation")
+    
+        # Example: Nifty option approx price 150 = ₹11250 per lot
+        approx_lot_cost = st.number_input(
+            "Approx Lot Cost (₹)",
+            min_value=5000,
+            max_value=100000,
+            value=11250,
+            step=500
+        )
+    
+        lot_size = 0
+        if funds > 0:
+            capital_per_trade = funds * (risk_per_trade / 100)
+            lot_size = int(capital_per_trade // approx_lot_cost)
+    
+        st.metric("Lot Size (Auto)", lot_size)
+    
+        # save settings in session_state
+        st.session_state["diy_settings"] = {
+            "risk_per_trade": risk_per_trade,
+            "max_trades": max_trades,
+            "start_time": start_time,
+            "end_time": end_time,
+            "lot_size": lot_size,
+            "funds": funds,
+            "lot_cost_assumption": approx_lot_cost
+        }
+    
+        
           
 
 

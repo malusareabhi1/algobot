@@ -6824,7 +6824,7 @@ elif MENU =="Live Trade":
                 return S * math.sqrt(T) * (1 / math.sqrt(2 * math.pi)) * math.exp(-0.5 * d1 ** 2)
 
             #------------------------------------------------------------------------------------------------------------
-             def calculate_iv(option_price, S, K, T, r, option_type="call"):
+            def calculate_iv(option_price, S, K, T, r, option_type="call"):
                 sigma = 0.20  # initial guess
             
                 for _ in range(100):

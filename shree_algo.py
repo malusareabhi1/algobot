@@ -6940,7 +6940,7 @@ elif MENU =="Live Trade":
 
 
             #-----------------------------------------------------------------------------------------
-            ltp, spot, strike, T = get_required_data(kite, trading_symbol)
+            ltp, spot, strike, T = get_option_data(kite, trading_symbol)
             if not ltp:
                 st.stop()
             

@@ -7844,14 +7844,19 @@ elif MENU == "Test1":
     candle_3pm = df_plot[(df_plot['Datetime'].dt.date == last_day) &
                          (df_plot['Datetime'].dt.hour == 15) &
                          (df_plot['Datetime'].dt.minute == 0)]
-    if not candle_3pm.empty:
-        open_3pm = candle_3pm.iloc[0]['Open']
-        close_3pm = candle_3pm.iloc[0]['Close']
-        base_low = min(open_3pm, close_3pm)
-        base_high = max(open_3pm, close_3pm)
-    else:
-        st.warning("No 3:00 PM candle found for previous trading day — can't compute base zone.")
-        base_low = base_high = None
+   row_3pm = df_signal[df_signal['Datetime'] == candle_3pm]
+   row_3pm = df_signal[df_signal['Datetime'] == candle_3pm]
+
+   if row_3pm.empty:
+     st.error("3 PM candle not found in data")
+   else:
+    open_3pm  = row_3pm['Open'].iloc[0]
+    close_3pm = row_3pm['Close'].iloc[0]
+
+    base_low  = min(open_3pm, close_3pm)
+    base_high = max(open_3pm, close_3pm)
+
+    
 
     # Plot candlestick
     fig = go.Figure(data=[go.Candlestick(

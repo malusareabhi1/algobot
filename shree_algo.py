@@ -7757,17 +7757,23 @@ elif MENU == "Setting":
             value=st.session_state.get("diy_settings", {}).get("max_trades", 5)
         )
     
-    # ---- MANUAL LOT SIZE (Main Input) ----
+    # ---- MANUAL LOT SIZE (SAFE DEFAULT) ----
     st.markdown("### ✋ Manual Lot Size")
+    
+    saved_lot = st.session_state.get("diy_settings", {}).get("lot_size", 1)
+    
+    # ensure valid default
+    if saved_lot is None or saved_lot < 1:
+        saved_lot = 1
     
     manual_lot_size = st.number_input(
         "Lot Size (1–100)",
         min_value=1,
         max_value=100,
-        value=st.session_state.get("diy_settings", {}).get("lot_size", 1),
+        value=saved_lot,
         step=1
     )
-    
+
     st.metric("Final Lot Size Used", manual_lot_size)
     
     # Save settings

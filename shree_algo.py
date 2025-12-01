@@ -7709,7 +7709,8 @@ elif MENU == "Live Trade2":
         
         # All your signal conditions above...
         # -----------------------------------
-        
+        st.write("Columns in df_signal:", df_signal.columns.tolist())
+
         # REMOVE ROWS WHERE SIGNAL = "No Signal"
         df_show = df_signal[df_signal['Signal'] != "No Signal"]
         

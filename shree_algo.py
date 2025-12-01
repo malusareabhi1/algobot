@@ -7724,6 +7724,8 @@ elif MENU == "Setting":
     # -----------------------------------------------------------
     # AVAILABLE FUNDS + DIY SETTINGS
     # -----------------------------------------------------------
+    if st.session_state.api_status.get("Zerodha"):
+            kite = st.session_state.kite 
     st.markdown("### 💰 Available Funds")
     
     try:

@@ -7844,17 +7844,17 @@ elif MENU == "Test1":
     candle_3pm = df_plot[(df_plot['Datetime'].dt.date == last_day) &
                          (df_plot['Datetime'].dt.hour == 15) &
                          (df_plot['Datetime'].dt.minute == 0)]
-   row_3pm = df_signal[df_signal['Datetime'] == candle_3pm]
-   row_3pm = df_signal[df_signal['Datetime'] == candle_3pm]
+    row_3pm = df_signal[df_signal['Datetime'] == candle_3pm]
+    row_3pm = df_signal[df_signal['Datetime'] == candle_3pm]
 
-   if row_3pm.empty:
-     st.error("3 PM candle not found in data")
-   else:
-    open_3pm  = row_3pm['Open'].iloc[0]
-    close_3pm = row_3pm['Close'].iloc[0]
+    if row_3pm.empty:
+      st.error("3 PM candle not found in data")
+    else:
+     open_3pm  = row_3pm['Open'].iloc[0]
+     close_3pm = row_3pm['Close'].iloc[0]
 
-    base_low  = min(open_3pm, close_3pm)
-    base_high = max(open_3pm, close_3pm)
+     base_low  = min(open_3pm, close_3pm)
+     base_high = max(open_3pm, close_3pm)
 
     
 

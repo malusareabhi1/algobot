@@ -6866,24 +6866,30 @@ elif MENU =="Live Trade":
 
             
             #------------------------------------------------------------------------------------------------------------
+            from datetime import datetime
+
             def get_required_data(kite, tradingsymbol):
                 try:
-                    # LTP
+                    # LTP from Zerodha
                     ltp = kite.ltp([f"NFO:{tradingsymbol}"])[f"NFO:{tradingsymbol}"]["last_price"]
             
-                    # Extract Strike Price from Symbol (BANKNIFTY24O241000CE → 1000)
+                    # Strike extraction
                     strike = int(''.join(filter(str.isdigit, tradingsymbol)))
             
-                    # Underlying (NIFTY / BANKNIFTY)
+                    # Spot price
                     if "BANKNIFTY" in tradingsymbol:
                         spot = kite.ltp(["NSE:BANKNIFTY"])["NSE:BANKNIFTY"]["last_price"]
                     else:
                         spot = kite.ltp(["NSE:NIFTY 50"])["NSE:NIFTY 50"]["last_price"]
             
-                    # Time to expiry in years
-                    expiry_str = tradingsymbol[len("BANKNIFTY"):len("BANKNIFTY")+5]  # Example: 24O24
+                    # Expiry extract
+                    expiry_str = tradingsymbol[len("BANKNIFTY"):len("BANKNIFTY")+5]  # example 24O24
                     expiry_date = datetime.strptime(expiry_str, "%y%b%d")
+            
+                    # Today
                     today = datetime.now()
+            
+                    # T = Year fraction
                     T = max((expiry_date - today).days / 365, 1/365)
             
                     return ltp, spot, strike, T
@@ -6891,6 +6897,7 @@ elif MENU =="Live Trade":
                 except Exception as e:
                     st.error(f"Data fetch failed: {e}")
                     return None, None, None, None
+            
 
 
 

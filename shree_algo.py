@@ -7735,84 +7735,85 @@ elif MENU == "Setting":
         st.error("Unable to fetch funds.")
     
     # ---------------- SAFE DIY SETTINGS BLOCK ----------------
-        # ensure funds variable exists (if previous fetch failed, set to 0)
-        funds = st.session_state.get("available_funds", 0)  # use stored value if you keep it, else 0
-        
-        st.markdown("### ⚙️ DIY Trading Settings")
-        
-        colA, colB = st.columns(2)
-        
-        with colA:
-            risk_per_trade = st.number_input(
-                "Risk % Per Trade",
-                min_value=1.0,
-                max_value=10.0,
-                value=st.session_state.get("diy_settings", {}).get("risk_per_trade", 2.0),
-                step=0.5,
-                format="%.2f"
-            )
-        
-            max_trades = st.number_input(
-                "Max Trades Per Day",
-                min_value=1,
-                max_value=20,
-                value=st.session_state.get("diy_settings", {}).get("max_trades", 5)
-            )
-        
-        with colB:
-            st.markdown("### 📦 Auto Lot Size Calculation")
-            approx_lot_cost = st.number_input(
-                "Approx Lot Cost (₹)",
-                min_value=5000,
-                max_value=100000,
-                value=st.session_state.get("diy_settings", {}).get("lot_cost_assumption", 11250),
-                step=500
-            )
-        
-        # initialize lot_size safely
-        _auto_lot_size = 0
-        try:
-            if funds and funds > 0:
-                capital_per_trade = funds * (risk_per_trade / 100.0)
-                _auto_lot_size = int(capital_per_trade // approx_lot_cost)
-        except Exception:
-            _auto_lot_size = 0
-        
-        # show auto-calculated lot size
-        st.metric("Lot Size (Auto)", _auto_lot_size)
-        
-        # ---------- Manual override ----------
-        st.markdown("### ✋ Manual Lot Size (Optional)")
-        
-        # default manual value pulls from previous session setting or auto if available
-        default_manual = st.session_state.get("diy_settings", {}).get("lot_size", (_auto_lot_size if _auto_lot_size > 0 else 1))
-        
-        manual_lot_size = st.number_input(
-            "Manual Lot Size (1–100)",
-            min_value=1,
-            max_value=100,
-            value=int(default_manual),
-            step=1
+    # ---------------- SAFE DIY SETTINGS BLOCK ----------------
+    # ensure funds variable exists (if previous fetch failed, set to 0)
+    funds = st.session_state.get("available_funds", 0)  # use stored value if you keep it, else 0
+    
+    st.markdown("### ⚙️ DIY Trading Settings")
+    
+    colA, colB = st.columns(2)
+    
+    with colA:
+        risk_per_trade = st.number_input(
+            "Risk % Per Trade",
+            min_value=1.0,
+            max_value=10.0,
+            value=st.session_state.get("diy_settings", {}).get("risk_per_trade", 2.0),
+            step=0.5,
+            format="%.2f"
         )
-        
-        # Final choice: if user explicitly changes manual input we take manual; else keep auto if greater than 0
-        # (This makes manual always win because user interacted with it.)
-        final_lot_size = manual_lot_size if manual_lot_size is not None else _auto_lot_size
-        
-        st.metric("Final Lot Size Used", final_lot_size)
-        
-        # Save settings in session_state
-        st.session_state["diy_settings"] = {
-            "risk_per_trade": float(risk_per_trade),
-            "max_trades": int(max_trades),
-            "lot_size": int(final_lot_size),
-            "funds": float(funds),
-            "lot_cost_assumption": int(approx_lot_cost)
-        }
-        # also keep a handy separate session variable for quick access
-        st.session_state["calculated_auto_lot"] = _auto_lot_size
-        # ---------------------------------------------------------
-
+    
+        max_trades = st.number_input(
+            "Max Trades Per Day",
+            min_value=1,
+            max_value=20,
+            value=st.session_state.get("diy_settings", {}).get("max_trades", 5)
+        )
+    
+    with colB:
+        st.markdown("### 📦 Auto Lot Size Calculation")
+        approx_lot_cost = st.number_input(
+            "Approx Lot Cost (₹)",
+            min_value=5000,
+            max_value=100000,
+            value=st.session_state.get("diy_settings", {}).get("lot_cost_assumption", 11250),
+            step=500
+        )
+    
+    # initialize lot_size safely
+    _auto_lot_size = 0
+    try:
+        if funds and funds > 0:
+            capital_per_trade = funds * (risk_per_trade / 100.0)
+            _auto_lot_size = int(capital_per_trade // approx_lot_cost)
+    except Exception:
+        _auto_lot_size = 0
+    
+    # show auto-calculated lot size
+    st.metric("Lot Size (Auto)", _auto_lot_size)
+    
+    # ---------- Manual override ----------
+    st.markdown("### ✋ Manual Lot Size (Optional)")
+    
+    # default manual value pulls from previous session setting or auto if available
+    default_manual = st.session_state.get("diy_settings", {}).get("lot_size", (_auto_lot_size if _auto_lot_size > 0 else 1))
+    
+    manual_lot_size = st.number_input(
+        "Manual Lot Size (1–100)",
+        min_value=1,
+        max_value=100,
+        value=int(default_manual),
+        step=1
+    )
+    
+    # Final choice: if user explicitly changes manual input we take manual; else keep auto if greater than 0
+    # (This makes manual always win because user interacted with it.)
+    final_lot_size = manual_lot_size if manual_lot_size is not None else _auto_lot_size
+    
+    st.metric("Final Lot Size Used", final_lot_size)
+    
+    # Save settings in session_state
+    st.session_state["diy_settings"] = {
+        "risk_per_trade": float(risk_per_trade),
+        "max_trades": int(max_trades),
+        "lot_size": int(final_lot_size),
+        "funds": float(funds),
+        "lot_cost_assumption": int(approx_lot_cost)
+    }
+    # also keep a handy separate session variable for quick access
+    st.session_state["calculated_auto_lot"] = _auto_lot_size
+    # ---------------------------------------------------------
+    
 
 # ------------------------------------------------------------
 # Footer

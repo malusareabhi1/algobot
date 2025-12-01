@@ -6955,7 +6955,8 @@ elif MENU =="Live Trade":
                 r=0.06,
                 option_type="call" if "CE" in trading_symbol else "put"
             )
-            
+            st.write("IV Data ")
+            st.write(iv)
             # Example: you must calculate iv_rank separately
             iv_rank = 0.45  # TEMP fixed
             

@@ -6992,9 +6992,9 @@ elif MENU =="Live Trade":
                 #p = parse_symbol("NIFTY25D0226050PE")
                 #print(p)
 
-                from py_vollib.black.implied_volatility import implied_volatility
+            from py_vollib.black.implied_volatility import implied_volatility
 
-                def get_current_iv(option_ltp, underlying_ltp, strike, expiry, opt_type):
+            def get_current_iv(option_ltp, underlying_ltp, strike, expiry, opt_type):
                     days = (expiry - datetime.now()).days
                     t = max(days / 365, 1/365)
                     r = 0.06

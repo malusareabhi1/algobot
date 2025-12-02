@@ -7076,6 +7076,7 @@ elif MENU =="Live Trade":
             iv_rank, current, low, high = calculate_iv_rank(iv_list)
             
             st.write("\n---- IV Rank Result ----")
+            st.write("Current Symbol:", trading_symbol)
             st.write("Current IV:", current_iv)
             st.write("Synthetic Current IV (Model):", current)
             st.write("1Y IV High:", high)

@@ -6828,16 +6828,23 @@ elif MENU =="Live Trade":
             # 3. IV Rank Calculation
             # -------------------------
             def calculate_iv_rank(iv_list):
-                iv_list = [iv for iv in iv_list if not np.isnan(iv)]
-                if len(iv_list) < 10:
-                    return None
+                iv_list = [iv for iv in iv_list if iv is not None and not np.isnan(iv)]
+            
+                # If IV list is too small, return default safe values
+                if len(iv_list) < 3:
+                    return (None, None, None, None)
             
                 iv_high = max(iv_list)
                 iv_low = min(iv_list)
                 current_iv = iv_list[-1]
             
+                if iv_high == iv_low:
+                    return (None, current_iv, iv_low, iv_high)
+            
                 iv_rank = ((current_iv - iv_low) / (iv_high - iv_low)) * 100
-                return round(iv_rank, 2), current_iv, iv_low, iv_high
+            
+                return (round(iv_rank, 2), current_iv, iv_low, iv_high)
+
             
             
             # -------------------------

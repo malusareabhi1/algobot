@@ -6805,7 +6805,95 @@ elif MENU =="Live Trade":
             #
             import math
             #from datetime import datetime
+            #----------------------------------------------------------------------------------------------------------
+            def get_current_iv(symbol):
+                quote = kite.quote(f"NFO:{symbol}")
+                try:
+                    current_iv = quote[f"NFO:{symbol}"]["market_iv"]      # Zerodha returns market IV
+                except:
+                    current_iv = None
+                return current_iv
             
+            # -------------------------
+            # 2. Compute Synthetic IV using Option Price (1-year data)
+            # -------------------------
+            def compute_synthetic_iv(option_price, F, K, r, t, option_type):
+                try:
+                    iv = implied_volatility(option_price, F, K, r, t, option_type)
+                    return iv
+                except:
+                    return np.nan
+            
+            # -------------------------
+            # 3. IV Rank Calculation
+            # -------------------------
+            def calculate_iv_rank(iv_list):
+                iv_list = [iv for iv in iv_list if not np.isnan(iv)]
+                if len(iv_list) < 10:
+                    return None
+            
+                iv_high = max(iv_list)
+                iv_low = min(iv_list)
+                current_iv = iv_list[-1]
+            
+                iv_rank = ((current_iv - iv_low) / (iv_high - iv_low)) * 100
+                return round(iv_rank, 2), current_iv, iv_low, iv_high
+            
+            
+            # -------------------------
+            # 4. Example Usage for NIFTY Option
+            # -------------------------
+            symbol = "NIFTY25FEB18000CE"    # example
+            
+            # Fetch current IV
+            current_iv = get_current_iv(symbol)
+            
+            print("Current IV:", current_iv)
+            
+            # -------------------------
+            # Now get historical data → build 1-year synthetic IV list
+            # Zerodha DOES NOT give historical IV → so use option historical prices
+            # -------------------------
+            
+            def get_historical_iv_list(symbol):
+                today = datetime.now()
+                one_year_ago = today - timedelta(days=365)
+            
+                # Zerodha historical API supports only underlying, NOT options.
+                # So, we fetch underlying futures and use Black Model.
+                
+                instrument = "NSE:NIFTY 50"
+                hist = kite.historical_data(
+                    instrument_token=256265,          # NIFTY spot token
+                    from_date=one_year_ago,
+                    to_date=today,
+                    interval="day"
+                )
+            
+                df = pd.DataFrame(hist)
+            
+                iv_list = []
+            
+                F = df["close"]   # underlying future approx
+                r = 0.06          # risk-free rate
+                K = int(symbol[-7:-2])   # strike
+                t = 30/365         # assume 30 days expiry
+                opt_type = "c" if "CE" in symbol else "p"
+            
+                # synthetic IV for each day
+                for price in F:
+                    opt_price = max(price - K, 1)    # approximate option price
+                    iv_val = compute_synthetic_iv(opt_price, price, K, r, t, opt_type)
+                    iv_list.append(iv_val)
+            
+                return iv_list
+            
+            
+            
+                        
+            
+
+            #----------------------------------------------------------------------------------------------------------
             # ---------------- Black-Scholes Helpers -----------------
             
             def black_scholes_price(S, K, T, r, sigma, option_type="call"):
@@ -6984,7 +7072,18 @@ elif MENU =="Live Trade":
                 st.stop()
             
             st.success(f"✅ Trade Allowed — Position: {size}")
+            #-------------------------------------------------------------------------------------------------------------
+            # Get synthetic IV list
+            iv_list = get_historical_iv_list(trading_symbol)
             
+            iv_rank, current, low, high = calculate_iv_rank(iv_list)
+            
+            print("\n---- IV Rank Result ----")
+            print("Current IV:", current_iv)
+            print("Synthetic Current IV (Model):", current)
+            print("1Y IV High:", high)
+            print("1Y IV Low :", low)
+            print("IV Rank  :", iv_rank)
                         
             
 #------------------------------------------------------------------------------------------------------------------------------------------------

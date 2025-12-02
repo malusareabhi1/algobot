@@ -6992,7 +6992,7 @@ elif MENU =="Live Trade":
                 #p = parse_symbol("NIFTY25D0226050PE")
                 #print(p)
 
-            from py_vollib.black.implied_volatility import implied_volatility
+            #from py_vollib.black.implied_volatility import implied_volatility
 
             def get_current_iv(option_ltp, underlying_ltp, strike, expiry, opt_type):
                     days = (expiry - datetime.now()).days
@@ -7007,34 +7007,51 @@ elif MENU =="Live Trade":
                     except:
                         return None
 
-            def calculate_iv_rank_from_hv(spot_token):
-                today = datetime.now()
-                one_year_ago = today - timedelta(days=365)
             
-                # Fetch 1 yr SPOT historical from Zerodha
-                hist = kite.historical_data(
-                    instrument_token=spot_token,
-                    from_date=one_year_ago,
-                    to_date=today,
-                    interval="day"
-                )
+            def calculate_iv_rank_from_spot(spot_token):
+                try:
+                    today = datetime.now()
+                    one_year_ago = today - timedelta(days=365)
             
-                df = pd.DataFrame(hist)
+                    # 1-year NIFTY spot historical data
+                    hist = kite.historical_data(
+                        instrument_token=spot_token,
+                        from_date=one_year_ago,
+                        to_date=today,
+                        interval="day"
+                    )
             
-                # daily log returns
-                df["ret"] = np.log(df["close"] / df["close"].shift(1))
-                hv = df["ret"].rolling(21).std() * np.sqrt(252)  # 21 days ≈ 1 month
+                    df = pd.DataFrame(hist)
             
-                iv_low = hv.min()
-                iv_high = hv.max()
-                current_iv = hv.iloc[-1]
-                
-                iv_rank = ((current_iv - iv_low) / (iv_high - iv_low)) * 100
+                    if df.empty:
+                        return None, None, None, None
             
-                return round(iv_rank, 2), current_iv, iv_low, iv_high
-
+                    # Daily log returns
+                    df["ret"] = np.log(df["close"] / df["close"].shift(1))
+            
+                    # 21-day rolling volatility (1-month HV)
+                    df["hv"] = df["ret"].rolling(21).std() * np.sqrt(252)
+            
+                    hv_series = df["hv"].dropna()
+            
+                    if hv_series.empty:
+                        return None, None, None, None
+            
+                    iv_low = hv_series.min()
+                    iv_high = hv_series.max()
+                    current_iv = hv_series.iloc[-1]
+            
+                    if iv_high == iv_low:
+                        return None, current_iv, iv_low, iv_high
+            
+                    iv_rank = ((current_iv - iv_low) / (iv_high - iv_low)) * 100
+            
+                    return round(iv_rank, 2), round(current_iv, 4), round(iv_low, 4), round(iv_high, 4)
+            
+                except Exception as e:
+                    return None, None, None, None
             spot_token = 26050   # NIFTY spot token
-            iv_rank, current_hv, low_hv, high_hv = calculate_iv_rank_from_hv(spot_token)
+            iv_rank, current_hv, low_hv, high_hv = calculate_iv_rank_from_spot(spot_token)
             
             st.write("IV Rank:", iv_rank)
             st.write("Current HV:", current_hv)

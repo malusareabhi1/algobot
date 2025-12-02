@@ -7061,18 +7061,8 @@ elif MENU =="Live Trade":
                 "Metric": ["Option IV", "IV Rank", "VIX Value"],
                 "Value": [f"{iv*100:.2f}%", f"{iv_rank*100:.2f}%", f"{vix_value}"]
             }
-            
-            df = pd.DataFrame(data)
-            
-            # Display in Streamlit
-            st.title("IV / IV Rank / VIX Table")
-            st.table(df)
-            if not allowed:
-                st.error("❌ Trade Blocked by IV–VIX Filter")
-                st.stop()
-            
-            st.success(f"✅ Trade Allowed — Position: {size}")
-            #-------------------------------------------------------------------------------------------------------------
+
+            #----------------------------------------------------------------------------------------------------------
             # Get synthetic IV list
             iv_list = get_historical_iv_list(trading_symbol)
             
@@ -7084,6 +7074,19 @@ elif MENU =="Live Trade":
             st.write("1Y IV High:", high)
             st.write("1Y IV Low :", low)
             st.write("IV Rank  :", iv_rank)
+            #--------------------------------------------------------------------------------------------------------------
+            df = pd.DataFrame(data)
+            
+            # Display in Streamlit
+            st.title("IV / IV Rank / VIX Table")
+            st.table(df)
+            if not allowed:
+                st.error("❌ Trade Blocked by IV–VIX Filter")
+                st.stop()
+            
+            st.success(f"✅ Trade Allowed — Position: {size}")
+            #-------------------------------------------------------------------------------------------------------------
+            
                         
             
 #------------------------------------------------------------------------------------------------------------------------------------------------

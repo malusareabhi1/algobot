@@ -6949,7 +6949,7 @@ elif MENU =="Live Trade":
             
             def combined_filter(iv, iv_rank, vix_value):
                 if iv_filter(iv, iv_rank) and vix_filter(vix_value):
-                    if iv > 0.25 or vix_value > 18:
+                    if iv > 0.25 or vix_value > 12:
                         return True, "half"
                     return True, "full"
                 return False, "none"
@@ -7078,12 +7078,12 @@ elif MENU =="Live Trade":
             
             iv_rank, current, low, high = calculate_iv_rank(iv_list)
             
-            print("\n---- IV Rank Result ----")
-            print("Current IV:", current_iv)
-            print("Synthetic Current IV (Model):", current)
-            print("1Y IV High:", high)
-            print("1Y IV Low :", low)
-            print("IV Rank  :", iv_rank)
+            st.write("\n---- IV Rank Result ----")
+            st.write("Current IV:", current_iv)
+            st.write("Synthetic Current IV (Model):", current)
+            st.write("1Y IV High:", high)
+            st.write("1Y IV Low :", low)
+            st.write("IV Rank  :", iv_rank)
                         
             
 #------------------------------------------------------------------------------------------------------------------------------------------------

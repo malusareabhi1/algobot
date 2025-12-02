@@ -6963,6 +6963,86 @@ elif MENU =="Live Trade":
 
             
             #------------------------------------------------------------------------------------------------------------
+            def parse_symbol(sym):
+                    # Example: NIFTY25D0226050PE
+                    m = re.match(r"(NIFTY)(\d{2})([A-Z])(\d{2})(\d+)(CE|PE)", sym)
+                    if not m:
+                        return None
+                
+                    index, year, month, day, strike, opt_type = m.groups()
+                
+                    year = int("20" + year)
+                    strike = int(strike)
+                    month_map = {
+                        "F":1,"G":2,"H":3,"J":4,"K":5,"M":6,
+                        "N":7,"Q":8,"U":9,"V":10,"X":11,"Z":12
+                    }
+                    month = month_map.get(month.upper())
+                
+                    expiry = datetime(year, month, int(day))
+                
+                    return {
+                        "index": index,
+                        "expiry": expiry,
+                        "strike": strike,
+                        "type": opt_type
+                    }
+                
+                # test
+                #p = parse_symbol("NIFTY25D0226050PE")
+                #print(p)
+
+                from py_vollib.black.implied_volatility import implied_volatility
+
+                def get_current_iv(option_ltp, underlying_ltp, strike, expiry, opt_type):
+                    days = (expiry - datetime.now()).days
+                    t = max(days / 365, 1/365)
+                    r = 0.06
+                
+                    exercise_type = 'p' if opt_type == "PE" else 'c'
+                
+                    try:
+                        iv = implied_volatility(option_ltp, underlying_ltp, strike, r, t, exercise_type)
+                        return iv
+                    except:
+                        return None
+
+            def calculate_iv_rank_from_hv(spot_token):
+                today = datetime.now()
+                one_year_ago = today - timedelta(days=365)
+            
+                # Fetch 1 yr SPOT historical from Zerodha
+                hist = kite.historical_data(
+                    instrument_token=spot_token,
+                    from_date=one_year_ago,
+                    to_date=today,
+                    interval="day"
+                )
+            
+                df = pd.DataFrame(hist)
+            
+                # daily log returns
+                df["ret"] = np.log(df["close"] / df["close"].shift(1))
+                hv = df["ret"].rolling(21).std() * np.sqrt(252)  # 21 days ≈ 1 month
+            
+                iv_low = hv.min()
+                iv_high = hv.max()
+                current_iv = hv.iloc[-1]
+                
+                iv_rank = ((current_iv - iv_low) / (iv_high - iv_low)) * 100
+            
+                return round(iv_rank, 2), current_iv, iv_low, iv_high
+
+            spot_token = 26050   # NIFTY spot token
+            iv_rank, current_hv, low_hv, high_hv = calculate_iv_rank_from_hv(spot_token)
+            
+            st.write("IV Rank:", iv_rank)
+            st.write("Current HV:", current_hv)
+            st.write("1Y Low:", low_hv)
+            st.write("1Y High:", high_hv)
+
+
+            #--------------------------------------------------------------------------------------------------------------------
             from datetime import datetime
 
             # ----------------------------
@@ -7070,18 +7150,7 @@ elif MENU =="Live Trade":
             }
 
             #----------------------------------------------------------------------------------------------------------
-            # Get synthetic IV list
-            iv_list = get_historical_iv_list(trading_symbol)
             
-            iv_rank, current, low, high = calculate_iv_rank(iv_list)
-            
-            st.write("\n---- IV Rank Result ----")
-            st.write("Current Symbol:", trading_symbol)
-            st.write("Current IV:", current_iv)
-            st.write("Synthetic Current IV (Model):", current)
-            st.write("1Y IV High:", high)
-            st.write("1Y IV Low :", low)
-            st.write("IV Rank  :", iv_rank)
             #--------------------------------------------------------------------------------------------------------------
             df = pd.DataFrame(data)
             

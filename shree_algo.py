@@ -6882,11 +6882,21 @@ elif MENU =="Live Trade":
             
             vix = get_vix(kite)
 
-            iv_data = calculate_iv_rank(kite, "NIFTY25D0925900PE")
+            iv_data = calculate_iv_rank(kite, option_symbol)
+
+            if not iv_data["ok"]:
+                st.error(iv_data["msg"])
+                current_iv = "-"
+                iv_rank = "-"
+            else:
+                current_iv = iv_data["current_iv"]
+                iv_rank = iv_data["iv_rank"]
+            
+            vix = get_vix(kite)
             
             st.table({
                 "Parameter": ["Current IV", "IV Rank", "India VIX"],
-                "Value": [iv_data["current_iv"], iv_data["iv_rank"], vix]
+                "Value": [current_iv, iv_rank, vix]
             })
 
             
@@ -6894,12 +6904,12 @@ elif MENU =="Live Trade":
             # -------------------------
             # 4. Example Usage for NIFTY Option
             # -------------------------
-            symbol = "NIFTY25FEB18000CE"    # example
+            #symbol = "NIFTY25FEB18000CE"    # example
             
             # Fetch current IV
-            current_iv = get_current_iv(symbol)
+            #current_iv = get_current_iv(symbol)
             
-            print("Current IV:", current_iv)
+            #print("Current IV:", current_iv)
             
             # -------------------------
             # Now get historical data → build 1-year synthetic IV list

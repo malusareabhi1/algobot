@@ -6828,6 +6828,33 @@ elif MENU =="Live Trade":
             # 3. IV Rank Calculation
             # -------------------------
             
+            def calculate_iv_rank(symbol, strike, opt_type):
+                current_iv = get_option_iv(symbol, strike, opt_type)
+                if current_iv is None:
+                    return {"ok": False, "msg": "IV not found from NSE"}
+            
+                # Your IV history storage OR fallback demo data
+                # Ideally store daily IV in CSV
+                # Example:
+                iv_history = pd.read_csv("iv_history.csv")   # must contain 'iv' column
+            
+                iv_low = iv_history['iv'].min()
+                iv_high = iv_history['iv'].max()
+            
+                if iv_high == iv_low:
+                    iv_rank = 0
+                else:
+                    iv_rank = (current_iv - iv_low) / (iv_high - iv_low)
+            
+                return {
+                    "ok": True,
+                    "current_iv": round(current_iv, 2),
+                    "iv_rank": round(iv_rank, 2),
+                    "iv_low": round(iv_low, 2),
+                    "iv_high": round(iv_high, 2)
+                }
+
+
 
 
             
@@ -6876,33 +6903,7 @@ elif MENU =="Live Trade":
                 return None
             #--------------------------------------
             
-            def calculate_iv_rank(symbol, strike, opt_type):
-                current_iv = get_option_iv(symbol, strike, opt_type)
-                if current_iv is None:
-                    return {"ok": False, "msg": "IV not found from NSE"}
             
-                # Your IV history storage OR fallback demo data
-                # Ideally store daily IV in CSV
-                # Example:
-                iv_history = pd.read_csv("iv_history.csv")   # must contain 'iv' column
-            
-                iv_low = iv_history['iv'].min()
-                iv_high = iv_history['iv'].max()
-            
-                if iv_high == iv_low:
-                    iv_rank = 0
-                else:
-                    iv_rank = (current_iv - iv_low) / (iv_high - iv_low)
-            
-                return {
-                    "ok": True,
-                    "current_iv": round(current_iv, 2),
-                    "iv_rank": round(iv_rank, 2),
-                    "iv_low": round(iv_low, 2),
-                    "iv_high": round(iv_high, 2)
-                }
-
-
 
 
 

@@ -6827,7 +6827,26 @@ elif MENU =="Live Trade":
             # -------------------------
             # 3. IV Rank Calculation
             # -------------------------
+            from nsepython import nse_optionchain
+
+            def get_option_iv(symbol, strike, opt_type):
+                """
+                symbol = 'NIFTY' or 'BANKNIFTY'
+                strike = e.g. 21500
+                opt_type = 'CE' or 'PE'
+                """
+                data = nse_optionchain(symbol)
             
+                for item in data['records']['data']:
+                    if item.get('strikePrice') == strike:
+                        if opt_type == "CE" and "CE" in item:
+                            return item["CE"].get("impliedVolatility")
+                        if opt_type == "PE" and "PE" in item:
+                            return item["PE"].get("impliedVolatility")
+            
+                return None
+
+            #------------------------------------------------------------------------------------
             def calculate_iv_rank(symbol, strike, opt_type):
                 current_iv = get_option_iv(symbol, strike, opt_type)
                 if current_iv is None:
@@ -6883,24 +6902,7 @@ elif MENU =="Live Trade":
 
             
             #--------------------------------------------------------------------------------------------
-            from nsepython import nse_optionchain
-
-            def get_option_iv(symbol, strike, opt_type):
-                """
-                symbol = 'NIFTY' or 'BANKNIFTY'
-                strike = e.g. 21500
-                opt_type = 'CE' or 'PE'
-                """
-                data = nse_optionchain(symbol)
             
-                for item in data['records']['data']:
-                    if item.get('strikePrice') == strike:
-                        if opt_type == "CE" and "CE" in item:
-                            return item["CE"].get("impliedVolatility")
-                        if opt_type == "PE" and "PE" in item:
-                            return item["PE"].get("impliedVolatility")
-            
-                return None
             #--------------------------------------
             
             

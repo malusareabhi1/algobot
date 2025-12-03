@@ -6890,7 +6890,7 @@ elif MENU =="Live Trade":
 
             #vix = kite.ltp("NSE:INDIAVIX")["NSE:INDIAVIX"]["last_price"]
             def get_vix(kite):
-                ltp = kite.ltp("INDIAVIX")
+                ltp = kite.ltp("264969")
                 key = list(ltp.keys())[0]      # avoid KeyError
                 return ltp[key]["last_price"]
             

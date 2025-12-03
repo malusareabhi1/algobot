@@ -7007,6 +7007,41 @@ elif MENU =="Live Trade":
                     except:
                         return None
 
+            #------------------------------------------------------------------------------------------
+            def parse_expiry(symbol):
+                """
+                Parse NSE option expiry from symbol like:
+                NIFTY25D0226200PE
+                BANKNIFTY25D0226200CE
+                """
+                # Remove index prefix
+                if "NIFTY" in symbol:
+                    data = symbol.replace("NIFTY", "")
+                elif "BANKNIFTY" in symbol:
+                    data = symbol.replace("BANKNIFTY", "")
+                else:
+                    st.error(f"Unknown symbol format: {symbol}")
+                    return None
+            
+                # First 5 chars = expiry code
+                expiry_code = data[:5]
+            
+                year = int("20" + expiry_code[:2])  # e.g., "25" → 2025
+                month_code = expiry_code[2]          # e.g., "D"
+                day = int(expiry_code[3:])           # e.g., "02"
+            
+                month_map = {
+                    "A":1, "B":2, "C":3, "M":4, "E":5, "F":6,
+                    "G":7, "H":8, "I":9, "J":10, "K":11, "D":12
+                }
+            
+                month = month_map.get(month_code)
+                if not month:
+                    st.error(f"Invalid month code: {month_code}")
+                    return None
+            
+                return datetime(year, month, day)
+
             
             def calculate_iv_rank_from_spot(spot_token):
                 try:
@@ -7052,7 +7087,9 @@ elif MENU =="Live Trade":
                     return None, None, None, None
             spot_token = 26050   # NIFTY spot token
             iv_rank, current_hv, low_hv, high_hv = calculate_iv_rank_from_spot(spot_token)
+            token=parse_expiry(trading_symbol)
             st.write("Instrument Symbl:", trading_symbol)
+            st.write("Spot Price:", token)
             st.write("IV Rank:", iv_rank)
             st.write("Current HV:", current_hv)
             st.write("1Y Low:", low_hv)
@@ -7065,39 +7102,7 @@ elif MENU =="Live Trade":
             # ----------------------------
             # 1️⃣ Expiry Parser
             # ----------------------------
-            def parse_expiry(symbol):
-                """
-                Parse NSE option expiry from symbol like:
-                NIFTY25D0226200PE
-                BANKNIFTY25D0226200CE
-                """
-                # Remove index prefix
-                if "NIFTY" in symbol:
-                    data = symbol.replace("NIFTY", "")
-                elif "BANKNIFTY" in symbol:
-                    data = symbol.replace("BANKNIFTY", "")
-                else:
-                    st.error(f"Unknown symbol format: {symbol}")
-                    return None
             
-                # First 5 chars = expiry code
-                expiry_code = data[:5]
-            
-                year = int("20" + expiry_code[:2])  # e.g., "25" → 2025
-                month_code = expiry_code[2]          # e.g., "D"
-                day = int(expiry_code[3:])           # e.g., "02"
-            
-                month_map = {
-                    "A":1, "B":2, "C":3, "M":4, "E":5, "F":6,
-                    "G":7, "H":8, "I":9, "J":10, "K":11, "D":12
-                }
-            
-                month = month_map.get(month_code)
-                if not month:
-                    st.error(f"Invalid month code: {month_code}")
-                    return None
-            
-                return datetime(year, month, day)
             
             # ----------------------------
             # 2️⃣ Fetch LTP, spot, strike, expiry

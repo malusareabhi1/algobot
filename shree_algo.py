@@ -6827,48 +6827,7 @@ elif MENU =="Live Trade":
             # -------------------------
             # 3. IV Rank Calculation
             # -------------------------
-            def calculate_iv_rank(kite, symbol):
-                # 1. Get IV from LTP
-                try:
-                    inst = kite.ltp(symbol)
-                    key = list(inst.keys())[0]
-                    current_iv = inst[key].get('implied_volatility', None)
-                except:
-                    return {"ok": False, "msg": "IV not found in LTP"}
             
-                if current_iv is None:
-                    return {"ok": False, "msg": "Zerodha LTP has no implied_volatility"}
-            
-                # 2. Fetch historical IV
-                try:
-                    token = inst[key]['instrument_token']
-                    end = datetime.now()
-                    start = end - timedelta(days=365)
-            
-                    hist = kite.historical_data(token, start, end, "day", oi=True)
-                    df = pd.DataFrame(hist)
-            
-                    if "implied_volatility" not in df:
-                        return {"ok": False, "msg": "No IV in historical data"}
-            
-                    iv_low = df["implied_volatility"].min()
-                    iv_high = df["implied_volatility"].max()
-            
-                    if iv_high == iv_low:
-                        iv_rank = 0
-                    else:
-                        iv_rank = (current_iv - iv_low) / (iv_high - iv_low)
-            
-                    return {
-                        "ok": True,
-                        "current_iv": round(current_iv, 2),
-                        "iv_low": round(iv_low, 2),
-                        "iv_high": round(iv_high, 2),
-                        "iv_rank": round(iv_rank, 2)
-                    }
-            
-                except:
-                    return {"ok": False, "msg": "Historical IV fetch failed"}
 
 
             

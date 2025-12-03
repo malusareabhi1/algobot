@@ -6888,7 +6888,13 @@ elif MENU =="Live Trade":
                     "iv_rank": round(iv_rank, 2)
                 }
 
-            vix = kite.ltp("NSE:INDIAVIX")["NSE:INDIAVIX"]["last_price"]
+            #vix = kite.ltp("NSE:INDIAVIX")["NSE:INDIAVIX"]["last_price"]
+            def get_vix(kite):
+                ltp = kite.ltp("INDIAVIX")
+                key = list(ltp.keys())[0]      # avoid KeyError
+                return ltp[key]["last_price"]
+            
+            vix = get_vix(kite)
 
             iv_data = calculate_iv_rank(kite, "NIFTY25D0925900PE")
             

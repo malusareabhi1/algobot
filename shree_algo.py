@@ -6901,16 +6901,116 @@ elif MENU =="Live Trade":
             st.write(calculate_iv_rank(symbol, strike, opt_type))
 
             
-            #--------------------------------------------------------------------------------------------
+            #-------------------------------------------START IV RANK-------------------------------------------------
+
+            import os
+            import json
+            import datetime
+            import streamlit as st
             
-            #--------------------------------------
+            # -----------------------------------------------------------
+            # 1. Fetch CURRENT IV from Zerodha Quote API
+            # -----------------------------------------------------------
+            def get_current_iv(kite, tradingsymbol):
+                try:
+                    q = kite.quote(tradingsymbol)
+            
+                    if tradingsymbol not in q:
+                        return None  # symbol missing
+            
+                    iv = q[tradingsymbol].get("implied_volatility", None)
+                    return iv
+            
+                except Exception as e:
+                    st.error(f"IV Fetch Error: {e}")
+                    return None
             
             
+            # -----------------------------------------------------------
+            # 2. Store Daily IV to JSON file so Rank can be calculated
+            # -----------------------------------------------------------
+            IV_FILE = "iv_history.json"
+            
+            def save_iv_history(symbol, iv):
+                today = str(datetime.date.today())
+            
+                if os.path.exists(IV_FILE):
+                    with open(IV_FILE, "r") as f:
+                        data = json.load(f)
+                else:
+                    data = {}
+            
+                if symbol not in data:
+                    data[symbol] = {}
+            
+                data[symbol][today] = iv
+            
+                # Keep only last 252 entries (1 year)
+                if len(data[symbol]) > 252:
+                    data[symbol] = dict(list(data[symbol].items())[-252:])
+            
+                with open(IV_FILE, "w") as f:
+                    json.dump(data, f, indent=2)
+            
+            
+            # -----------------------------------------------------------
+            # 3. Calculate IV Rank
+            # -----------------------------------------------------------
+            def calculate_iv_rank(symbol, current_iv):
+                if not os.path.exists(IV_FILE):
+                    return None
+            
+                with open(IV_FILE, "r") as f:
+                    data = json.load(f)
+            
+                if symbol not in data:
+                    return None
+            
+                iv_list = list(data[symbol].values())
+                if len(iv_list) < 5:
+                    return None  # not enough data
+            
+                iv_low = min(iv_list)
+                iv_high = max(iv_list)
+            
+                # IV Rank formula
+                iv_rank = (current_iv - iv_low) / (iv_high - iv_low)
+            
+                return round(iv_rank, 2)
+            
+            
+            # -----------------------------------------------------------
+            # 4. COMBINED FUNCTION
+            # -----------------------------------------------------------
+            def get_iv_and_rank(kite, tradingsymbol):
+                current_iv = get_current_iv(kite, tradingsymbol)
+            
+                if current_iv is None:
+                    return None, None
+            
+                # Save today's IV
+                save_iv_history(tradingsymbol, current_iv)
+            
+                # Calculate Rank
+                iv_rank = calculate_iv_rank(tradingsymbol, current_iv)
+            
+                return current_iv, iv_rank
+
+            symbol = "NFO:NIFTY25D0925900PE"
+
+            current_iv, iv_rank = get_iv_and_rank(kite, symbol)
+            
+            st.write("Current IV:", current_iv)
+            st.write("IV Rank:", iv_rank)
+            
+                       
+                        
+            
 
 
 
 
-            #--------------------------------------------------------------------------------------------
+            #----------------------------------------End IV RANK----------------------------------------------------
             # -------------------------
             # 4. Example Usage for NIFTY Option
             # -------------------------

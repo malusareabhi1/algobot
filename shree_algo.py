@@ -6898,7 +6898,7 @@ elif MENU =="Live Trade":
             strike =selected_option["strike"]
             opt_type=selected_option["instrument_type"]
             
-            st.write(calculate_iv_rank(symbol, strike, opt_type))
+            #st.write(calculate_iv_rank(symbol, strike, opt_type))
 
             
             #-------------------------------------------START IV RANK-------------------------------------------------

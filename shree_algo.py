@@ -7010,39 +7010,34 @@ elif MENU =="Live Trade":
             #------------------------------------------------------------------------------------------
             def parse_expiry(symbol):
                 """
-                Parse NSE option expiry from symbol like:
+                Parse Zerodha-style option symbol like:
                 NIFTY25D0226200PE
-                BANKNIFTY25D0226200CE
                 """
-                # Remove index prefix
-                if "NIFTY" in symbol:
-                    data = symbol.replace("NIFTY", "")
-                elif "BANKNIFTY" in symbol:
-                    data = symbol.replace("BANKNIFTY", "")
-                else:
-                    st.error(f"Unknown symbol format: {symbol}")
-                    return None
+                import datetime
             
-                # First 5 chars = expiry code
-                expiry_code = data[:5]
+                # Remove underlying name
+                symbol = symbol.replace("NIFTY", "").replace("BANKNIFTY", "")
             
-                year = int("20" + expiry_code[:2])  # e.g., "25" → 2025
-                month_code = expiry_code[2]          # e.g., "D"
-                day = int(expiry_code[3:])           # e.g., "02"
+                # YEAR
+                year = 2000 + int(symbol[:2])
             
+                # MONTH LETTER → Month number
+                month_code = symbol[2]
                 month_map = {
-                    "A":1, "B":2, "C":3, "M":4, "E":5, "F":6,
-                    "G":7, "H":8, "I":9, "J":10, "K":11, "D":12
+                    "A": 1, "B": 2, "C": 3, "D": 4,
+                    "E": 5, "F": 6, "G": 7, "H": 8,
+                    "I": 9, "J": 10, "K": 11, "L": 12,
                 }
+                month = month_map[month_code]
             
-                month = month_map.get(month_code)
-                if not month:
-                    st.error(f"Invalid month code: {month_code}")
-                    return None
+                # DAY – next 2 digits
+                day = int(symbol[3:5])
             
-                return datetime(year, month, day)
+                return datetime.date(year, month, day)
 
-            
+               
+
+            #---------------------------------------------------------------
             def calculate_iv_rank_from_spot(spot_token):
                 try:
                     today = datetime.now()

@@ -6827,23 +6827,75 @@ elif MENU =="Live Trade":
             # -------------------------
             # 3. IV Rank Calculation
             # -------------------------
-            def calculate_iv_rank(iv_list):
-                iv_list = [iv for iv in iv_list if iv is not None and not np.isnan(iv)]
+            def calculate_iv_rank(kite, symbol):
+                """
+                Calculate IV Rank using Zerodha API historical data.
+                
+                Args:
+                    kite (KiteConnect): Logged-in Zerodha KiteConnect object
+                    symbol (str): Option symbol like "NIFTY24OCT17500CE"
+                    
+                Returns:
+                    dict: { 'current_iv': x, 'iv_low': x, 'iv_high': x, 'iv_rank': x }
+                """
             
-                # If IV list is too small, return default safe values
-                if len(iv_list) < 3:
-                    return (None, None, None, None)
+                # --------------------------
+                # 1. Get instrument token
+                # --------------------------
+                try:
+                    inst = kite.ltp(symbol)
+                    current_iv = inst[symbol]['implied_volatility']
+                except:
+                    return {"error": "Could not fetch IV from Zerodha LTP API"}
             
-                iv_high = max(iv_list)
-                iv_low = min(iv_list)
-                current_iv = iv_list[-1]
+                # --------------------------
+                # 2. Fetch last 1-year historical data
+                # --------------------------
+                end = datetime.now()
+                start = end - timedelta(days=365)
+            
+                try:
+                    hist = kite.historical_data(
+                        instrument_token=inst[symbol]['instrument_token'],
+                        from_date=start,
+                        to_date=end,
+                        interval="day",
+                        oi=True
+                    )
+                except:
+                    return {"error": "Cannot fetch historical IV data"}
+            
+                df = pd.DataFrame(hist)
+            
+                if "implied_volatility" not in df.columns:
+                    return {"error": "IV data not available in historical API"}
+            
+                # --------------------------
+                # 3. Compute IV Rank
+                # --------------------------
+                iv_low = df["implied_volatility"].min()
+                iv_high = df["implied_volatility"].max()
             
                 if iv_high == iv_low:
-                    return (None, current_iv, iv_low, iv_high)
+                    iv_rank = 0
+                else:
+                    iv_rank = (current_iv - iv_low) / (iv_high - iv_low)
             
-                iv_rank = ((current_iv - iv_low) / (iv_high - iv_low)) * 100
+                return {
+                    "current_iv": round(current_iv, 2),
+                    "iv_low": round(iv_low, 2),
+                    "iv_high": round(iv_high, 2),
+                    "iv_rank": round(iv_rank, 2)
+                }
+
+            vix = kite.ltp("NSE:INDIAVIX")["NSE:INDIAVIX"]["last_price"]
+
+            iv_data = calculate_iv_rank(kite, "NIFTY25D0925900PE")
             
-                return (round(iv_rank, 2), current_iv, iv_low, iv_high)
+            st.table({
+                "Parameter": ["Current IV", "IV Rank", "India VIX"],
+                "Value": [iv_data["current_iv"], iv_data["iv_rank"], vix]
+            })
 
             
             

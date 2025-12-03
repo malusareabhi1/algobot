@@ -6844,9 +6844,9 @@ elif MENU =="Live Trade":
             vix = get_vix(kite)
             
             #st.table({
-                "Parameter": ["Current IV", "IV Rank", "India VIX"],
-                "Value": [current_iv, iv_rank, vix]
-            })
+               # "Parameter": ["Current IV", "IV Rank", "India VIX"],
+                #"Value": [current_iv, iv_rank, vix]
+            #})
             #---------------------------------------------------
             symbol=selected_option["tradingsymbol"]
             strike =selected_option["strike"]

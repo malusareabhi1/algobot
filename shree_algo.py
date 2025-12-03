@@ -6996,7 +6996,7 @@ elif MENU =="Live Trade":
             
                 return current_iv, iv_rank
 
-            symbol = "NFO:NIFTY25D0925900PE"
+            symbol = "NIFTY25D0925900PE"
 
             current_iv, iv_rank = get_iv_and_rank(kite, symbol)
             

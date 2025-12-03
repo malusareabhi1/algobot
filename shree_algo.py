@@ -6898,9 +6898,67 @@ elif MENU =="Live Trade":
                 "Parameter": ["Current IV", "IV Rank", "India VIX"],
                 "Value": [current_iv, iv_rank, vix]
             })
+            #---------------------------------------------------
+            symbol=selected_option["tradingsymbol"]
+            strike =selected_option["strike"]
+            opt_type=selected_option["instrument_type"]
+            
+            st.write(calculate_iv_rank(symbol, strike, opt_type))
 
             
+            #--------------------------------------------------------------------------------------------
+            from nsepython import nse_optionchain
+
+            def get_option_iv(symbol, strike, opt_type):
+                """
+                symbol = 'NIFTY' or 'BANKNIFTY'
+                strike = e.g. 21500
+                opt_type = 'CE' or 'PE'
+                """
+                data = nse_optionchain(symbol)
             
+                for item in data['records']['data']:
+                    if item.get('strikePrice') == strike:
+                        if opt_type == "CE" and "CE" in item:
+                            return item["CE"].get("impliedVolatility")
+                        if opt_type == "PE" and "PE" in item:
+                            return item["PE"].get("impliedVolatility")
+            
+                return None
+            #--------------------------------------
+            
+            def calculate_iv_rank(symbol, strike, opt_type):
+                current_iv = get_option_iv(symbol, strike, opt_type)
+                if current_iv is None:
+                    return {"ok": False, "msg": "IV not found from NSE"}
+            
+                # Your IV history storage OR fallback demo data
+                # Ideally store daily IV in CSV
+                # Example:
+                iv_history = pd.read_csv("iv_history.csv")   # must contain 'iv' column
+            
+                iv_low = iv_history['iv'].min()
+                iv_high = iv_history['iv'].max()
+            
+                if iv_high == iv_low:
+                    iv_rank = 0
+                else:
+                    iv_rank = (current_iv - iv_low) / (iv_high - iv_low)
+            
+                return {
+                    "ok": True,
+                    "current_iv": round(current_iv, 2),
+                    "iv_rank": round(iv_rank, 2),
+                    "iv_low": round(iv_low, 2),
+                    "iv_high": round(iv_high, 2)
+                }
+
+
+
+
+
+
+            #--------------------------------------------------------------------------------------------
             # -------------------------
             # 4. Example Usage for NIFTY Option
             # -------------------------

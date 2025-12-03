@@ -6828,65 +6828,51 @@ elif MENU =="Live Trade":
             # 3. IV Rank Calculation
             # -------------------------
             def calculate_iv_rank(kite, symbol):
-                """
-                Calculate IV Rank using Zerodha API historical data.
-                
-                Args:
-                    kite (KiteConnect): Logged-in Zerodha KiteConnect object
-                    symbol (str): Option symbol like "NIFTY24OCT17500CE"
-                    
-                Returns:
-                    dict: { 'current_iv': x, 'iv_low': x, 'iv_high': x, 'iv_rank': x }
-                """
-            
-                # --------------------------
-                # 1. Get instrument token
-                # --------------------------
+                # 1. Get IV from LTP
                 try:
                     inst = kite.ltp(symbol)
-                    current_iv = inst[symbol]['implied_volatility']
+                    key = list(inst.keys())[0]
+                    current_iv = inst[key].get('implied_volatility', None)
                 except:
-                    return {"error": "Could not fetch IV from Zerodha LTP API"}
+                    return {"ok": False, "msg": "IV not found in LTP"}
             
-                # --------------------------
-                # 2. Fetch last 1-year historical data
-                # --------------------------
-                end = datetime.now()
-                start = end - timedelta(days=365)
+                if current_iv is None:
+                    return {"ok": False, "msg": "Zerodha LTP has no implied_volatility"}
             
+                # 2. Fetch historical IV
                 try:
-                    hist = kite.historical_data(
-                        instrument_token=inst[symbol]['instrument_token'],
-                        from_date=start,
-                        to_date=end,
-                        interval="day",
-                        oi=True
-                    )
+                    token = inst[key]['instrument_token']
+                    end = datetime.now()
+                    start = end - timedelta(days=365)
+            
+                    hist = kite.historical_data(token, start, end, "day", oi=True)
+                    df = pd.DataFrame(hist)
+            
+                    if "implied_volatility" not in df:
+                        return {"ok": False, "msg": "No IV in historical data"}
+            
+                    iv_low = df["implied_volatility"].min()
+                    iv_high = df["implied_volatility"].max()
+            
+                    if iv_high == iv_low:
+                        iv_rank = 0
+                    else:
+                        iv_rank = (current_iv - iv_low) / (iv_high - iv_low)
+            
+                    return {
+                        "ok": True,
+                        "current_iv": round(current_iv, 2),
+                        "iv_low": round(iv_low, 2),
+                        "iv_high": round(iv_high, 2),
+                        "iv_rank": round(iv_rank, 2)
+                    }
+            
                 except:
-                    return {"error": "Cannot fetch historical IV data"}
+                    return {"ok": False, "msg": "Historical IV fetch failed"}
+
+
             
-                df = pd.DataFrame(hist)
-            
-                if "implied_volatility" not in df.columns:
-                    return {"error": "IV data not available in historical API"}
-            
-                # --------------------------
-                # 3. Compute IV Rank
-                # --------------------------
-                iv_low = df["implied_volatility"].min()
-                iv_high = df["implied_volatility"].max()
-            
-                if iv_high == iv_low:
-                    iv_rank = 0
-                else:
-                    iv_rank = (current_iv - iv_low) / (iv_high - iv_low)
-            
-                return {
-                    "current_iv": round(current_iv, 2),
-                    "iv_low": round(iv_low, 2),
-                    "iv_high": round(iv_high, 2),
-                    "iv_rank": round(iv_rank, 2)
-                }
+            #----------------------------------------------------------------------------------------
 
             #vix = kite.ltp("NSE:INDIAVIX")["NSE:INDIAVIX"]["last_price"]
             def get_vix(kite):

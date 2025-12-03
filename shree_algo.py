@@ -7220,8 +7220,105 @@ elif MENU =="Live Trade":
             #st.write("Current HV:", current_hv)
             #st.write("1Y Low:", low_hv)
             #st.write("1Y High:", high_hv)
-
-
+            #---------------------------------------------------------------------------------------------------------------
+            def calc_iv_vix_ivrank(symbol, strike, option_type, expiry,
+                       r=0.06, lookback_days=252):
+                """
+                All‑in‑one:
+                  1) Fetch underlying & option history from NSE (via nsepy)
+                  2) Calculate current option IV (Black–Scholes, Newton method)
+                  3) Get current India VIX
+                  4) Compute IV Rank from past 'lookback_days' of ATM IV
+            
+                Returns dict: {'iv': float, 'vix': float, 'iv_rank': float}
+                """
+                # ---------------- data fetch ----------------
+                today = date.today()
+                start = today - timedelta(days=lookback_days + 10)
+            
+                # underlying history
+                spot_df = get_history(symbol=symbol, start=start, end=today)
+                S = float(spot_df["Close"].iloc[-1])
+            
+                # option history (for IV rank we use daily close of this strike)
+                opt_df = get_history(symbol=symbol, start=start, end=today,
+                                     option_type=option_type.upper(),
+                                     strike_price=strike, expiry_date=expiry)
+                opt_close = opt_df["Close"].dropna()
+                if opt_close.empty:
+                    raise ValueError("No option data for given params")
+            
+                # India VIX (index=True)
+                vix_df = get_history(symbol="INDIAVIX", start=start, end=today,
+                                     index=True)
+                vix = float(vix_df["Close"].iloc[-1])
+            
+                # ---------------- IV (today) ----------------
+                def bs_price(S, K, r, sigma, T, opt_type="C"):
+                    if sigma <= 0 or T <= 0:
+                        return 0.0
+                    d1 = (log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * sqrt(T))
+                    d2 = d1 - sigma * sqrt(T)
+                    if opt_type == "C":
+                        return S * norm.cdf(d1) - K * exp(-r * T) * norm.cdf(d2)
+                    else:
+                        return K * exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
+            
+                def implied_vol(S, K, r, T, market_price, opt_type="C",
+                                sigma_init=0.2, tol=1e-6, max_iter=100):
+                    sigma = sigma_init
+                    for _ in range(max_iter):
+                        price = bs_price(S, K, r, sigma, T, opt_type)
+                        d1 = (log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * sqrt(T))
+                        vega = S * norm.pdf(d1) * sqrt(T)
+                        diff = price - market_price
+                        if abs(diff) < tol:
+                            return max(sigma, 0.0)
+                        if vega == 0:
+                            break
+                        sigma -= diff / vega
+                    return max(sigma, 0.0)
+            
+                K = float(strike)
+                T = (expiry - today).days / 365.0
+                mkt_price = float(opt_close.iloc[-1])
+                iv_today = implied_vol(S, K, r, T, mkt_price, option_type.upper())
+            
+                # --------- IV history & IV Rank ------------
+                # approximate T for each past day by remaining days to expiry
+                iv_list = []
+                for dt, price in opt_close.tail(lookback_days).items():
+                    T_i = (expiry - dt.date()).days / 365.0
+                    if T_i <= 0:
+                        continue
+                    iv_i = implied_vol(float(spot_df.loc[dt, "Close"]),
+                                       K, r, T_i, float(price),
+                                       option_type.upper())
+                    if iv_i > 0:
+                        iv_list.append(iv_i)
+            
+                if not iv_list:
+                    iv_rank = 0.0
+                else:
+                    iv_series = pd.Series(iv_list)
+                    iv_low, iv_high = iv_series.min(), iv_series.max()
+                    if iv_high == iv_low:
+                        iv_rank = 0.0
+                    else:
+                        iv_rank = (iv_today - iv_low) / (iv_high - iv_low) * 100
+                        iv_rank = max(0.0, min(iv_rank, 100.0))
+            
+                return {"iv": iv_today, "vix": vix, "iv_rank": iv_rank}
+            result = calc_iv_vix_ivrank(
+                symbol="NIFTY",          # underlying
+                strike=25950,            # strike price
+                option_type="C",         # "C" = Call, "P" = Put
+                expiry=date(2025, 12, 25) # expiry date (YYYY, M, D)
+            )
+            
+            st.write("IV      :", result["iv"])
+            st.write("India VIX:", result["vix"])
+            st.write("IV Rank :", result["iv_rank"])
             #--------------------------------------------------------------------------------------------------------------------
             from datetime import datetime
 

@@ -6963,34 +6963,34 @@ elif MENU =="Live Trade":
 
             
             #------------------------------------------------------------------------------------------------------------
+            import re
+
             def parse_symbol(sym):
-                    # Example: NIFTY25D0226050PE
-                    m = re.match(r"(NIFTY)(\d{2})([A-Z])(\d{2})(\d+)(CE|PE)", sym)
-                    if not m:
-                        return None
-                
-                    index, year, month, day, strike, opt_type = m.groups()
-                
-                    year = int("20" + year)
-                    strike = int(strike)
-                    month_map = {
-                        "F":1,"G":2,"H":3,"J":4,"K":5,"M":6,
-                        "N":7,"Q":8,"U":9,"V":10,"X":11,"Z":12
-                    }
-                    month = month_map.get(month.upper())
-                
-                    expiry = datetime(year, month, int(day))
-                
-                    return {
-                        "index": index,
-                        "expiry": expiry,
-                        "strike": strike,
-                        "type": opt_type
-                    }
-                
-                # test
-                #p = parse_symbol("NIFTY25D0226050PE")
-                #print(p)
+                pattern = r"(NIFTY|BANKNIFTY)(\d{2})([A-Z])(\d{2})(\d+)(CE|PE)"
+                m = re.match(pattern, sym)
+            
+                if not m:
+                    raise ValueError(f"Invalid option symbol: {sym}")
+            
+                underlying = m.group(1)
+                year = int("20" + m.group(2))
+                month_code = m.group(3)
+                day = int(m.group(4))
+                strike = int(m.group(5))
+                option_type = m.group(6)
+            
+                return {
+                    "underlying": underlying,
+                    "year": year,
+                    "month_code": month_code,
+                    "day": day,
+                    "strike": strike,
+                    "type": option_type
+                }
+            
+            # Example
+            #print(parse_symbol("NIFTY25D0926050PE"))
+
 
             #from py_vollib.black.implied_volatility import implied_volatility
 

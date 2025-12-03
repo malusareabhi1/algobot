@@ -135,7 +135,7 @@ def compute_trade_pnl(signal_log_df, df):
         exit_reason = "Time Exit"
 
         for _, candle in day_after_entry.iterrows():
-            price = candle['Close_^NSEI']  # Spot price used for simulation; replace with option price if available
+            price = candle['Close_^NSEI']  #  used for simulation; replace with option price if available
             
             # Check Take Profit for CALL or PUT
             if take_profit and (
@@ -3160,7 +3160,7 @@ elif MENU == "Backtest":
             exit_reason = "Time Exit"
     
             for _, candle in day_after_entry.iterrows():
-                price = candle['Close_^NSEI']  # Spot price used for simulation; replace with option price if available
+                price = candle['Close_^NSEI']  #  used for simulation; replace with option price if available
                 
                 # Check Take Profit for CALL or PUT
                 if take_profit and (
@@ -3487,7 +3487,7 @@ elif MENU == "Backtest":
     
     def get_nearest_itm_option(spot_price, option_type="CALL", strike_step=50):
         """
-        Returns the nearest ITM strike for given spot price and option type.
+        Returns the nearest ITM strike for given  and option type.
         Example: If spot = 19765 and option_type = CALL → 19750 (nearest ITM call).
                  If spot = 19765 and option_type = PUT  → 19800 (nearest ITM put).
         """
@@ -7086,7 +7086,7 @@ elif MENU =="Live Trade":
             stock,yr,month_code,day,spotprice,type=parse_symbol(trading_symbol)
             st.write("Instrument Symbl:", trading_symbol)
             st.write("Spot Price:", spotprice)
-            #st.write(parse_symbol(trading_symbol))
+            st.write(parse_symbol(trading_symbol))
             st.write("IV Rank:", iv_rank)
             st.write("Current HV:", current_hv)
             st.write("1Y Low:", low_hv)

@@ -7202,52 +7202,7 @@ elif MENU =="Live Trade":
                
 
             #---------------------------------------------------------------
-            def calculate_iv_rank_from_spot(spot_token):
-                try:
-                    today = datetime.now()
-                    one_year_ago = today - timedelta(days=365)
-            
-                    # 1-year NIFTY spot historical data
-                    hist = kite.historical_data(
-                        instrument_token=spot_token,
-                        from_date=one_year_ago,
-                        to_date=today,
-                        interval="day"
-                    )
-            
-                    df = pd.DataFrame(hist)
-            
-                    if df.empty:
-                        return None, None, None, None
-            
-                    # Daily log returns
-                    df["ret"] = np.log(df["close"] / df["close"].shift(1))
-            
-                    # 21-day rolling volatility (1-month HV)
-                    df["hv"] = df["ret"].rolling(21).std() * np.sqrt(252)
-            
-                    hv_series = df["hv"].dropna()
-            
-                    if hv_series.empty:
-                        return None, None, None, None
-            
-                    iv_low = hv_series.min()
-                    iv_high = hv_series.max()
-                    current_iv = hv_series.iloc[-1]
-            
-                    if iv_high == iv_low:
-                        return None, current_iv, iv_low, iv_high
-            
-                    iv_rank = ((current_iv - iv_low) / (iv_high - iv_low)) * 100
-            
-                    return round(iv_rank, 2), round(current_iv, 4), round(iv_low, 4), round(iv_high, 4)
-            
-                except Exception as e:
-                    return None, None, None, None
-            spot_token = 26050   # NIFTY spot token
-            iv_rank, current_hv, low_hv, high_hv = calculate_iv_rank_from_spot(spot_token)
-            #token=parse_symbol(trading_symbol)
-            #stock,yr,month_code,day,spotprice,type=parse_symbol(trading_symbol)
+           
             symbol_data = parse_symbol(trading_symbol)
 
             underlying   = symbol_data["underlying"]
@@ -7261,10 +7216,10 @@ elif MENU =="Live Trade":
             st.write("Instrument Symbl:", trading_symbol)
             st.write("Spot Price:", strike)
             #st.write(parse_symbol(trading_symbol))
-            st.write("IV Rank:", iv_rank)
-            st.write("Current HV:", current_hv)
-            st.write("1Y Low:", low_hv)
-            st.write("1Y High:", high_hv)
+            #st.write("IV Rank:", iv_rank)
+            #st.write("Current HV:", current_hv)
+            #st.write("1Y Low:", low_hv)
+            #st.write("1Y High:", high_hv)
 
 
             #--------------------------------------------------------------------------------------------------------------------

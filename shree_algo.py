@@ -6839,21 +6839,11 @@ elif MENU =="Live Trade":
                 key = list(ltp.keys())[0]      # avoid KeyError
                 return ltp[key]["last_price"]
             
-            vix = get_vix(kite)
-
-            iv_data = calculate_iv_rank(kite, option_symbol)
-
-            if not iv_data["ok"]:
-                st.error(iv_data["msg"])
-                current_iv = "-"
-                iv_rank = "-"
-            else:
-                current_iv = iv_data["current_iv"]
-                iv_rank = iv_data["iv_rank"]
+            
             
             vix = get_vix(kite)
             
-            st.table({
+            #st.table({
                 "Parameter": ["Current IV", "IV Rank", "India VIX"],
                 "Value": [current_iv, iv_rank, vix]
             })

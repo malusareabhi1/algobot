@@ -7083,10 +7083,20 @@ elif MENU =="Live Trade":
             spot_token = 26050   # NIFTY spot token
             iv_rank, current_hv, low_hv, high_hv = calculate_iv_rank_from_spot(spot_token)
             #token=parse_symbol(trading_symbol)
-            stock,yr,month_code,day,spotprice,type=parse_symbol(trading_symbol)
+            #stock,yr,month_code,day,spotprice,type=parse_symbol(trading_symbol)
+            symbol_data = parse_symbol(trading_symbol)
+
+            underlying   = symbol_data["underlying"]
+            year         = symbol_data["year"]
+            month_code   = symbol_data["month_code"]
+            day          = symbol_data["day"]
+            strike       = symbol_data["strike"]
+            option_type  = symbol_data["type"]
+
+            
             st.write("Instrument Symbl:", trading_symbol)
-            st.write("Spot Price:", spotprice)
-            st.write(parse_symbol(trading_symbol))
+            st.write("Spot Price:", strike)
+            #st.write(parse_symbol(trading_symbol))
             st.write("IV Rank:", iv_rank)
             st.write("Current HV:", current_hv)
             st.write("1Y Low:", low_hv)

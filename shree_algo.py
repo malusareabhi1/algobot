@@ -6827,7 +6827,7 @@ elif MENU =="Live Trade":
             # -------------------------
             # 3. IV Rank Calculation
             # -------------------------
-            from nsepython import nse_optionchain
+            #from nsepython import nse_optionchain
 
             def get_option_iv(symbol, strike, opt_type):
                 """

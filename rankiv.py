@@ -1,112 +1,118 @@
 import streamlit as st
-import requests
 import pandas as pd
 import numpy as np
-from scipy.stats import norm
-from scipy.optimize import brentq
-import yfinance as yf
+from nsepython import nse_optionchain  # Reliable NSE wrapper
 from datetime import datetime, timedelta
+import time
 
-# NSE Headers for option chain
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-    'Accept-Language': 'en-US,en;q=0.9',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Referer': 'https://www.nseindia.com/'
-}
-
-@st.cache_data(ttl=60)  # Refresh every minute
-def fetch_nifty_option_chain():
-    url = "https://www.nseindia.com/api/option-chain-indices?symbol=NIFTY"
-    session = requests.Session()
-    session.headers.update(headers)
-    response = session.get(url)
-    data = response.json()
-    records = data['records']['data']
-    df = pd.DataFrame(records)
-    return df
-
-def black_scholes_iv(S, K, T, r, sigma, option_type='call', price=None):
-    """Calculate IV using Black-Scholes (for verification)"""
-    def bs_price(sigma):
-        d1 = (np.log(S/K) + (r + 0.5*sigma**2)*T) / (sigma*np.sqrt(T))
-        d2 = d1 - sigma * np.sqrt(T)
-        if option_type == 'call':
-            return S * norm.cdf(d1) - K * np.exp(-r*T) * norm.cdf(d2)
-        else:
-            return K * np.exp(-r*T) * norm.cdf(-d2) - S * norm.cdf(-d1)
-    if price is None:
-        return bs_price(sigma)
+@st.cache_data(ttl=120)  # Cache 2 mins
+def fetch_nifty_chain():
+    """Fetch using nsepython - handles NSE anti-bot automatically"""
     try:
-        return brentq(lambda sigma: bs_price(sigma) - price, 0.001, 5.0)
-    except:
-        return np.nan
+        data = nse_optionchain("NIFTY")
+        if data and 'records' in data and 'data' in data['records']:
+            df = pd.json_normalize(data['records']['data'])
+            return df
+        return pd.DataFrame()
+    except Exception as e:
+        st.error(f"NSE fetch failed: {str(e)}. Using fallback.")
+        return pd.DataFrame()
 
-def calculate_iv_rank(current_iv, hist_high=0.40, hist_low=0.10):
-    """Simple IV Rank calculation (replace hist_high/low with fetched data)"""
-    if hist_high == hist_low:
+def calculate_iv_rank(iv_current, iv_high=0.45, iv_low=0.08):
+    """IV Rank: (current - low) / (high - low) * 100"""
+    if iv_high <= iv_low:
         return 0
-    return max(0, min(100, (current_iv - hist_low) / (hist_high - hist_low) * 100))
+    return max(0, min(100, (iv_current - iv_low) / (iv_high - iv_low) * 100))
 
 # Streamlit App
-st.title("🛡️ Nifty Options IV Rank Finder")
-st.markdown("Select expiry & strike to view current IV and IV Rank.")
+st.title("🛡️ Nifty Options IV Rank Dashboard")
+st.markdown("**Live NSE data** - Select strike/expiry for IV analysis.")
 
-# Sidebar inputs
-expiry = st.sidebar.selectbox("Select Expiry", options=["Nearest", "Next", "Current Week"], index=0)
-option_type = st.sidebar.selectbox("Option Type", ["CE", "PE"])
-strike_range = st.sidebar.slider("Strike Range (±)", 0, 1000, 200, 50)
+# Fetch data
+with st.spinner("Fetching live Nifty option chain..."):
+    df = fetch_nifty_chain()
+    
+if df.empty:
+    st.warning("⚠️ No live data. Market closed? Try during 9:15-15:30 IST.")
+    st.stop()
 
-df = fetch_nifty_option_chain()
-if not df.empty:
-    underlying = df['underlyingValue'].iloc[0]
-    st.metric("Nifty Spot", f"{underlying:,.0f}")
+# Key metrics
+underlying = float(df['underlyingValue'].iloc[0])
+st.metric("Nifty Spot", f"{underlying:,.0f}")
+
+# Controls
+col1, col2 = st.columns(2)
+with col1:
+    option_type = st.selectbox("Type", ["CE", "PE"], index=0)
+with col2:
+    strike_offset = st.slider("Strike Offset", -500, 500, 0, 50)
+
+# Find nearest expiry & ATM strike
+expiries = df['expiryDate'].unique()
+current_expiry = sorted(expiries)[0]  # Nearest expiry
+atm_strike = round(underlying / 100) * 100
+selected_strike = atm_strike + strike_offset
+
+# Filter data
+target_row = df[(df['strikePrice'] == selected_strike) & 
+                (df['expiryDate'] == current_expiry) &
+                (df[option_type] == df[option_type].first_valid_index())]
+
+if not target_row.empty:
+    row = target_row.iloc[0]
+    iv_raw = row.get(f"{option_type}.impliedVolatility", np.nan)
+    iv_pct = iv_raw * 100 if pd.notna(iv_raw) else np.nan
     
-    # Filter options (simplified for current expiry)
-    calls = df[df['expiryDate'] == df['expiryDate'].max()]
-    puts = calls
-    atm_strike = round(underlying / 100) * 100
+    iv_rank = calculate_iv_rank(iv_raw) if pd.notna(iv_raw) else 0
     
-    selected_strike = st.selectbox("Select Strike", 
-                                   options=sorted(set(calls['strikePrice'].unique())), 
-                                   index=np.argmin(np.abs(calls['strikePrice'].unique() - atm_strike)))
+    st.metric(f"{option_type} IV", f"{iv_pct:.1f}%" if pd.notna(iv_pct) else "N/A")
+    st.metric("IV Rank %", f"{iv_rank:.1f}", 
+              delta=f"High >50% = Sell premium" if iv_rank > 50 else "Low <30% = Buy premium")
     
-    # Get option data
-    ce_data = calls[calls['strikePrice'] == selected_strike]
-    pe_data = puts[puts['strikePrice'] == selected_strike]
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        if not ce_data.empty:
-            ce_iv = ce_data['impliedVolatility'].iloc[0] * 100 if 'impliedVolatility' in ce_data else np.nan
-            iv_rank_ce = calculate_iv_rank(ce_iv / 100)
-            st.metric("CE IV Rank %", f"{iv_rank_ce:.1f}", delta=f"{ce_iv:.1f}%")
-    
-    with col2:
-        if not pe_data.empty:
-            pe_iv = pe_data['impliedVolatility'].iloc[0] * 100 if 'impliedVolatility' in pe_data else np.nan
-            iv_rank_pe = calculate_iv_rank(pe_iv / 100)
-            st.metric("PE IV Rank %", f"{iv_rank_pe:.1f}", delta=f"{pe_iv:.1f}%")
-    
-    # Table of nearby strikes
-    nearby_strikes = sorted(set(calls['strikePrice'].unique()), 
-                           key=lambda x: abs(x - underlying))[:10]
-    table_data = []
-    for strike in nearby_strikes:
-        ce_row = calls[calls['strikePrice'] == strike]
-        if not ce_row.empty and 'impliedVolatility' in ce_row:
-            iv = ce_row['impliedVolatility'].iloc[0] * 100
-            ivr = calculate_iv_rank(iv / 100)
-            table_data.append({'Strike': strike, 'CE IV %': f"{iv:.1f}", 'IV Rank %': f"{ivr:.1f}"})
-    
-    st.subheader("Nearby Strikes IV Rank")
-    st.dataframe(pd.DataFrame(table_data), use_container_width=True)
-    
-    # Historical note
-    st.info("🔄 **Upgrade**: Use `nsepython.derivative_history()` for 52w IV data to compute accurate ranks. Sample high/low used here [web:2].")
+    # Greeks
+    st.json({
+        "Delta": row.get(f"{option_type}.delta", "N/A"),
+        "Gamma": row.get(f"{option_type}.gamma", "N/A"),
+        "Theta": row.get(f"{option_type}.theta", "N/A"),
+        "Vega": row.get(f"{option_type}.vega", "N/A")
+    })
 else:
-    st.error("Failed to fetch NSE data. Check internet/NSE availability.")
+    st.warning(f"No data for {option_type} {selected_strike} on {current_expiry}")
 
-if st.sidebar.button("Run: streamlit run app.py"):
-    st.success("Deployed! Access via browser.")
+# Nearby strikes table
+st.subheader("Nearby Strikes IV Rank Table")
+nearby_strikes = sorted(df['strikePrice'].unique(), 
+                       key=lambda x: abs(x - underlying))[:15]
+
+table_data = []
+for strike in nearby_strikes:
+    for opt_type in ['CE', 'PE']:
+        row = df[(df['strikePrice'] == strike) & 
+                (df['expiryDate'] == current_expiry) & 
+                (df[opt_type].notna())]
+        if not row.empty:
+            iv_raw = row.iloc[0][f"{opt_type}.impliedVolatility"]
+            iv_pct = iv_raw * 100
+            ivr = calculate_iv_rank(iv_raw)
+            table_data.append({
+                'Strike': strike,
+                'Type': opt_type,
+                'IV %': f"{iv_pct:.1f}",
+                'IV Rank': f"{ivr:.1f}%",
+                'OI': f"{row.iloc[0][f'{opt_type}.openInterest']:,.0f}"
+            })
+
+if table_data:
+    df_table = pd.DataFrame(table_data)
+    st.dataframe(df_table, use_container_width=True, height=400)
+else:
+    st.info("No option data available.")
+
+# Footer
+st.info("""
+**Notes**: 
+- Uses `nsepython` for reliable NSE data [web:28]
+- IV Rank uses sample 52w range (8-45%). Fetch historical via `nsepython.bhavcopy_daily()` for accuracy
+- For Zerodha: Replace with `kite.quote()` + `kite.historical_data()` [web:30]
+- Run: `streamlit run rankiv_fixed.py`
+""")

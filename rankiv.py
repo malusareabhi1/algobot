@@ -83,9 +83,9 @@ if df.empty:
     
     # Sample data for testing
     df = pd.DataFrame({
-        'strikePrice': [24000, 24100, 24200, 24300],
+        'strikePrice': [25900, 25950, 26000, 26050],
         'expiryDate': ['04-Dec-25']*4,
-        'underlyingValue': [24150]*4,
+        'underlyingValue': [25900]*4,
         'CE.impliedVolatility': [0.18, 0.22, 0.25, 0.19],
         'PE.impliedVolatility': [0.20, 0.23, 0.21, 0.24],
         'CE.openInterest': [50000, 45000, 40000, 35000],

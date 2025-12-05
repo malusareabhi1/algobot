@@ -5108,6 +5108,9 @@ elif MENU =="Live Trade":
     from streamlit_autorefresh import st_autorefresh
     import time             # Python's time module
     from datetime import time  # datetime.time (conflict!)
+    # Initialize Kite in session_state
+    if "kite" not in st.session_state:
+        st.session_state.kite = None
     # --- SESSION STATE INIT ---
     if "order_executed" not in st.session_state:
         st.session_state.order_executed = False

@@ -5111,7 +5111,7 @@ elif MENU =="Live Trade":
     # Initialize Kite in session_state
     if "kite" not in st.session_state:
         st.session_state.kite = None
-    else
+    else:
         kite = st.session_state.get("kite")
     # --- SESSION STATE INIT ---
     if "order_executed" not in st.session_state:

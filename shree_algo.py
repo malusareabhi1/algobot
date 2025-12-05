@@ -7223,6 +7223,12 @@ elif MENU =="Live Trade":
             #---------------------------------------------------------------------------------------------------------------
             def calc_iv_vix_ivrank(symbol, strike, option_type, expiry,
                        r=0.06, lookback_days=252):
+                from datetime import date, timedelta
+                from math import log, sqrt, exp
+                from scipy.stats import norm
+                import pandas as pd
+                from nsepy import get_history                  
+
                 """
                 All‑in‑one:
                   1) Fetch underlying & option history from NSE (via nsepy)

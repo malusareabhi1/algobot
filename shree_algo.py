@@ -5114,7 +5114,12 @@ elif MENU =="Live Trade":
     
     if "signal_time" not in st.session_state:
         st.session_state.signal_time = None
-
+    # Add after data processing:
+    if kite.is_connected():  # Check real-time connection
+        # Place order logic here
+        st.success("🚀 Ready for live trading!")
+    else:
+        st.warning("⚠️ Kite websocket not connected")
 
     st.set_page_config(layout="wide")
     # Place at the very top of your script (or just before plotting)

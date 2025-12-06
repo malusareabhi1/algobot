@@ -12,11 +12,11 @@ from py_vollib.black_scholes import black_scholes as bs
 from py_vollib.black_scholes import black_scholes as bs_price
 
 # ---------------- CONFIG ----------------
-API_KEY = "your_api_key"
-ACCESS_TOKEN = "your_access_token"  # after login flow
+API_KEY = "a6st4090zfykq8wu"
+ACCESS_TOKEN = "kqc0hfmQ1aJ4uYgIElGFE9lZuFEmzaB0"  # after login flow
 NIFTY_SYMBOL = "NIFTY"              # underlying index
 EXCHANGE = "NFO"                    # options segment
-OPTION_TRADINGSYMBOL = "NIFTY25DEC24500CE"  # example option symbol
+OPTION_TRADINGSYMBOL = "NIFTY25DEC25500CE"  # example option symbol
 
 # Risk-free rate (approx, annualized)
 R = 0.07

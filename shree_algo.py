@@ -8350,6 +8350,10 @@ elif MENU == "Live Trade2":
 
 elif MENU == "Test1":
     st.title("Live Trade Test1")
+    if "kite" not in st.session_state:
+        st.session_state.kite = None
+    else:
+        kite = st.session_state.get("kite")
     # ---------- helper: get underlying spot ----------
     def get_nifty_spot():
         quote = kite.ltp(f"NSE:{NIFTY_SYMBOL}")

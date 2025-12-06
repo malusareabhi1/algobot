@@ -8355,7 +8355,7 @@ elif MENU == "Test1":
     else:
         kite = st.session_state.get("kite")
 
-    NIFTY_SYMBOL=NIFTY25D0926200CE
+    NIFTY_SYMBOL="NIFTY25D0926200CE"
     # ---------- helper: get underlying spot ----------
     def get_nifty_spot():
         quote = kite.ltp(f"NSE:{NIFTY_SYMBOL}")

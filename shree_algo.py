@@ -8356,10 +8356,10 @@ elif MENU == "Test1":
     else:
         kite = st.session_state.get("kite")
 
-    NIFTY_SYMBOL="NIFTY25D0926200CE"
+    #NIFTY_SYMBOL="NIFTY25D0926200CE"
     # ---------- helper: get underlying spot ----------
     def get_nifty_spot():
-        NIFTY_SYMBOL="NIFTY25D0926200CE"
+        #NIFTY_SYMBOL="NIFTY25D0926200CE"
         NIFTY_SYMBOL="NIFTY 50"
         quote = kite.ltp(f"NSE:{NIFTY_SYMBOL}")
         return quote[f"NSE:{NIFTY_SYMBOL}"]["last_price"]
@@ -8492,6 +8492,8 @@ elif MENU == "Test1":
         spot = get_nifty_spot()
         opt_ltp = get_option_ltp(OPTION_TRADINGSYMBOL)
         current_iv = compute_current_iv(spot, opt_ltp, STRIKE, EXPIRY, OPTION_TYPE)
+        st.write("OPTION_TRADINGSYMBOL:", OPTION_TRADINGSYMBOL)
+        
         st.write("Current IV (%):", current_iv)
     
         iv_hist = get_iv_history_for_option(OPTION_TRADINGSYMBOL, STRIKE, EXPIRY, OPTION_TYPE)

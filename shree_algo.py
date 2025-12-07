@@ -6977,6 +6977,42 @@ elif MENU =="Live Trade":
 
             st.write("India VIX:", vix_now)
             #--------------------------------------------------------------------------------------------------------------------
+            def iv_filter(iv_value, iv_rank):
+                # iv_value, iv_rank in decimals (0.22 = 22%)
+                if iv_value > 0.35:   # > 35%
+                    return False
+                if iv_value < 0.10:   # < 10%
+                    return False
+                if iv_rank < 0.20 or iv_rank > 0.70:  # 20%–70%
+                    return False
+                return True
+            
+            def vix_filter(vix_value):
+                # vix_value is the India VIX number
+                if vix_value < 12:
+                    return False
+                if vix_value > 22:
+                    return False
+                return True
+            
+            def combined_filter(option_iv, iv_rank, vix_value):
+                if iv_filter(option_iv, iv_rank) and vix_filter(vix_value):
+                    # higher risk regime → half size
+                    if option_iv > 0.25 or vix_value > 18:
+                        size = "half"
+                    else:
+                        size = "full"
+                    return True, size
+                return False, "none"
+            
+            # Example: IV=22%, IVR=45%, VIX=15
+            option_iv = 0.22
+            iv_rank = 0.45
+            vix_value = 15
+            
+            allowed, size = combined_filter(option_iv, iv_rank, vix_value)
+            st.write(allowed, size)  # True full
+
           
                         
             

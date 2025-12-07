@@ -8426,6 +8426,7 @@ elif MENU == "Test1":
             return pd.Series(dtype=float)
     
         # Historical NIFTY data (spot) – using index token via Kite
+        NIFTY_SYMBOL="NIFTY 50"
         nifty_token = kite.ltp(f"NSE:{NIFTY_SYMBOL}")[f"NSE:{NIFTY_SYMBOL}"]["instrument_token"]
         hist_nifty = kite.historical_data(
             instrument_token=nifty_token,

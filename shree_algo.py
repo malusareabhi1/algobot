@@ -6979,6 +6979,7 @@ elif MENU =="Live Trade":
 
             #-------------------------------------------------------------------------------------------------------------
             def get_vwap_for_option(trading_symbol="NIFTY25D0926200CE"):
+                import datetime as dt
                 # 1) Find instrument token in NFO
                 instruments = kite.instruments("NFO")
                 token = None

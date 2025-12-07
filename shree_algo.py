@@ -8412,6 +8412,7 @@ elif MENU == "Test1":
         from_date = to_date - timedelta(days=365)
     
         # Zerodha historical data for the option
+        EXCHANGE="NFO"
         hist_opt = kite.historical_data(
             instrument_token=kite.ltp(f"{EXCHANGE}:{tradingsymbol}")[f"{EXCHANGE}:{tradingsymbol}"]["instrument_token"],
             from_date=from_date,

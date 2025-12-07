@@ -6976,6 +6976,49 @@ elif MENU =="Live Trade":
             #vix_now = quote["NSE:INDIA VIX"]["last_price"]
 
             st.write("India VIX:", vix_now)
+
+            #-------------------------------------------------------------------------------------------------------------
+            def get_vwap_for_option(trading_symbol="NIFTY25D0926200CE"):
+                # 1) Find instrument token in NFO
+                instruments = kite.instruments("NFO")
+                token = None
+                for ins in instruments:
+                    if ins["tradingsymbol"] == trading_symbol and ins["segment"] == "NFO-OPT":
+                        token = ins["instrument_token"]
+                        break
+                if token is None:
+                    raise ValueError(f"Instrument token not found for {trading_symbol}")
+            
+                # 2) Get today's minute candles
+                today = dt.date.today()
+                from_dt = dt.datetime.combine(today, dt.time(9, 15))
+                to_dt   = dt.datetime.combine(today, dt.time(15, 30))
+            
+                candles = kite.historical_data(
+                    instrument_token=token,
+                    from_date=from_dt,
+                    to_date=to_dt,
+                    interval="minute",
+                    continuous=False,
+                    oi=False
+                )
+            
+                # 3) Compute VWAP = sum(typical_price * volume) / sum(volume)
+                num = 0.0
+                den = 0.0
+                for c in candles:
+                    tp = (c["high"] + c["low"] + c["close"]) / 3.0
+                    vol = c["volume"]
+                    num += tp * vol
+                    den += vol
+            
+                vwap = num / den if den else 0.0
+                return vwap
+            
+            selected_option = trading_symbol
+            vwap_value = get_vwap_for_option(selected_option)
+            st.write(f"VWAP for {selected_option}: {vwap_value:.2f}")    
+            
             #--------------------------------------------------------------------------------------------------------------------
             def iv_filter(iv_value, iv_rank):
                 # iv_value, iv_rank in decimals (0.22 = 22%)

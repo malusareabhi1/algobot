@@ -7350,6 +7350,15 @@ elif MENU =="Live Trade":
                 rank = (current_iv - iv_low) / (iv_high - iv_low) * 100.0
                 return max(0.0, min(100.0, rank))
 
+            spot_iv = compute_current_iv(kite, selected_option)
+            st.write("Current IV (%):", spot_iv)
+            
+            iv_hist = get_iv_history_for_option(kite, selected_option)
+            st.write("History points:", len(iv_hist))
+            
+            iv_rank = compute_iv_rank(iv_hist, spot_iv)
+            st.write("IV Rank:", iv_rank)
+
             
             #--------------------------------------------------------------------------------------------------------------------
             from datetime import datetime

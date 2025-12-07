@@ -6996,12 +6996,15 @@ elif MENU =="Live Trade":
                 return True
             
             def combined_filter(option_iv, iv_rank, vix_value):
+                half=3
+                full=6
+                
                 if iv_filter(option_iv, iv_rank) and vix_filter(vix_value):
                     # higher risk regime → half size
                     if option_iv > 0.25 or vix_value > 18:
-                        size = "half"
+                        size = half
                     else:
-                        size = "full"
+                        size = full
                     return True, size
                 return False, "none"
             

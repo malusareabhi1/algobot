@@ -8484,7 +8484,7 @@ elif MENU == "Test1":
         STRIKE = 24500
         EXPIRY = "2025-12-25"
         OPTION_TYPE = "c"   # 'c' for CE, 'p' for PE
-    
+        OPTION_TRADINGSYMBOL="NIFTY25D0926200CE"
         spot = get_nifty_spot()
         opt_ltp = get_option_ltp(OPTION_TRADINGSYMBOL)
         current_iv = compute_current_iv(spot, opt_ltp, STRIKE, EXPIRY, OPTION_TYPE)

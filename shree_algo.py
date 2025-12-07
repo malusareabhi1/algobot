@@ -6842,7 +6842,7 @@ elif MENU =="Live Trade":
            
             
             st.write("Instrument Symbl:", trading_symbol)
-            st.write("Spot Price:", strike)
+            #st.write("Spot Price:", strike)
             #st.write(parse_symbol(trading_symbol))
             #st.write("IV Rank:", iv_rank)
             #st.write("Current HV:", current_hv)

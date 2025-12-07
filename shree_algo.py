@@ -6971,7 +6971,7 @@ elif MENU =="Live Trade":
             st.write("IV Rank:", iv_rank)
 
             quote = kite.ltp("NSE:INDIA VIX")          # define quote here
-            st.write(quote)                            # optional debug
+            #st.write(quote)                            # optional debug
             vix_now = quote["NSE:INDIA VIX"]["last_price"]
             #vix_now = quote["NSE:INDIA VIX"]["last_price"]
 

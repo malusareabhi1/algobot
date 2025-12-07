@@ -6970,7 +6970,9 @@ elif MENU =="Live Trade":
             iv_rank = compute_iv_rank(iv_hist, spot_iv)
             st.write("IV Rank:", iv_rank)
 
-            
+            vix_now = quote["NSE:INDIA VIX"]["last_price"]
+
+            st.write("India VIX:", vix_now)
             #--------------------------------------------------------------------------------------------------------------------
           
                         

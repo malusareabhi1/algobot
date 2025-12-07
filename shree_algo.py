@@ -8365,6 +8365,7 @@ elif MENU == "Test1":
     
     # ---------- helper: get option quote ----------
     def get_option_ltp(tradingsymbol):
+        EXCHANGE = "NFO"
         q = kite.ltp(f"{EXCHANGE}:{tradingsymbol}")
         return q[f"{EXCHANGE}:{tradingsymbol}"]["last_price"]
     

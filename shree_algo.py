@@ -8358,6 +8358,7 @@ elif MENU == "Test1":
     NIFTY_SYMBOL="NIFTY25D0926200CE"
     # ---------- helper: get underlying spot ----------
     def get_nifty_spot():
+        NIFTY_SYMBOL="NIFTY25D0926200CE"
         quote = kite.ltp(f"NSE:{NIFTY_SYMBOL}")
         return quote[f"NSE:{NIFTY_SYMBOL}"]["last_price"]
     

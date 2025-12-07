@@ -8348,6 +8348,185 @@ elif MENU == "Live Trade2":
         df_show = df_show[['Time', 'Open', 'High', 'Low', 'Close', 'Signal', 'Reason']]
         st.dataframe(df_show, use_container_width=True)
 
+#-------------------------------------------------------------------------------------------
+        #elif MENU == "Test1":
+        import streamlit as st
+        import numpy as np
+        import pandas as pd
+        from datetime import datetime, timedelta, date
+        from dateutil import parser
+        from py_vollib.black_scholes.implied_volatility import implied_volatility
+    
+        st.title("Live Trade Test1")
+    
+        # ---------------- SETUP ----------------
+        if "kite" not in st.session_state or st.session_state.kite is None:
+            st.error("Please login and initialize Kite first.")
+            st.stop()
+    
+        kite = st.session_state.kite
+        R = 0.07   # annual risk‑free rate
+    
+        # Example selected option
+        OPTION_TRADINGSYMBOL = "NIFTY25D0926200CE"   # from your UI
+    
+        # ---------- 1. Parse NIFTY option symbol ----------
+        def parse_nifty_symbol(ts):
+            """
+            Parse NIFTY option symbol like NIFTY25D0926200CE
+            Returns: underlying, expiry_date (date), strike (float), opt_type ('c'/'p')
+            """
+            # Format: NIFTY YY M DD STRIKE CE/PE
+            # NIFTY25D09 26200 CE
+            underlying = "NIFTY"
+    
+            yy = int(ts[5:7])          # '25'
+            m_code = ts[7]             # 'D'
+            dd = int(ts[8:10])         # '09'
+            strike = float(ts[10:-2])  # '26200'
+            opt_code = ts[-2:]         # 'CE' or 'PE'
+    
+            # month code map as per NSE short codes
+            month_map = {
+                "F": 1, "G": 2, "H": 3, "J": 4, "K": 5, "M": 6,
+                "N": 7, "Q": 8, "U": 9, "V": 10, "X": 11, "Z": 12,
+                "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6,
+                "G": 7, "H": 8, "I": 9, "J": 10, "K": 11, "L": 12,
+            }
+            mm = month_map[m_code]
+            yyyy = 2000 + yy
+    
+            expiry_date = date(yyyy, mm, dd)
+            opt_type = "c" if opt_code.upper() == "CE" else "p"
+    
+            return underlying, expiry_date, strike, opt_type
+    
+        # ---------- 2. Spot & option LTP ----------
+        def get_nifty_spot():
+            quote = kite.ltp("NSE:NIFTY 50")
+            return quote["NSE:NIFTY 50"]["last_price"]
+    
+        def get_option_ltp(tradingsymbol):
+            q = kite.ltp(f"NFO:{tradingsymbol}")
+            return q[f"NFO:{tradingsymbol}"]["last_price"], q[f"NFO:{tradingsymbol}"]["instrument_token"]
+    
+        # ---------- 3. Days to expiry ----------
+        def days_to_expiry(expiry_date: date):
+            today = date.today()
+            return max((expiry_date - today).days, 0)
+    
+        # ---------- 4. Current IV ----------
+        def compute_current_iv(spot, opt_price, strike, expiry_date, opt_type):
+            T_days = days_to_expiry(expiry_date)
+            if T_days == 0:
+                return np.nan
+            T = T_days / 365.0
+    
+            intrinsic = max(0.0, spot - strike) if opt_type == "c" else max(0.0, strike - spot)
+            opt_price = max(opt_price, intrinsic + 0.01)
+    
+            try:
+                iv = implied_volatility(opt_price, spot, strike, T, R, opt_type)
+                return iv * 100.0
+            except Exception:
+                return np.nan
+    
+        # ---------- 5. 1‑year IV history for this option ----------
+        def get_iv_history_for_option(instr_token, strike, expiry_date, opt_type):
+            to_dt = datetime.now()
+            from_dt = to_dt - timedelta(days=365)
+    
+            # historical option OHLC (day)
+            hist_opt = kite.historical_data(
+                instrument_token=instr_token,
+                from_date=from_dt,
+                to_date=to_dt,
+                interval="day",
+                continuous=False,
+                oi=True
+            )
+            opt_df = pd.DataFrame(hist_opt)
+            if opt_df.empty:
+                return pd.Series(dtype=float)
+    
+            # NIFTY spot history
+            nifty_token = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["instrument_token"]
+            hist_spot = kite.historical_data(
+                instrument_token=nifty_token,
+                from_date=from_dt,
+                to_date=to_dt,
+                interval="day",
+                continuous=False,
+                oi=False
+            )
+            spot_df = pd.DataFrame(hist_spot)
+    
+            opt_df["date"] = opt_df["date"].dt.date
+            spot_df["date"] = spot_df["date"].dt.date
+    
+            df = pd.merge(
+                opt_df[["date", "close"]],
+                spot_df[["date", "close"]],
+                on="date",
+                suffixes=("_opt", "_spot")
+            )
+    
+            iv_vals = []
+            for _, row in df.iterrows():
+                t_days = (expiry_date - row["date"]).days
+                if t_days <= 0:
+                    iv_vals.append(np.nan)
+                    continue
+                T = t_days / 365.0
+    
+                price = float(row["close_opt"])
+                spot_price = float(row["close_spot"])
+    
+                intrinsic = max(0.0, spot_price - strike) if opt_type == "c" else max(0.0, strike - spot_price)
+                price = max(price, intrinsic + 0.01)
+    
+                try:
+                    iv = implied_volatility(price, spot_price, strike, T, R, opt_type)
+                    iv_vals.append(iv * 100.0)
+                except Exception:
+                    iv_vals.append(np.nan)
+    
+            df["iv"] = iv_vals
+            df = df.dropna(subset=["iv"])
+            return df["iv"]
+    
+        # ---------- 6. IV Rank ----------
+        def compute_iv_rank(iv_history, current_iv):
+            if iv_history.empty or np.isnan(current_iv):
+                return np.nan
+            iv_low = iv_history.min()
+            iv_high = iv_history.max()
+            if iv_high == iv_low:
+                return 0.0
+            rank = (current_iv - iv_low) / (iv_high - iv_low) * 100.0
+            return max(0.0, min(100.0, rank))
+    
+        # ---------- MAIN EXECUTION (inside Streamlit) ----------
+        underlying, expiry_date, strike, opt_type = parse_nifty_symbol(OPTION_TRADINGSYMBOL)
+    
+        spot = get_nifty_spot()
+        opt_ltp, opt_token = get_option_ltp(OPTION_TRADINGSYMBOL)
+        current_iv = compute_current_iv(spot, opt_ltp, strike, expiry_date, opt_type)
+        iv_hist = get_iv_history_for_option(opt_token, strike, expiry_date, opt_type)
+        iv_rank = compute_iv_rank(iv_hist, current_iv)
+    
+        st.write("Option:", OPTION_TRADINGSYMBOL)
+        st.write("Underlying:", underlying)
+        st.write("Expiry:", expiry_date)
+        st.write("Strike:", strike)
+        st.write("Type:", "CE" if opt_type == "c" else "PE")
+        st.write("Spot:", spot)
+        st.write("Option LTP:", opt_ltp)
+        st.write("Current IV (%):", current_iv)
+        st.write("History points:", len(iv_hist))
+        st.write("IV Rank:", iv_rank)
+
+
 
 elif MENU == "Test1":
     st.title("Live Trade Test1")

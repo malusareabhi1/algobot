@@ -7011,6 +7011,7 @@ elif MENU =="Live Trade":
             vix_value = 15
             
             allowed, size = combined_filter(option_iv, iv_rank, vix_value)
+            st.write("Trade: LotSize:")
             st.write(allowed, size)  # True full
 
           

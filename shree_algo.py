@@ -723,7 +723,7 @@ def trading_signal_all_conditions(df, quantity=10*75, return_all_signals=False):
 def get_ltp(kite, tradingsymbol):
     try:
         data = kite.ltp(f"NFO:{tradingsymbol}")
-        return data[f"NFO:{tradingsymbol}"]["ltp"]
+        return data[f"NFO:{tradingsymbol}"]["last_price"]
     except Exception as e:
         print("LTP fetch error:", e)
         return None

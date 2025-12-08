@@ -1,5 +1,5 @@
-import time
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
+#from datetime import datetime, timedelta
 from typing import Dict
 import pytz
 #import math
@@ -5169,7 +5169,7 @@ elif MENU =="LIVE TRADE 3":
     import yfinance as yf
     import pandas as pd
     import numpy as np
-    from datetime import datetime, timedelta, time
+    
     import pytz
     import plotly.graph_objects as go
     # -------------------- SESSION VARIABLES --------------------

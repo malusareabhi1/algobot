@@ -6148,24 +6148,24 @@ elif MENU =="Live Trade":
     
         chain = {}
 
-    for inst in instruments:
-        if inst["name"] != symbol:
-            continue
-
-        ts = inst["tradingsymbol"]
-
-        try:
-            strike = int(ts[-7:-2])
-            opt_type = ts[-2:]
-        except:
-            continue
-
-        if strike not in chain:
-            chain[strike] = {"CE": None, "PE": None}
-
-        chain[strike][opt_type] = inst
-
-    return chain
+        for inst in instruments:
+            if inst["name"] != symbol:
+                continue
+    
+            ts = inst["tradingsymbol"]
+    
+            try:
+                strike = int(ts[-7:-2])
+                opt_type = ts[-2:]
+            except:
+                continue
+    
+            if strike not in chain:
+                chain[strike] = {"CE": None, "PE": None}
+    
+            chain[strike][opt_type] = inst
+    
+        return chain
 
     def get_option_chain_ddd(symbol="NIFTY"):
         instruments = load_nfo_instruments()

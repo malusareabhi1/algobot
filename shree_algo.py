@@ -5110,8 +5110,39 @@ elif MENU =="Live Trade":
     import time             # Python's time module
     from datetime import time  # datetime.time (conflict!)
     # Initialize Kite in session_state
+    if "kite" not in st.session_state:
+        st.session_state.kite = None
+    else:
+        kite = st.session_state.get("kite")
+    # --- SESSION STATE INIT ---
+    if "order_executed" not in st.session_state:
+        st.session_state.order_executed = False
     
+    if "signal_time" not in st.session_state:
+        st.session_state.signal_time = None
+    # Add after data processing:
+    def is_kite_connected(kite):
+        try:
+            kite.profile()
+            return True
+        except:
+            return False
+
+    if is_kite_connected(kite):
+        st.success("Kite connection active")
+    else:
+        st.error("Kite session expired. Please login again.")
+
+    st.set_page_config(layout="wide")
+    # Place at the very top of your script (or just before plotting)
+    #st_autorefresh(interval=60000, limit=None, key="refresh")
+    # Current time in IST
+    ist = pytz.timezone("Asia/Kolkata")
+    now = datetime.now(ist).time()
+
+
     
+#####################################################################################################################
 
 elif MENU=="Paper Trade":
     # Put this inside your Streamlit app file (e.g. ui_dash.py)

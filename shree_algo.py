@@ -5606,7 +5606,7 @@ elif MENU =="Live Trade":
         #calling all condition in one function
         # --- HARD BLOCK: do not detect any signal before 9:30 AM ---
         last_time = df["Datetime"].iloc[-1].time()
-        
+        st.write("Last Time",last_time)
         import datetime
         if last_time < datetime.time(9, 30):
             st.warning("Waiting for first 15-min candle (till 9:30 AM)... No signals allowed before 9:30.")

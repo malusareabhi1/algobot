@@ -6681,8 +6681,9 @@ elif MENU == "Live Trade2":
                         #st.table(row.to_frame(name="Value"))
                     #st.write("### Trade Log for Current Signal")
                     #st.table(trade_log_df)
-                else:
+        else:
                     st.write("No trade signal for today based on conditions.")
+               
 
 
 

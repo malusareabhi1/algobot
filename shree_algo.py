@@ -5613,6 +5613,22 @@ elif MENU =="Live Trade":
             signal = None
         else:
             signal = trading_signal_all_conditions(df)
+#-----------------------------------------PAST Signal-------------------------------------------------------------------
+        if last_time < datetime.time(9, 30):
+            st.warning("Waiting for first 15-min candle (till 9:30 AM)... No signals allowed before 9:30.")
+            signal = None
+        else:
+            signal = trading_signal_all_conditions(df)
+        
+        # Store only if new signal detected
+        if signal:
+            st.session_state.last_valid_signal = signal
+        
+        # After 9:40 always display last generated signal
+        if st.session_state.last_valid_signal:
+            st.write("### Last Generated Signal (since 9:30 AM)")
+            st.table(pd.DataFrame([st.session_state.last_valid_signal]))
+#-------------------------------------------PAST Signal------------------------------------------------------------
         #st.write("###  Signal")
         st.write("Signal-",signal)
         if signal:

@@ -5249,6 +5249,17 @@ elif MENU =="Live Trade":
     
     
         st.plotly_chart(fig, use_container_width=True)
+        # ------------- AUTO UPDATE CHART WITHOUT FULL REFRESH -------------
+        if start <= now <= end:
+            # Update only the chart every 60 seconds
+            st_autorefresh(interval=60000, key="chart_refresh")
+            draw_chart()
+        
+        else:
+            st.info("Live update paused — outside market hours.")
+            draw_chart()
+                
+
 
 
 

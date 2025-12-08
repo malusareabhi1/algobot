@@ -220,6 +220,31 @@ def compute_current_iv(kite, selected_option):
 
 # ------------------------------------------------------------
 
+def find_nearest_itm_from_zerodha(chain, spot_price, option_type):
+    if option_type.upper() not in ["CALL", "PUT"]:
+        raise ValueError("option_type must be CALL or PUT")
+
+    # Split into CE / PE
+    if option_type.upper() == "CALL":
+        ce_chain = chain[chain["tradingsymbol"].str.endswith("CE")].copy()
+        # ITM CALL = strike < spot
+        ce_chain["diff"] = spot_price - ce_chain["strike"]
+        ce_chain = ce_chain[ce_chain["diff"] >= 0]
+        selected = ce_chain.sort_values("diff").head(1)
+
+    else:  # PUT
+        pe_chain = chain[chain["tradingsymbol"].str.endswith("PE")].copy()
+        # ITM PUT = strike > spot
+        pe_chain["diff"] = pe_chain["strike"] - spot_price
+        pe_chain = pe_chain[pe_chain["diff"] >= 0]
+        selected = pe_chain.sort_values("diff").head(1)
+
+    if selected.empty:
+        raise ValueError(f"❌ No ITM {option_type} found!")
+
+    return selected.iloc[0].to_dict()
+
+
 # ------------------------------------------------------------
 
 def get_expiry_from_symbol(tradingsymbol):
@@ -249,32 +274,96 @@ def load_instruments():
     return pd.read_csv(file_path)
 
 
-# ------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------
 
+def load_zerodha_instruments():
+    try:
+        df = pd.read_csv("instruments.csv")
+    except Exception as e:
+        raise FileNotFoundError(f"❌ Cannot load instruments.csv: {e}")
+
+    # Keep only required columns
+    required_cols = ["instrument_token", "exchange", "segment", "tradingsymbol",
+                     "name", "instrument_type", "expiry", "strike", "tick_size"]
+    df = df[[c for c in required_cols if c in df.columns]]
+
+    # Clean
+    df = df.dropna(subset=["tradingsymbol"])
+    df = df[df["exchange"] == "NFO"]
+
+    # Convert expiry to datetime
+    if "expiry" in df.columns:
+        df["expiry"] = pd.to_datetime(df["expiry"], errors="coerce")
+
+    return df
+
+#------------------------------------------------------------------------------------------------------------
+
+
+def get_nifty_option_chain(df):
+    if df.empty:
+        return df
+
+    # Filter NIFTY Index Options (OPTIDX)
+    chain = df[
+        (df["instrument_type"] == "OPTIDX") &
+        (df["tradingsymbol"].str.startswith("NIFTY"))
+    ].copy()
+
+    # Keep only weekly expiry (not monthly)
+    if "expiry" in chain.columns:
+        today = pd.Timestamp.today().normalize()
+        chain["days"] = (chain["expiry"] - today).dt.days
+        chain = chain[chain["days"] >= 0]
+        chain = chain[chain["days"] <= 7]  # weekly expiry
+
+    # Remove futures / mislabelled rows
+    chain = chain[chain["strike"] > 0]
+
+    return chain
 
 
         
 #--------------------------------------------------------------------------------------------------
+
+
 def find_nearest_itm_option(kite, spot_price, option_type):
+    """
+    Returns the nearest ITM option (CALL/PUT) for NIFTY based on the live spot price.
+
+    option_type: "CALL" or "PUT"
+    """
+
     df = load_zerodha_instruments()
+
+    # --------- Filter only NIFTY index weekly options ---------
     chain = get_nifty_option_chain(df)
+    if chain is None or chain.empty:
+        raise ValueError("❌ No NIFTY options found in Zerodha instruments!")
 
-    if chain.empty:
-        raise ValueError("No NIFTY options found in Zerodha instruments")
-
+    # --------- Find ITM option using custom logic ---------
     selected = find_nearest_itm_from_zerodha(chain, spot_price, option_type)
+    if selected is None:
+        raise ValueError("❌ Failed to find nearest ITM option!")
 
-    tradingsymbol = selected["tradingsymbol"]
-    ltp = get_ltp(kite, tradingsymbol)
+    tradingsymbol = selected.get("tradingsymbol")
+    if not tradingsymbol:
+        raise ValueError("❌ Missing tradingsymbol for selected option")
+
+    # --------- Fetch LTP safely ---------
+    try:
+        ltp = get_ltp(kite, tradingsymbol)
+    except Exception as e:
+        ltp = None
+        print(f"⚠ Warning: Unable to fetch LTP for {tradingsymbol}: {e}")
 
     return {
         "tradingsymbol": tradingsymbol,
-        "strike": selected["strike"],
-        "instrument_token": selected["instrument_token"],
+        "strike": selected.get("strike"),
+        "instrument_token": selected.get("instrument_token"),
         "option_type": option_type.upper(),
         "ltp": ltp
     }
-
 
 
 #----------------------------------------------------------------------------------------
@@ -579,32 +668,9 @@ def download_instruments_csv(kite, file_path="instruments.csv"):
     except Exception as e:
         raise Exception(f"Failed to download instruments.csv → {e}")
 
-def load_zerodha_instruments(file_path="instruments.csv"):
-    if not os.path.exists(file_path):
-        raise FileNotFoundError("instruments.csv not found. Please download first.")
 
-    df = pd.read_csv(file_path)
-    return df
 
-def get_nifty_option_chain(df):
-    oc = df[
-        (df["segment"] == "NFO-OPT") &
-        (df["name"] == "NIFTY")
-    ]
-    return oc
 
-def find_nearest_itm_from_zerodha(chain, spot_price, option_type):
-    option_type = option_type.upper()
-
-    # ITM Logic
-    if option_type == "CE":
-        itm_chain = chain[chain["strike"] <= spot_price]
-        selected = itm_chain.iloc[(spot_price - itm_chain["strike"]).abs().argsort()[:1]]
-    else:  # PUT
-        itm_chain = chain[chain["strike"] >= spot_price]
-        selected = itm_chain.iloc[(itm_chain["strike"] - spot_price).abs().argsort()[:1]]
-
-    return selected.iloc[0]
 
         
 def display_todays_candles_with_trend_and_signal(df):
@@ -5542,6 +5608,7 @@ elif MENU =="LIVE TRADE 3":
             st.write("Option spot ",spot)
             try:
                 nearest_itm = find_nearest_itm_option(kite, spot, option_type)
+                
                 st.success("Nearest ITM Option Found")
                 #
                 st.write(nearest_itm)

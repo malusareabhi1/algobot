@@ -207,11 +207,11 @@ from py_vollib.black.implied_volatility import implied_volatility
 def compute_option_iv(option, spot_price):
     try:
         strike = float(option["strike"])
-        st.write("Strike-",strike)
+        #st.write("Strike-",strike)
         opt_type = option["option_type"].lower()
-        st.write("opt_type-",opt_type)
+        #st.write("opt_type-",opt_type)
         ltp = float(option["ltp"])
-        st.write("ltp-",ltp)
+        #st.write("ltp-",ltp)
 
         expiry = option["expiry"].to_pydatetime()
         now = datetime.now()

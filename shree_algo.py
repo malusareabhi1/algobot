@@ -202,6 +202,7 @@ def compute_current_iv(kite, selected_option):
 
 
 def compute_option_iv(option, spot_price):
+    from datetime import datetime
     try:
         # Option data
         strike = float(option["strike"])
@@ -215,7 +216,7 @@ def compute_option_iv(option, spot_price):
         expiry = option["expiry"]  # Timestamp
 
         st.write("expiry-",expiry)
-        now = datetime.datetime.now()
+        now = datetime.now()
 
         days_to_expiry = (expiry - now).total_seconds() / (60 * 60 * 24)
         if days_to_expiry <= 0:

@@ -200,6 +200,48 @@ def compute_current_iv(kite, selected_option):
 
 # ------------------------------------------------------------
 
+
+def compute_option_iv(option, spot_price):
+    """
+    Calculate IV using py_vollib Black model for NSE options.
+    """
+
+    try:
+        price = option["ltp"]
+        strike = option["strike"]
+        option_type = option["option_type"].lower()[0]  # "c" or "p"
+
+        # Time to expiry in years
+        expiry = option["expiry"]
+        now = datetime.now()
+        T_days = (expiry - now).total_seconds() / (60 * 60 * 24)
+
+        if T_days <= 0:
+            return None
+
+        T = T_days / 365
+
+        # Risk-free interest rate (India)
+        r = 0.07     # 7%
+
+        # py_vollib needs:
+        # price, S (spot), K (strike), t (years), r, flag ("c"/"p")
+        iv = implied_volatility(
+            price,
+            spot_price,
+            strike,
+            T,
+            r,
+            option_type
+        )
+
+        return round(iv * 100, 2)   # return % IV
+
+    except Exception as e:
+        st.write("IV calculation error:", e)
+        return None
+
+
 # ------------------------------------------------------------
 
 # ------------------------------------------------------------
@@ -5609,7 +5651,7 @@ elif MENU =="LIVE TRADE 3":
                     all_signals.append((sub_df.iloc[-1]["Datetime"], sig))
         
             return all_signals
-#--------------------------------------------------------------------------------
+#-------------------------------------Total signals-------------------------------------------
 
         step_signals = generate_signals_stepwise(df_plot)
         if step_signals:
@@ -5628,7 +5670,7 @@ elif MENU =="LIVE TRADE 3":
                 st.warning("No signal triggered in any candle yet.")
    
 
-#--------------------------------------------------------------------------------
+#-----------------------------------Nearest ITM Option ---------------------------------------------
 
         if signal is not None:
             option_type = signal["option_type"]     # CALL / PUT
@@ -5651,14 +5693,15 @@ elif MENU =="LIVE TRADE 3":
             except Exception as e:
                 st.error(f"Failed to fetch option: {e}")
 
-#--------------------------------------------------------------------------------
-        new_option_with_expiry=parse_nifty_symbol(trending_symbol)
-        st.write(new_option_with_expiry)
-        nearest_itm['expiry']=new_option_with_expiry['expiry']
-        op_expiry=get_expiry_from_symbol(trending_symbol)
-        #st.table("Nearest ITM Option-",nearest_itm)
-        st.write("Expiry=",op_expiry)
+#-----------------------------------IV Compute---------------------------------------------
 
+        spot_price = get_ltp(kite, "NSE:NIFTY 50")["last_price"]
+        
+        iv_percent = compute_option_iv(nearest_itm, spot)
+        
+        st.write("IV:", iv_percent)
+
+        
          
             
 

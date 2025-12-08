@@ -5537,8 +5537,9 @@ elif MENU =="LIVE TRADE 3":
 
         if signal is not None:
             option_type = signal["option_type"]     # CALL / PUT
+            st.write("Option type ",option_type)
             spot = signal["spot_price"]
-        
+            st.write("Option spot ",spot)
             try:
                 nearest_itm = find_nearest_itm_option(kite, spot, option_type)
                 st.success("Nearest ITM Option Found")

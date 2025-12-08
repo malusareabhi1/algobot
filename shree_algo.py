@@ -5606,7 +5606,8 @@ elif MENU =="LIVE TRADE 3":
                 rank = (current_iv - iv_low) / (iv_high - iv_low) * 100.0
                 return max(0.0, min(100.0, rank))
         #symb_expiry=get_expiry_from_symbol(nearest_itm)
-        st.write(parse_nifty_symbol(trending_symbol))
+        parsed_symbol=parse_nifty_symbol(trending_symbol)
+        st.write(parsed_symbol)
         #st.write("Expiry -",symb_expiry)
         spot_iv = compute_current_iv(kite, nearest_itm)
         st.write("Current IV (%):", spot_iv)
@@ -5671,6 +5672,11 @@ elif MENU =="LIVE TRADE 3":
 
 #--------------------------------------------------------------------------------
 
+    # Append only expiry
+    nearest_itm['expiry'] = parsed_symbol['expiry']
+    
+    # Check result
+    st.write("Updated nearest_itm-",nearest_itm)
 
 #--------------------------------------------------------------------------------
 

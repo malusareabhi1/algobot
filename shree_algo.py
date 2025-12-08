@@ -5523,7 +5523,7 @@ elif MENU =="LIVE TRADE 3":
                 today = date.today()
                 return max((expiry - today).days, 0)
             
-        def compute_current_iv(kite, selected_option):
+        def compute_current_iv0(kite, selected_option):
                 spot = get_nifty_spot(kite)
                 opt_ltp = kite.ltp(f"NFO:{selected_option['tradingsymbol']}")[f"NFO:{selected_option['tradingsymbol']}"]["ltp"]
             
@@ -5627,7 +5627,7 @@ elif MENU =="LIVE TRADE 3":
         
         
         #st.write("Expiry -",symb_expiry)
-        spot_iv = compute_current_iv(kite, nearest_itm)
+        spot_iv = (kite, nearest_itm)
         st.write("Current IV (%):", spot_iv)
             
         iv_hist = get_iv_history_for_option(kite, nearest_itm1)

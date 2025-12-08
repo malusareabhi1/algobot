@@ -6228,7 +6228,12 @@ elif MENU =="Live Trade":
     
         spot = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
     
-        chain = get_option_chain(symbol)
+        #chain = get_option_chain(symbol)
+        if st.session_state.api_status.get("Zerodha", False):
+            chain = find_nearest_itm_option()
+        else:
+            st.warning("⚠️ Please connect Zerodha first to fetch Option Chain.")
+
     
         if not chain:
             return None

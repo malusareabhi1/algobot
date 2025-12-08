@@ -5554,7 +5554,8 @@ elif MENU =="LIVE TRADE 3":
                 st.error(f"Failed to fetch option: {e}")
 
 #--------------------------------------------------------------------------------
-
+        op_expiry=get_expiry_from_symbol(trending_symbol)
+        st.write("Expiry=",op_expiry)
 
          
             

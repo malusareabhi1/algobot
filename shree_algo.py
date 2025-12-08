@@ -5852,17 +5852,10 @@ elif MENU =="LIVE TRADE 3":
     st.write("Current IV:", iv_info["iv"], "%")
     st.write("IV Rank:", iv_info["iv_rank"], "%")
    
-    to_date = datetime.now().strftime("%Y-%m-%d")
-    from_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+    vix_data = kite.ltp("NSE:VIX")
+    vix_price = vix_data["NSE:VIX"]["last_price"]
     
-    vix_hist = kite.historical_data(
-        instrument_token=kite.ltp("NSE:VIX")["NSE:VIX"]["instrument_token"],
-        from_date=from_date,
-        to_date=to_date,
-        interval="day"
-    )
-    vix_df = pd.DataFrame(vix_hist)
-    st.write(vix_df[["date", "close"]])
+    st.metric("NIFTY VIX", vix_price)
         
 
 #--------------------------------------------------------------------------------

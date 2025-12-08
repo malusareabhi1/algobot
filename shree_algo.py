@@ -5554,8 +5554,11 @@ elif MENU =="LIVE TRADE 3":
                 st.error(f"Failed to fetch option: {e}")
 
 #--------------------------------------------------------------------------------
-        st.write(parse_nifty_symbol(trending_symbol))
+        new_option_with_expiry=parse_nifty_symbol(trending_symbol)
+        st.write(new_option_with_expiry)
+        nearest_itm['expiry']=new_option_with_expiry['expiry']
         op_expiry=get_expiry_from_symbol(trending_symbol)
+        st.table("Nearest ITM Option-",nearest_itm1)
         st.write("Expiry=",op_expiry)
 
          

@@ -203,6 +203,8 @@ def compute_current_iv(kite, selected_option):
 
 def compute_option_iv(option, spot_price):
     from datetime import datetime
+    from py_vollib.black.implied_volatility import implied_volatility
+
     try:
         # Option data
         strike = float(option["strike"])

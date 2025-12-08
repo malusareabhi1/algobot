@@ -5520,7 +5520,7 @@ elif MENU =="LIVE TRADE 3":
             
                 strike = float(selected_option["strike"])
                 expiry = selected_option["expiry"]          # '2025-12-09'
-                opt_type = "c" if selected_option["instrument_type"] == "CE" else "p"
+                opt_type = "c" if selected_option["option_type"] == "CE" else "p"
             
                 T_days = days_to_expiry(expiry)
                 if T_days <= 0:

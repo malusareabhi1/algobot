@@ -237,7 +237,87 @@ def compute_option_iv(option, spot_price):
         return None
 # ------------------------------------------------------------
 
+
+
+
+def get_iv_rank_zerodha(kite, option, lookback_days=30):
+    """
+    Calculate IV and IV Rank for a selected NIFTY option using Zerodha data.
+
+    Parameters:
+    - kite: connected Kite object
+    - option: dict of selected ITM option (tradingsymbol, strike, option_type, expiry, ltp)
+    - lookback_days: number of past days to calculate IV Rank
+
+    Returns:
+    - dict: {"iv": current_iv, "iv_rank": iv_rank}
+    """
+    try:
+        tsymbol = option["tradingsymbol"]
+        expiry = option["expiry"].to_pydatetime() if hasattr(option["expiry"], "to_pydatetime") else option["expiry"]
+
+        # 1️⃣ Fetch historical data from Zerodha
+        # OHLC candles for the option; interval = "day"
+        from_date = (datetime.now() - timedelta(days=lookback_days*2)).strftime("%Y-%m-%d")  # buffer for holidays
+        to_date = datetime.now().strftime("%Y-%m-%d")
+
+        historical = kite.historical_data(
+            instrument_token=option["instrument_token"],
+            from_date=from_date,
+            to_date=to_date,
+            interval="day"
+        )
+
+        if not historical:
+            return {"iv": None, "iv_rank": None}
+
+        hist_df = pd.DataFrame(historical)
+
+        # 2️⃣ Compute IVs for each day
+        ivs = []
+        for _, row in hist_df.iterrows():
+            hist_opt = {
+                "strike": option["strike"],
+                "option_type": option["option_type"],
+                "ltp": row["close"],  # use close price of option
+                "expiry": expiry
+            }
+            # Spot price of NIFTY on that day
+            spot_price = row.get("underlying_value", None)
+            if spot_price is None:
+                # fallback to last known spot
+                spot_price = option["ltp"]  # approximate
+
+            iv = compute_option_iv(hist_opt, spot_price)
+            if iv is not None:
+                ivs.append(iv)
+
+        if not ivs:
+            return {"iv": None, "iv_rank": None}
+
+        iv_low = min(ivs)
+        iv_high = max(ivs)
+
+        # 3️⃣ Current IV
+        spot_now = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
+        current_iv = compute_option_iv(option, spot_now)
+
+        # 4️⃣ Compute IV Rank
+        if iv_high - iv_low == 0:
+            iv_rank = 0
+        else:
+            iv_rank = (current_iv - iv_low) / (iv_high - iv_low) * 100
+
+        return {"iv": round(current_iv, 2), "iv_rank": round(iv_rank, 2)}
+
+    except Exception as e:
+        print("IV Rank calculation error:", e)
+        return {"iv": None, "iv_rank": None}
+
+
 # ------------------------------------------------------------
+    
+
 
 # ------------------------------------------------------------
 
@@ -5699,6 +5779,11 @@ elif MENU =="LIVE TRADE 3":
 
 
 #--------------------------------------------------------------------------------
+
+    iv_info = get_iv_rank_zerodha(kite, nearest_itm, lookback_days=30)
+    
+    st.write("Current IV:", iv_info["iv"], "%")
+    st.write("IV Rank:", iv_info["iv_rank"], "%")
 
     
 

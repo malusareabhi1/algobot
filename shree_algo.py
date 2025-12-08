@@ -5309,6 +5309,9 @@ elif MENU =="LIVE TRADE 3":
     
     
         st.plotly_chart(fig, use_container_width=True)
+        #----------------------------------------------------------------------
+        df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
+
     
    
 # ------------------------------------------------------------

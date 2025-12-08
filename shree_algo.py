@@ -5674,8 +5674,7 @@ elif MENU =="LIVE TRADE 3":
                 nearest_itm = find_nearest_itm_option(kite, spot, option_type)
                 
                 st.success("Nearest ITM Option Found")
-                #
-                st.write(nearest_itm)
+                #                st.write(nearest_itm)
                 nearest_itm1 = pd.DataFrame([nearest_itm])
                 
                 # Display as table

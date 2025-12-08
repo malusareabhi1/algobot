@@ -5852,14 +5852,7 @@ elif MENU =="LIVE TRADE 3":
     st.write("Current IV:", iv_info["iv"], "%")
     st.write("IV Rank:", iv_info["iv_rank"], "%")
    
-    # Fetch LTP for VIX
-    vix_data = kite.ltp("NSE:VIX")  # or just "VIX" if that works
-    st.write(vix_data)  # Check the exact key returned
     
-    # Get the first (and usually only) value
-    vix_price = list(vix_data.values())[0]["last_price"]
-    
-    st.write("NIFTY VIX:", vix_price)
 
         
 

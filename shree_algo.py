@@ -6171,23 +6171,39 @@ elif MENU =="Live Trade":
                     except:
                         data[opt_type]["ltp"] = None
         return chain
-
-    def find_nearest_itm_option(symbol="NIFTY"):
-        spot = kite.ltp(f"NSE:{symbol}")[f"NSE:{symbol}"]["last_price"]
+    #-------------------------------------------------------------------------------------------------
+    def get_nifty_symbol():
+        ins = kite.instruments("NSE")
+        for i in ins:
+            if i["tradingsymbol"] in ["NIFTY 50", "NIFTY"]:
+                return i["tradingsymbol"]
+        return None
+    def get_nifty_spot():
+        nifty_symbol = get_nifty_symbol()   # returns NIFTY or NIFTY 50
+        if nifty_symbol is None:
+            return None
     
-        chain = get_option_chain(symbol)
+        q = kite.ltp(f"NSE:{nifty_symbol}")
+        return q[f"NSE:{nifty_symbol}"]["last_price"]
+
+    #--------------------------------------------------------------------------------------------------
+    
+    def find_nearest_itm_option():
+        spot = get_nifty_spot()
+        if spot is None:
+            return "Error: Could not fetch NIFTY spot"
+    
+        chain = get_option_chain("NIFTY")
         chain = enrich_chain_with_ltp(chain)
     
         strikes = sorted(chain.keys())
         nearest = min(strikes, key=lambda x: abs(x - spot))
     
-        itm = chain[nearest]
-    
         return {
             "spot": spot,
             "strike": nearest,
-            "call": itm["CE"],
-            "put": itm["PE"]
+            "call": chain[nearest]["CE"],
+            "put": chain[nearest]["PE"]
         }
 
     

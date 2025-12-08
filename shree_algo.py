@@ -6587,6 +6587,7 @@ elif MENU == "Live Trade2":
         #st.write("History points:", len(iv_hist))
         #st.write("IV Rank:", iv_rank)
 #------------------------------------------------------------------------------------------
+        signal = trading_signal_all_conditions(df)
         if signal:
             signal_time = df["Datetime"].iloc[-1].time()   # last candle time
         

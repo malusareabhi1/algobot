@@ -5221,7 +5221,9 @@ elif MENU =="LIVE TRADE 3":
 
     
     # ------------------------ IDENTIFY NEW CANDLE ------------------------
-    latest_candle_time = df.iloc[-1]['Datetime']
+    #latest_candle_time = df.iloc[-1]['Datetime']
+    latest_candle_time = df['Datetime'].iloc[-1].to_pydatetime()
+
     
     new_candle = False
     if st.session_state.last_candle_time != latest_candle_time:

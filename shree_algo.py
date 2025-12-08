@@ -5909,6 +5909,7 @@ allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_
 
 st.write("Allowed to Trade?", allowed)
 st.write("Position Size:", position_size)
+
 #--------------------------------------------------------------------------------
 
 

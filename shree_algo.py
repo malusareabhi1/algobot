@@ -6588,7 +6588,7 @@ elif MENU == "Live Trade2":
         #st.write("IV Rank:", iv_rank)
 #------------------------------------------------------------------------------------------
         if signal:
-        signal_time = df["Datetime"].iloc[-1].time()   # last candle time
+            signal_time = df["Datetime"].iloc[-1].time()   # last candle time
         
         if "kite" in st.session_state and st.session_state.kite:
                 kite = st.session_state.kite

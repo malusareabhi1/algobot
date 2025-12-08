@@ -5334,16 +5334,16 @@ elif MENU =="LIVE TRADE 3":
 #--------------------------------------------------------------------------------
 
         step_signals = generate_signals_stepwise(df_plot)
-            if step_signals:
+        if step_signals:
                 st.info(f"Total signals detected so far: {len(step_signals)}")
             
                 latest_time, latest_sig = step_signals[-1]
                 
                 st.success(f"🟢 Latest Candle Signal ({latest_time}):")
                 st.write(latest_sig)
-            else:
+        else:
                 st.warning("No signal triggered in any candle yet.")
-
+   
 
 #--------------------------------------------------------------------------------
 

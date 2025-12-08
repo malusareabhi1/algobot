@@ -6726,38 +6726,57 @@ elif MENU == "Live Trade2":
 
 #-----------------------------------------------------------------------------------------------
         #-------------------------------------------------------------------------------------------------------------------------------------------------           
-        st.write("### Live Trading Section")
-        
-        if signal:
-            if "kite" in st.session_state and st.session_state.kite:
-                kite = st.session_state.kite
-                
-                st.success("Kite session connected. Ready to place trade.")
-    
-                premium = float(selected_option["last_price"])
-                lot_size = int(selected_option["lot_size"])
-            
-                total_balance, required_margin, max_lots = show_fund_status(kite, lot_size, premium)
-             
-                
-                
-                #st.write("Available keys:", list(result['option_data'].index))
-                trading_symbol = selected_option["tradingsymbol"]
-                #st.write("Trading Symbol")
-                #st.write(trading_symbol)
-    
-                # Extract option symbol & quantity
-                #option_symbol = result['option_data']['tradingsymbol']
-                #st.write(result['option_data']['tradingsymbol'])
-                option_symbol = nse_to_kite_symbol(result['option_data']['identifier'])
-                #option_symbol = convert_to_kite_symbol(result['option_data']['identifier'])
-                
-    
-                qty = result['total_quantity']
-                ltp = result['option_data']['lastPrice']
-#-----------------------------------------------------------------------------------------------------------------------------------------------
 
-               # ---------------- Black-Scholes Helpers -----------------
+    st.write("### Live Trading Section")
+    
+    if signal:
+        if "kite" in st.session_state and st.session_state.kite:
+            kite = st.session_state.kite
+            
+            st.success("Kite session connected. Ready to place trade.")
+
+            premium = float(selected_option["last_price"])
+            lot_size = int(selected_option["lot_size"])
+        
+            total_balance, required_margin, max_lots = show_fund_status(kite, lot_size, premium)
+         
+            
+            
+            #st.write("Available keys:", list(result['option_data'].index))
+            trading_symbol = selected_option["tradingsymbol"]
+            #st.write("Trading Symbol")
+            #st.write(trading_symbol)
+
+            # Extract option symbol & quantity
+            #option_symbol = result['option_data']['tradingsymbol']
+            #st.write(result['option_data']['tradingsymbol'])
+            option_symbol = nse_to_kite_symbol(result['option_data']['identifier'])
+            #option_symbol = convert_to_kite_symbol(result['option_data']['identifier'])
+            
+
+            qty = result['total_quantity']
+            ltp = result['option_data']['lastPrice']
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+           
+
+            
+            #-------------------------------------------START IV RANK-------------------------------------------------
+
+            
+                        
+            
+
+
+
+
+            #----------------------------------------End IV RANK----------------------------------------------------
+            
+            
+                        
+            
+
+            #----------------------------------------------------------------------------------------------------------
+            # ---------------- Black-Scholes Helpers -----------------
             
            
             
@@ -6981,6 +7000,208 @@ elif MENU == "Live Trade2":
             st.write("Trade: LotSize:")
             st.write(allowed, size)  # True full
             qty=size
+          
+                        
+            
+#------------------------------------------------------------------------------------------------------------------------------------------------
+            from datetime import datetime
+            import pytz
+            
+            # IST timezone
+            ist = pytz.timezone("Asia/Kolkata")
+            now_dt = datetime.now(ist)     # full datetime object
+            now = now_dt.time()            # extract time only for comparisons
+            #------------------------------------------------
+            st.write(f"Placing order for: **{trading_symbol}**")
+            st.write(f"Quantity: {qty}, LTP: {ltp}")
+            
+            #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
+            # Condition 1: Current time >= signal candle time
+            # Trading window
+            start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
+            end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+            
+            # Check 1: Only run if current time is within trading window
+            if start_time <= now <= end_time:
+            
+                # Check 2: Signal time reached
+                if now >= signal_time:
+            
+                    # Check 3: Order placed only once
+                    if not st.session_state.order_executed:
+                        try:
+                            order_id = kite.place_order(
+                                tradingsymbol=trading_symbol,
+                                exchange=kite.EXCHANGE_NFO,
+                                transaction_type=kite.TRANSACTION_TYPE_BUY,
+                                quantity=qty,
+                                order_type=kite.ORDER_TYPE_MARKET,
+                                variety=kite.VARIETY_REGULAR,
+                                product=kite.PRODUCT_MIS
+                            )
+            
+                            st.session_state.order_executed = True   # Mark executed
+                            st.success(f"Order Placed Successfully! Order ID: {order_id}")
+            
+                        except Exception as e:
+                            st.error(f"Order Failed: {e}")
+            
+                    else:
+                        st.info("Order already executed for this signal.")
+            
+            else:
+                st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
+
+                    
+        else:
+            st.warning("Kite session not connected. Please login first to place live orders.")
+    else:
+        st.info("No trade signal today. No live trade executed.")
+
+    
+    
+    # ---- Fetch orders from Kite ----
+    if "kite" not in st.session_state:
+        st.error("Kite is not connected. Please connect first.")
+        st.stop()
+
+    kite = st.session_state.kite
+    orders = kite.orders()  # list of dicts
+    
+    if not orders:
+        st.write("No orders placed yet.")
+    else:
+        # Convert to DataFrame
+        df = pd.DataFrame(orders)
+    
+        # Check available columns
+        #st.write("Available columns:", df.columns.tolist())
+    
+        # Select only safe columns that exist
+        cols = [c for c in [
+            "order_id", "parent_order_id", "status", "tradingsymbol", 
+            "transaction_type", "quantity", "filled_quantity",
+            "average_price", "price", "product", "order_type", "exchange", "placed_by", "exchange_timestamp"
+        ] if c in df.columns]
+    
+        df_summary = df[cols].sort_values("exchange_timestamp", ascending=False)
+    
+        st.subheader("📝 Zerodha Order Log")
+        st.dataframe(df_summary)
+    
+        # Optional: show summary stats per symbol
+        st.subheader("📊 Summary per Symbol")
+        summary = df_summary.groupby("tradingsymbol").agg({
+            "quantity": "sum",
+            "filled_quantity": "sum",
+            "average_price": "mean"
+        }).reset_index()
+        st.dataframe(summary)
+
+
+    
+    st.write("### Trade Log Summary")
+
+    trades = kite.trades()  # fetch executed trades
+
+    if not trades:
+        st.write("No trades executed yet.")
+    else:
+        df = pd.DataFrame(trades)
+    
+        # Check which columns actually exist
+        st.write("Available columns:", df.columns.tolist())
+    
+        # Use only existing columns
+        cols = [c for c in ["trade_id", "order_id", "tradingsymbol", "transaction_type",
+                            "quantity", "price", "exchange", "fill_timestamp", "exchange_timestamp"]
+                if c in df.columns]
+    
+        df_summary = df[cols].sort_values(cols[-1], ascending=False)
+    
+        st.dataframe(df_summary)
+#------------------------------------------------------------------------------------------------
+    def get_open_position(kite, instrument_token):
+        try:
+            positions = kite.positions()["net"]
+            for pos in positions:
+                if pos["instrument_token"] == instrument_token and pos["quantity"] != 0:
+                    return pos
+            return None
+        except Exception as e:
+            st.error(f"Position Fetch Error: {e}")
+            return None
+#------------------------------------------------------------------------------------------------
+    def exit_position(kite, pos):
+        try:
+            exit_order = kite.place_order(
+                tradingsymbol=pos["tradingsymbol"],
+                exchange=kite.EXCHANGE_NFO,
+                transaction_type="SELL" if pos["quantity"] > 0 else "BUY",
+                quantity=abs(pos["quantity"]),
+                order_type=kite.ORDER_TYPE_MARKET,
+                product=pos["product"],
+                variety=kite.VARIETY_REGULAR
+            )
+            return exit_order
+        except Exception as e:
+            st.error(f"Exit Failed: {e}")
+            return None
+#------------------------------------------------------------------------------------------------
+
+    
+    def auto_exit_monitor(kite, instrument_token, entry_price,
+                      stop_loss=None, target=None, exit_time=None,
+                      reverse_signal=False):
+
+        pos = get_open_position(kite, instrument_token)
+        if pos is None:
+            st.info("No open position to track.")
+            return
+    
+        ltp = kite.ltp([f"NFO:{pos['tradingsymbol']}"])[f"NFO:{pos['tradingsymbol']}"]["last_price"]
+    
+        # -------- STOP LOSS --------
+        if stop_loss and ltp <= stop_loss:
+            st.warning("STOPLOSS HIT — Exiting")
+            exit_id = exit_position(kite, pos)
+            st.success(f"Exited. Order ID: {exit_id}")
+            return
+    
+        # -------- TARGET --------
+        if target and ltp >= target:
+            st.success("TARGET HIT — Exiting")
+            exit_id = exit_position(kite, pos)
+            st.success(f"Exited. Order ID: {exit_id}")
+            return
+    
+        # -------- TIME BASED EXIT --------
+        if exit_time:
+            now = datetime.now().time()
+            if now >= exit_time:
+                st.info("Time exit reached — Exiting")
+                exit_id = exit_position(kite, pos)
+                st.success(f"Exited. Order ID: {exit_id}")
+                return
+    
+        # -------- REVERSE SIGNAL EXIT --------
+        if reverse_signal:
+            st.error("Reverse signal detected — Exiting")
+            exit_id = exit_position(kite, pos)
+            st.success(f"Exited. Order ID: {exit_id}")
+            return
+    
+        st.info(f"Tracking... LTP = {ltp}")
+#-------------------------------------------------------------------------------------
+    if "entry_price" in st.session_state and "token" in st.session_state:
+        auto_exit_monitor(
+            kite,
+            st.session_state.token,
+            st.session_state.entry_price,
+            stop_loss=st.session_state.entry_price * 0.90,
+            target=st.session_state.entry_price * 1.10,
+            exit_time=time(15, 15)
+        )
 
 
 

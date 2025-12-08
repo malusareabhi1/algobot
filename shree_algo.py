@@ -25,6 +25,42 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+def find_nearest_itm_option(kite, spot_price, option_type):
+    # Load CSV
+    df = load_zerodha_instruments()
+
+    # Filter NIFTY options
+    chain = get_nifty_option_chain(df)
+
+    if chain.empty:
+        raise ValueError("No NIFTY options found in instruments.csv")
+
+    # Select nearest ITM
+    selected = find_nearest_itm_from_zerodha(chain, spot_price, option_type)
+
+    tradingsymbol = selected["tradingsymbol"]
+    ltp = get_ltp(kite, tradingsymbol)
+
+    return {
+        "tradingsymbol": tradingsymbol,
+        "strike": selected["strike"],
+        "instrument_token": selected["instrument_token"],
+        "option_type": option_type.upper(),
+        "ltp": ltp
+    }
+
+    
+def get_ltp(kite, tradingsymbol):
+    try:
+        data = kite.ltp(f"NFO:{tradingsymbol}")
+        return data[f"NFO:{tradingsymbol}"]["last_price"]
+    except Exception as e:
+        print("LTP fetch error:", e)
+        return None
+
+
+
 def download_instruments_csv(kite, file_path="instruments.csv"):
     try:
         instruments = kite.instruments()

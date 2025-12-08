@@ -62,6 +62,13 @@ st.set_page_config(
 
 # ------------------------------------------------------------
 
+def load_instruments():
+    file_path = "instruments.csv"
+    if not os.path.exists(file_path):
+        raise FileNotFoundError("instruments.csv not found. Please login first to download.")
+    return pd.read_csv(file_path)
+
+
 # ------------------------------------------------------------
 
 

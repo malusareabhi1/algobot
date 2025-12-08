@@ -202,45 +202,39 @@ def compute_current_iv(kite, selected_option):
 
 
 def compute_option_iv(option, spot_price):
-    """
-    Calculate IV using py_vollib Black model for NSE options.
-    """
-
     try:
-        price = option["ltp"]
-        strike = option["strike"]
-        option_type = option["option_type"].lower()[0]  # "c" or "p"
+        # Option data
+        strike = float(option["strike"])
+        opt_type = option["option_type"].lower()  # 'call' or 'put'
+        ltp = float(option["ltp"])
 
-        # Time to expiry in years
-        expiry = option["expiry"]
-        now = datetime.now()
-        T_days = (expiry - now).total_seconds() / (60 * 60 * 24)
+        # Time to expiry (T) in years
+        expiry = option["expiry"]  # Timestamp
+        now = datetime.datetime.now()
 
-        if T_days <= 0:
+        days_to_expiry = (expiry - now).total_seconds() / (60 * 60 * 24)
+        if days_to_expiry <= 0:
             return None
 
-        T = T_days / 365
+        T = days_to_expiry / 365.0
 
-        # Risk-free interest rate (India)
-        r = 0.07     # 7%
-
-        # py_vollib needs:
-        # price, S (spot), K (strike), t (years), r, flag ("c"/"p")
+        r = 0.07  # Risk-free rate (7%)
+        
+        # Calculate IV using Black model
         iv = implied_volatility(
-            price,
-            spot_price,
-            strike,
-            T,
-            r,
-            option_type
+            price=ltp,
+            F=spot_price,
+            K=strike,
+            r=r,
+            t=T,
+            flag='c' if opt_type == "call" else 'p'
         )
 
-        return round(iv * 100, 2)   # return % IV
+        return round(iv * 100, 2)  # return IV in %
 
     except Exception as e:
-        st.write("IV calculation error:", e)
+        print("IV calc error:", e)
         return None
-
 
 # ------------------------------------------------------------
 

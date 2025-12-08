@@ -5546,7 +5546,7 @@ elif MENU =="LIVE TRADE 3":
                 nearest_itm1 = pd.DataFrame([nearest_itm])
                 
                 # Display as table
-                #st.table(nearest_itm1)
+                st.table(nearest_itm1)
                 trending_symbol=nearest_itm['tradingsymbol']
                 st.write("tradingsymbol-",trending_symbol)
         

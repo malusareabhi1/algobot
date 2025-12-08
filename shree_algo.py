@@ -5162,7 +5162,7 @@ elif MENU == "Setting":
 
 
 elif MENU =="LIVE TRADE 3":
-    ST.TITLE("LIVE TRADE 3")
+   st.title("LIVE TRADE 3")
 
 
 # ------------------------------------------------------------

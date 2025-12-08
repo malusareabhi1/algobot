@@ -25,6 +25,43 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+def download_instruments_csv(kite, file_path="instruments.csv"):
+    try:
+        instruments = kite.instruments()
+        df = pd.DataFrame(instruments)
+        df.to_csv(file_path, index=False)
+        return file_path
+    except Exception as e:
+        raise Exception(f"Failed to download instruments.csv → {e}")
+
+def load_zerodha_instruments(file_path="instruments.csv"):
+    if not os.path.exists(file_path):
+        raise FileNotFoundError("instruments.csv not found. Please download first.")
+
+    df = pd.read_csv(file_path)
+    return df
+
+def get_nifty_option_chain(df):
+    oc = df[
+        (df["segment"] == "NFO-OPT") &
+        (df["name"] == "NIFTY")
+    ]
+    return oc
+
+def find_nearest_itm_from_zerodha(chain, spot_price, option_type):
+    option_type = option_type.upper()
+
+    # ITM Logic
+    if option_type == "CE":
+        itm_chain = chain[chain["strike"] <= spot_price]
+        selected = itm_chain.iloc[(spot_price - itm_chain["strike"]).abs().argsort()[:1]]
+    else:  # PUT
+        itm_chain = chain[chain["strike"] >= spot_price]
+        selected = itm_chain.iloc[(itm_chain["strike"] - spot_price).abs().argsort()[:1]]
+
+    return selected.iloc[0]
+
+        
 def display_todays_candles_with_trend_and_signal(df):
         """
         Display all today's candles with OHLC + Trend + Signal columns in Streamlit.

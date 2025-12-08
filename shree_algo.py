@@ -5525,7 +5525,7 @@ elif MENU =="LIVE TRADE 3":
             
         def compute_current_iv(kite, selected_option):
                 spot = get_nifty_spot(kite)
-                opt_ltp = kite.ltp(f"NFO:{selected_option['tradingsymbol']}")[f"NFO:{selected_option['tradingsymbol']}"]["last_price"]
+                opt_ltp = kite.ltp(f"NFO:{selected_option['tradingsymbol']}")[f"NFO:{selected_option['tradingsymbol']}"]["ltp"]
             
                 strike = float(selected_option["strike"])
                 expiry = selected_option["expiry"]          # '2025-12-09'

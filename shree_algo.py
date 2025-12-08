@@ -5208,25 +5208,7 @@ elif MENU == "Test1":
         iv_rank = (current_iv - iv_low) / (iv_high - iv_low) * 100.0
         return max(0.0, min(100.0, iv_rank))  # clamp 0–100
     
-    # ------------- MAIN EXAMPLE -------------
-    if __name__ == "__main__":
-        # you must know strike, expiry and type for the selected option
-        STRIKE = 24500
-        EXPIRY = "2025-12-25"
-        OPTION_TYPE = "c"   # 'c' for CE, 'p' for PE
-        OPTION_TRADINGSYMBOL="NIFTY25D0926200CE"
-        spot = get_nifty_spot()
-        opt_ltp = get_option_ltp(OPTION_TRADINGSYMBOL)
-        current_iv = compute_current_iv(spot, opt_ltp, STRIKE, EXPIRY, OPTION_TYPE)
-        st.write("OPTION_TRADINGSYMBOL:", OPTION_TRADINGSYMBOL)
-        
-        st.write("Current IV (%):", current_iv)
-    
-        iv_hist = get_iv_history_for_option(OPTION_TRADINGSYMBOL, STRIKE, EXPIRY, OPTION_TYPE)
-        st.write("History points:", len(iv_hist))
-    
-        iv_rank = compute_iv_rank(iv_hist, current_iv)
-        st.write("IV Rank:", iv_rank)
+   
         
         
 

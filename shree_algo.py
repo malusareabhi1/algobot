@@ -5783,6 +5783,74 @@ elif MENU =="LIVE TRADE 3":
 
 #--------------------------------------------------------------------------------
 
+    def get_iv_rank(kite, option, lookback_days=30):
+    """
+    Calculate IV and IV Rank for a selected NIFTY option using Zerodha.
+    """
+    try:
+        # 1️⃣ Current spot price
+        spot_now = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
+
+        # 2️⃣ Current IV
+        current_iv = compute_option_iv(option, spot_now)
+
+        # 3️⃣ Fetch historical NIFTY spot for lookback
+        from_date = (datetime.now() - timedelta(days=lookback_days*2)).strftime("%Y-%m-%d")
+        to_date = datetime.now().strftime("%Y-%m-%d")
+
+        nifty_hist = kite.historical_data(
+            instrument_token=kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["instrument_token"],
+            from_date=from_date,
+            to_date=to_date,
+            interval="day"
+        )
+        nifty_df = pd.DataFrame(nifty_hist)
+
+        # 4️⃣ Fetch option historical LTP
+        option_hist = kite.historical_data(
+            instrument_token=option["instrument_token"],
+            from_date=from_date,
+            to_date=to_date,
+            interval="day"
+        )
+        option_df = pd.DataFrame(option_hist)
+
+        # Match historical dates (NIFTY spot + option LTP)
+        min_len = min(len(nifty_df), len(option_df))
+        ivs = []
+        for i in range(min_len):
+            hist_opt = {
+                "strike": option["strike"],
+                "option_type": option["option_type"],
+                "ltp": option_df.iloc[i]["close"],
+                "expiry": option["expiry"]
+            }
+            spot_price = nifty_df.iloc[i]["close"]
+            iv = compute_option_iv(hist_opt, spot_price)
+            if iv is not None:
+                ivs.append(iv)
+
+        if not ivs or current_iv is None:
+            return {"iv": current_iv, "iv_rank": None}
+
+        iv_low = min(ivs)
+        iv_high = max(ivs)
+
+        if iv_high - iv_low == 0:
+            iv_rank = 0
+        else:
+            iv_rank = (current_iv - iv_low) / (iv_high - iv_low) * 100
+
+        return {"iv": round(current_iv, 2), "iv_rank": round(iv_rank, 2)}
+
+    except Exception as e:
+        print("IV Rank error:", e)
+        return {"iv": None, "iv_rank": None}
+    
+    iv_info = get_iv_rank(kite, selected_option, lookback_days=30)
+
+    st.write("Current IV:", iv_info["iv"], "%")
+    st.write("IV Rank:", iv_info["iv_rank"], "%")
    
 
     

@@ -5408,6 +5408,18 @@ elif MENU =="Live Trade":
     else:
         st.error("Kite session expired. Please login again.")
 
+    # --- SESSION STATE INIT ---
+    if "order_executed" not in st.session_state:
+        st.session_state.order_executed = False
+    
+    if "signal_time" not in st.session_state:
+        st.session_state.signal_time = None
+    
+    # NEW: initialize last_valid_signal
+    if "last_valid_signal" not in st.session_state:
+        st.session_state.last_valid_signal = None
+
+
     st.set_page_config(layout="wide")
     # Place at the very top of your script (or just before plotting)
     #st_autorefresh(interval=60000, limit=None, key="refresh")

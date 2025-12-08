@@ -5392,6 +5392,8 @@ elif MENU =="LIVE TRADE 3":
                 
                 # Display as table
                 st.table(nearest_itm1)
+                trending_symbol=nearest_itm1['tradingsymbol']
+                st.write("tradingsymbol-",tradingsymbol)
         
             except Exception as e:
                 st.error(f"Failed to fetch option: {e}")

@@ -6148,7 +6148,7 @@ elif MENU == "Live Trade2":
     st.title("Live Trade2")
     #import datetime
     from streamlit_autorefresh import st_autorefresh
-    import time             # Python's time module
+    import time   as ptyme          # Python's time module
     from datetime import time  # datetime.time (conflict!)
     # --- SESSION STATE INIT ---
     if "order_executed" not in st.session_state:

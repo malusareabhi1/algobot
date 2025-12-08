@@ -6418,7 +6418,28 @@ elif MENU == "Live Trade2":
         #calling all condition in one function
         # --- HARD BLOCK: do not detect any signal before 9:30 AM ---
         last_time = df["Datetime"].iloc[-1].time()
+#-------------------------------------------Find Nearest ITM-----------------------------------------------------------
 
+        def find_nearest_itm_option(kite, spot_price, option_type):
+            df = load_zerodha_instruments()
+            chain = get_nifty_option_chain(df)
+        
+            if chain.empty:
+                raise ValueError("No NIFTY options found in Zerodha instruments")
+        
+            selected = find_nearest_itm_from_zerodha(chain, spot_price, option_type)
+        
+            tradingsymbol = selected["tradingsymbol"]
+            ltp = get_ltp(kite, tradingsymbol)
+        
+            return {
+                "tradingsymbol": tradingsymbol,
+                "strike": selected["strike"],
+                "instrument_token": selected["instrument_token"],
+                "option_type": option_type.upper(),
+                "ltp": ltp
+            }
+        
 
         
 #-------------------------------------------------------------------------------------------

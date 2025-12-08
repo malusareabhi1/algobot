@@ -6402,8 +6402,7 @@ elif MENU == "Live Trade2":
         
         # All your signal conditions above...
         # -----------------------------------
-        #
-        st.write("Columns in df_signal:", df_signal.columns.tolist())
+        #st.write("Columns in df_signal:", df_signal.columns.tolist())
         df_signal.rename(columns={'Datetime': 'Time'}, inplace=True)
         df_show = df_signal[df_signal['Signal'] != "No Signal"]
         df_show = df_show[['Time', 'Open', 'High', 'Low', 'Close', 'Signal', 'Reason']]

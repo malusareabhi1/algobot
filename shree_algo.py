@@ -1261,13 +1261,15 @@ with st.sidebar:
 
     MENU = st.radio(
         "Navigate",
-        ["Home", "Strategies","My Account", "Zerodha Broker API","Groww Broker API", "Dashboard","Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","Live Trade2","Test1","Logout"],
+        ["Home", "Strategies","My Account", "Zerodha Broker API","Groww Broker API", "Dashboard","Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","Live Trade2","LIVE TRADE 3","Test1","Logout"],
         index=0,
     )
 
 # ------------------------------------------------------------
 # Home
 # ------------------------------------------------------------
+
+
 if MENU == "Home":
     st.title("Welcome to TALK ALGO LABS  Trading Platform")
     st.write("Automate your trades with smart, auditable strategies. Connect your broker, choose a strategy, and manage risk — all from one dashboard.")
@@ -5157,6 +5159,11 @@ elif MENU == "Setting":
         "max_trades": int(max_trades),
         "lot_size": int(manual_lot_size)
     }
+
+
+elif MENU =="LIVE TRADE 3":
+    ST.TITLE(LIVE TRADE 3)
+
 
 # ------------------------------------------------------------
 # Footer

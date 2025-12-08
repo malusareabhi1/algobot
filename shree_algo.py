@@ -6136,9 +6136,10 @@ elif MENU =="Live Trade":
 #----------------------------------------------------------------------------------------------------------
     def get_option_chain(symbol="NIFTY"):
         if "kite" not in st.session_state:
-            return {}  # avoid crash
+            st.error("Not logged in to Zerodha!")
+            return {}
     
-        kite = st.session_state.kite   # safe kite object
+        kite = st.session_state.kite
     
         try:
             instruments = kite.instruments("NFO")
@@ -6147,13 +6148,14 @@ elif MENU =="Live Trade":
             return {}
     
         chain = {}
-
+    
         for inst in instruments:
             if inst["name"] != symbol:
                 continue
     
             ts = inst["tradingsymbol"]
     
+            # Parse strike and CE/PE
             try:
                 strike = int(ts[-7:-2])
                 opt_type = ts[-2:]
@@ -6221,23 +6223,28 @@ elif MENU =="Live Trade":
 
     #--------------------------------------------------------------------------------------------------
     
-    def find_nearest_itm_option():
-        spot = get_nifty_spot()
-        if spot is None:
-            return "Error: Could not fetch NIFTY spot"
+    def find_nearest_itm_option(symbol="NIFTY"):
+        kite = st.session_state.kite
     
-        chain = get_option_chain("NIFTY")
-        chain = enrich_chain_with_ltp(chain)
+        spot = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
+    
+        chain = get_option_chain(symbol)
+    
+        if not chain:
+            return None
     
         strikes = sorted(chain.keys())
         nearest = min(strikes, key=lambda x: abs(x - spot))
     
+        itm = chain[nearest]
+    
         return {
             "spot": spot,
             "strike": nearest,
-            "call": chain[nearest]["CE"],
-            "put": chain[nearest]["PE"]
+            "call": itm["CE"],
+            "put": itm["PE"]
         }
+    
 
     
     ################################################################################################

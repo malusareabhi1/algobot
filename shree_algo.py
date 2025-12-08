@@ -151,6 +151,9 @@ def days_to_expiry(expiry):
     
     return max((expiry_date - today).days, 0)
 
+
+# ------------------------------------------------------------
+
 def compute_current_iv(kite, selected_option):
     """
     Compute IV safely using Kite LTP and expiry.
@@ -163,7 +166,7 @@ def compute_current_iv(kite, selected_option):
         
         # Safe days to expiry
         T_days = days_to_expiry(expiry)
-        
+
         symbol = f"NFO:{selected_option['tradingsymbol']}"
         ltp_data = kite.ltp(symbol)
         
@@ -184,8 +187,8 @@ def compute_current_iv(kite, selected_option):
         opt_type = "c" if option_type == "CE" else "p"
         
         spot_price = selected_option.get("spot_price", opt_ltp)
-        
-        # Dummy IV for demo
+
+        # Dummy IV for now
         iv = round((opt_ltp / spot_price) * 0.15, 2)
         
         return iv
@@ -194,7 +197,6 @@ def compute_current_iv(kite, selected_option):
         st.error(f"Error computing IV: {e}")
         return None
 
-# ------------------------------------------------------------
 
 # ------------------------------------------------------------
 

@@ -6686,13 +6686,14 @@ elif MENU == "Live Trade2":
                     st.write("No trade signal for today based on conditions.")
 
         # --- GET TODAY'S 15M CANDLES STARTING 9:15 AM ---
+        # GET TODAY'S 15-MIN CANDLES FROM 9:15 AM
         today = datetime.now(ist).date()
         
         df_today = df[
             (df['Datetime'].dt.date == today) &
-            (df['Datetime'].dt.time >= datetime.time(9, 15))
+            (df['Datetime'].dt.time >= time(9, 15))
         ]
-        
+
         st.write("Today 15m candles:", df_today.tail())
         
         # --- ONLY CHECK SIGNAL ON COMPLETED 15-MIN CANDLE ---

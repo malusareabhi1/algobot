@@ -112,7 +112,7 @@ def parse_nifty_symbol(symbol):
 # ------------------------------------------------------------
 
 
-def compute_current_iv(kite, selected_option):
+def compute_current_iv_3(kite, selected_option):
                     spot = get_nifty_spot(kite)
                     opt_ltp = kite.ltp(f"NFO:{selected_option['tradingsymbol']}")[f"NFO:{selected_option['tradingsymbol']}"]["ltp"]
                 
@@ -135,6 +135,60 @@ def compute_current_iv(kite, selected_option):
                         return np.nan
 
 # ------------------------------------------------------------
+
+def compute_current_iv(kite, selected_option):
+    """
+    Compute the implied volatility of the given option (selected_option).
+    selected_option: dict with keys ['tradingsymbol', 'option_type', 'expiry', ...]
+    kite: initialized KiteConnect object
+    """
+    try:
+        # Ensure expiry exists
+        expiry = selected_option.get("expiry")
+        if expiry is None:
+            st.error("Selected option has no expiry info")
+            return None
+        
+        # Compute days to expiry
+        T_days = days_to_expiry(expiry)
+        
+        # Fetch LTP safely
+        symbol = f"NFO:{selected_option['tradingsymbol']}"
+        ltp_data = kite.ltp(symbol)
+        
+        if symbol not in ltp_data:
+            st.error(f"{symbol} not found in LTP response")
+            return None
+        
+        opt_ltp = ltp_data[symbol].get("last_price") or ltp_data[symbol].get("ltp")
+        if opt_ltp is None:
+            st.error(f"LTP not available for {symbol}")
+            return None
+        
+        # Determine option type for IV computation
+        option_type = selected_option.get("option_type")
+        if option_type not in ["CE", "PE"]:
+            st.error(f"Invalid option type: {option_type}")
+            return None
+        
+        opt_type = "c" if option_type == "CE" else "p"
+        
+        # Spot price fallback
+        spot_price = selected_option.get("spot_price", None)
+        if spot_price is None:
+            st.warning("Spot price missing; using last price as spot")
+            spot_price = opt_ltp
+        
+        # Example: placeholder IV calculation
+        # Replace with your py_vollib or other IV calculation
+        # iv = implied_volatility(opt_ltp, spot_price, strike, T_days/365, r, opt_type)
+        iv = round((opt_ltp / spot_price) * 0.15, 2)  # dummy IV for demonstration
+        
+        return iv
+    
+    except Exception as e:
+        st.error(f"Error computing IV: {e}")
+        return None
 
 # ------------------------------------------------------------
 

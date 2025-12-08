@@ -238,7 +238,7 @@ def compute_option_iv(option, spot_price):
         return round(iv * 100, 2)  # return IV in %
 
     except Exception as e:
-        print("IV calc error:", e)
+        st.write("IV calc error:", e)
         return None
 
 # ------------------------------------------------------------

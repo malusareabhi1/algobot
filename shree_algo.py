@@ -6140,7 +6140,7 @@ elif MENU =="Live Trade":
             return {}
     
         kite = st.session_state.kite
-    
+        st.write("Kite object:", st.session_state.kite)
         try:
             instruments = kite.instruments("NFO")
         except Exception as e:

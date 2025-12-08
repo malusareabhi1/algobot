@@ -5278,7 +5278,7 @@ elif MENU =="Live Trade":
                 ),
             )
         
-            chart_placeholder.plotly_chart(fig, use_container_width=True)
+            #chart_placeholder.plotly_chart(fig, use_container_width=True)
 
         if start <= now <= end:
             # Update only the chart every 60 seconds

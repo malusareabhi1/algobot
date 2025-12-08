@@ -5617,11 +5617,13 @@ elif MENU =="LIVE TRADE 3":
                 return max(0.0, min(100.0, rank))
         #symb_expiry=get_expiry_from_symbol(nearest_itm)
         parsed_symbol=parse_nifty_symbol(trending_symbol)
-        st.write("parsed_symbol",parsed_symbol)
+        #st.write("parsed_symbol",parsed_symbol)
         # Append only expiry
         nearest_itm['expiry'] = parsed_symbol['expiry']
         
         # Check result
+        
+        nearest_itm = pd.DataFrame([nearest_itm])
         st.write("Updated nearest_itm-",nearest_itm)
         
         

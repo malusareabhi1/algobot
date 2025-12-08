@@ -29,7 +29,7 @@ st.set_page_config(
 # ------------------------------------------------------------
 
 # ---------- 1. Parse NIFTY option symbol ----------
-def parse_nifty_symbol(ts):
+def parse_nifty_symbol0(ts):
             """
             Parse NIFTY option symbol like NIFTY25D0926200CE
             Returns: underlying, expiry_date (date), strike (float), opt_type ('c'/'p')
@@ -60,6 +60,53 @@ def parse_nifty_symbol(ts):
             return underlying, expiry_date, strike, opt_type
 
 # ------------------------------------------------------------
+
+
+def parse_nifty_symbol(symbol):
+    """
+    Parse Zerodha NIFTY/BANKNIFTY option symbol to extract expiry, strike, and option type.
+    
+    Example:
+    'NIFTY25DEC25950CE' -> {
+        'index': 'NIFTY',
+        'expiry': datetime(2025, 12, 25),
+        'strike': 5950,
+        'option_type': 'CE'
+    }
+    """
+    try:
+        # Identify index
+        if symbol.startswith("NIFTY"):
+            index = "NIFTY"
+            rest = symbol[5:]
+        elif symbol.startswith("BANKNIFTY"):
+            index = "BANKNIFTY"
+            rest = symbol[9:]
+        else:
+            return None
+        
+        # Extract DDMONYY
+        dd = int(rest[:2])
+        mon = rest[2:5].upper()
+        yy = int(rest[5:7])
+        expiry = datetime.strptime(f"{dd}{mon}{yy:02d}", "%d%b%y")
+        
+        # Remaining string is strike + option type
+        strike_str = rest[7:-2]
+        option_type = rest[-2:]
+        strike = float(strike_str)
+        
+        return {
+            "index": index,
+            "expiry": expiry,
+            "strike": strike,
+            "option_type": option_type
+        }
+        
+    except Exception as e:
+        print(f"Error parsing symbol {symbol}: {e}")
+        return None
+
 
 # ------------------------------------------------------------
 

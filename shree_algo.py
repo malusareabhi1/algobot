@@ -5366,7 +5366,12 @@ elif MENU =="LIVE TRADE 3":
                 latest_time, latest_sig = step_signals[-1]
                 
                 st.success(f"🟢 Latest Candle Signal ({latest_time}):")
-                st.write(latest_sig)
+                #st.write(latest_sig)
+                # Convert to DataFrame
+                df_sig = pd.DataFrame([latest_sig])
+                
+                # Display as table
+                st.table(df_sig)
         else:
                 st.warning("No signal triggered in any candle yet.")
    

@@ -6408,6 +6408,10 @@ elif MENU == "Live Trade2":
         df_show = df_show[['Time', 'Open', 'High', 'Low', 'Close', 'Signal', 'Reason']]
         st.dataframe(df_show, use_container_width=True)
 
+
+
+
+        
 #-------------------------------------------------------------------------------------------
         #elif MENU == "Test1":
         import streamlit as st
@@ -6694,7 +6698,7 @@ elif MENU == "Live Trade2":
             (df['Datetime'].dt.time >= time(9, 15))
         ]
 
-        st.write("Today 15m candles:", df_today.tail())
+        #st.write("Today 15m candles:", df_today.tail())
         
         # --- ONLY CHECK SIGNAL ON COMPLETED 15-MIN CANDLE ---
         if len(df_today) > 1:
@@ -6720,12 +6724,45 @@ elif MENU == "Live Trade2":
         else:
             st.info("No signal generated today yet.")
 
+#-----------------------------------------------------------------------------------------------
+        #-------------------------------------------------------------------------------------------------------------------------------------------------           
+        st.write("### Live Trading Section")
+        
+        if signal:
+            if "kite" in st.session_state and st.session_state.kite:
+                kite = st.session_state.kite
+                
+                st.success("Kite session connected. Ready to place trade.")
+    
+                premium = float(selected_option["last_price"])
+                lot_size = int(selected_option["lot_size"])
+            
+                total_balance, required_margin, max_lots = show_fund_status(kite, lot_size, premium)
+             
+                
+                
+                #st.write("Available keys:", list(result['option_data'].index))
+                trading_symbol = selected_option["tradingsymbol"]
+                #st.write("Trading Symbol")
+                #st.write(trading_symbol)
+    
+                # Extract option symbol & quantity
+                #option_symbol = result['option_data']['tradingsymbol']
+                #st.write(result['option_data']['tradingsymbol'])
+                option_symbol = nse_to_kite_symbol(result['option_data']['identifier'])
+                #option_symbol = convert_to_kite_symbol(result['option_data']['identifier'])
+                
+    
+                qty = result['total_quantity']
+                ltp = result['option_data']['lastPrice']
+#-----------------------------------------------------------------------------------------------------------------------------------------------
+
                
 
 
 
 
-
+#------------------------------------------------------------------------------------------------
 
 elif MENU == "Test1":
     st.title("Live Trade Test1")

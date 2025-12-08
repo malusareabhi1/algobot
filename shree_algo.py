@@ -60,6 +60,24 @@ st.set_page_config(
 
 # ------------------------------------------------------------
 
+def get_expiry_from_symbol(tradingsymbol):
+    """
+    Extract expiry date from Zerodha option symbol.
+    
+    Example:
+    'NIFTY25DEC25950CE' → datetime(2025, 12, 25)
+    """
+    try:
+        # Zerodha format: <INDEX><DD><MON><YY><STRIKE><CE/PE>
+        # Example: NIFTY25DEC25950CE
+        date_str = tradingsymbol[5:11]  # '25DEC25'
+        expiry = datetime.strptime(date_str, "%d%b%y")
+        return expiry
+    except Exception as e:
+        print(f"Error parsing expiry from {tradingsymbol}: {e}")
+        return None
+
+
 # ------------------------------------------------------------
 
 def load_instruments():

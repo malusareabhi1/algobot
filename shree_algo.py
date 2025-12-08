@@ -5607,7 +5607,7 @@ elif MENU =="LIVE TRADE 3":
                 return max(0.0, min(100.0, rank))
         #symb_expiry=get_expiry_from_symbol(nearest_itm)
         st.write(parse_nifty_symbol(trending_symbol))
-        st.write("Expiry -",symb_expiry)
+        #st.write("Expiry -",symb_expiry)
         spot_iv = compute_current_iv(kite, nearest_itm)
         st.write("Current IV (%):", spot_iv)
             

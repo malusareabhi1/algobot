@@ -5493,12 +5493,11 @@ elif MENU =="LIVE TRADE 3":
             try:
                 nearest_itm = find_nearest_itm_option(kite, spot, option_type)
                 st.success("Nearest ITM Option Found")
-                #
-                st.write(nearest_itm)
+                #st.write(nearest_itm)
                 nearest_itm1 = pd.DataFrame([nearest_itm])
                 
                 # Display as table
-                st.table(nearest_itm1)
+                #st.table(nearest_itm1)
                 trending_symbol=nearest_itm['tradingsymbol']
                 st.write("tradingsymbol-",trending_symbol)
         

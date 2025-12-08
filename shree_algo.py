@@ -250,23 +250,7 @@ def load_instruments():
 # ------------------------------------------------------------
 
 
-def download_instruments_csv():
-    """Download instruments.csv automatically from Zerodha and save locally."""
-    url = "https://api.kite.trade/instruments"
-    #file_path = "instruments.csv"
-    file_path = "https://raw.githubusercontent.com/malusareabhi1/algobot/main/instruments.csv"
 
-
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            with open(file_path, "wb") as f:
-                f.write(response.content)
-            return True, file_path
-        else:
-            return False, f"HTTP Error: {response.status_code}"
-    except Exception as e:
-        return False, str(e)
         
 #--------------------------------------------------------------------------------------------------
 def find_nearest_itm_option(kite, spot_price, option_type):

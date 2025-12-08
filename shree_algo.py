@@ -5164,85 +5164,152 @@ elif MENU == "Setting":
 elif MENU =="LIVE TRADE 3":
     st.title("🔴 LIVE TRADE 3")
     #st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")
-
     from streamlit_autorefresh import st_autorefresh
-    import yfinance as yf
-    import pandas as pd
-    import numpy as np
+    import time             # Python's time module
+    from datetime import time  # datetime.time (conflict!)
+    # Initialize Kite in session_state
+    if "kite" not in st.session_state:
+        st.session_state.kite = None
+    else:
+        kite = st.session_state.get("kite")
+    # --- SESSION STATE INIT ---
+    if "order_executed" not in st.session_state:
+        st.session_state.order_executed = False
     
-    import pytz
-    import plotly.graph_objects as go
-    # -------------------- SESSION VARIABLES --------------------
-    if "last_candle_time" not in st.session_state:
-        st.session_state.last_candle_time = None
-    
-    # -------------------- AUTO REFRESH (Market Time Only) --------------------
+    if "signal_time" not in st.session_state:
+        st.session_state.signal_time = None
+    # Add after data processing:
+    def is_kite_connected(kite):
+        try:
+            kite.profile()
+            return True
+        except:
+            return False
+
+    if is_kite_connected(kite):
+        st.success("Kite connection active")
+    else:
+        st.error("Kite session expired. Please login again.")
+
+    st.set_page_config(layout="wide")
+    # Place at the very top of your script (or just before plotting)
+    #st_autorefresh(interval=60000, limit=None, key="refresh")
+    # Current time in IST
     ist = pytz.timezone("Asia/Kolkata")
     now = datetime.now(ist).time()
-    start = time(9, 15)
-    end   = time(15, 30)
-    #start = datetime.time(9,15)
-    #end   = datetime.time(15,30)
     
+    # Market hours condition
+    start = time(9, 30)   # 9:30 AM
+    end = time(15, 25)    # 3:25 PM
+    
+    # Refresh only between 9:30–3:25
     if start <= now <= end:
-        st_autorefresh(interval=60000, key="chart_refresh")
+        st_autorefresh(interval=60000, key="refresh")  # 1 minute refresh
+    else:
+        st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
+
+    st.title("Nifty 15-min Chart")
     
-    # -------------------- DOWNLOAD 15-MIN DATA --------------------
-    df = yf.download("^NSEI", interval="15m")
+    # Select date input (default today)
+    selected_date = st.date_input("Select date", value=datetime.today())
+    
+    # Calculate date range to download (7 days before selected_date to day after selected_date)
+    start_date = selected_date - timedelta(days=7)
+    end_date = selected_date + timedelta(days=1)
+    
+    # Download data for ^NSEI from start_date to end_date
+    df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="15m")
+    
     if df.empty:
-        st.warning("No data available")
+        st.warning("No data downloaded for the selected range.")
         st.stop()
-    
     df.reset_index(inplace=True)
     
-    # Fix timezone
-    if df['Datetime'].dt.tz is None:
-        df['Datetime'] = df['Datetime'].dt.tz_localize("UTC").dt.tz_convert("Asia/Kolkata")
+    if 'Datetime_' in df.columns:
+        df.rename(columns={'Datetime_': 'Datetime'}, inplace=True)
+    elif 'Date' in df.columns:
+        df.rename(columns={'Date': 'Datetime'}, inplace=True)
+    # Add any other detected name if needed
+    
+    
+    #st.write(df.columns)
+    #st.write(df.head(10))
+    # Flatten columns if MultiIndex
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in df.columns]
+    
+    # Rename datetime column if needed
+    if 'Datetime' not in df.columns and 'datetime' in df.columns:
+        df.rename(columns={'datetime': 'Datetime'}, inplace=True)
+    #st.write(df.columns)
+    #st.write(df.columns)
+    # Convert to datetime & timezone aware
+    #df['Datetime'] = pd.to_datetime(df['Datetime'])
+    if df['Datetime_'].dt.tz is None:
+        df['Datetime'] = df['Datetime_'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
     else:
-        df['Datetime'] = df['Datetime'].dt.tz_convert("Asia/Kolkata")
+        df['Datetime'] = df['Datetime_'].dt.tz_convert('Asia/Kolkata')
     
-    # -------------------- LATEST CANDLE --------------------
-    latest_candle_time = df["Datetime"].iloc[-1].to_pydatetime()
+    #st.write(df.columns)
+    #st.write(df.head(10))
     
-    # -------------------- CREATE CHART --------------------
-    chart_placeholder = st.empty()
+    # Filter for last two trading days to plot
+    unique_days = df['Datetime'].dt.date.unique()
+    if len(unique_days) < 2:
+        st.warning("Not enough data for two trading days")
+    else:
+        last_day = unique_days[-2]
+        today = unique_days[-1]
     
-    def draw_chart(df):
-        fig = go.Figure(data=[
-            go.Candlestick(
-                x=df["Datetime"],
-                open=df["Open"],
-                high=df["High"],
-                low=df["Low"],
-                close=df["Close"]
-            )
-        ])
+        df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
     
+        # Get last day 3PM candle open and close
+        candle_3pm = df_plot[(df_plot['Datetime'].dt.date == last_day) &
+                             (df_plot['Datetime'].dt.hour == 15) &
+                             (df_plot['Datetime'].dt.minute == 0)]
+    
+        if not candle_3pm.empty:
+            open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
+            close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
+        else:
+            open_3pm = None
+            close_3pm = None
+            st.warning("No 3:00 PM candle found for last trading day.")
+    
+        # Plot candlestick chart
+        fig = go.Figure(data=[go.Candlestick(
+            x=df_plot['Datetime'],
+            open=df_plot['Open_^NSEI'],
+            high=df_plot['High_^NSEI'],
+            low=df_plot['Low_^NSEI'],
+            close=df_plot['Close_^NSEI']
+        )])
+    
+        if open_3pm and close_3pm:
+            fig.add_hline(y=open_3pm, line_dash="dot", line_color="blue", annotation_text="3PM Open")
+            fig.add_hline(y=close_3pm, line_dash="dot", line_color="red", annotation_text="3PM Close")
+    
+    
+    
+    
+        # Draw horizontal lines as line segments only between 3PM last day and 3PM next day
+    
+        
+        fig.update_layout(title="Nifty 15-min candles - Last Day & Today", xaxis_rangeslider_visible=False)
         fig.update_layout(
-            title="Nifty Live 15m Candles",
-            xaxis_rangeslider_visible=False
+        xaxis=dict(
+            rangebreaks=[
+                # Hide weekends (Saturday and Sunday)
+                dict(bounds=["sat", "mon"]),
+                # Hide hours outside of trading hours (NSE trading hours 9:15 to 15:30)
+                dict(bounds=[15.5, 9.25], pattern="hour"),
+            ]
         )
+    )
     
-        chart_placeholder.plotly_chart(fig, use_container_width=True)
     
-    # Always draw chart on refresh
-    draw_chart(df)
+        st.plotly_chart(fig, use_container_width=True)
     
-    # -------------------- CHECK FOR NEW CANDLE --------------------
-    if st.session_state.last_candle_time is None:
-        st.session_state.last_candle_time = latest_candle_time
-    
-    elif st.session_state.last_candle_time != latest_candle_time:
-    
-        st.success(f"🆕 New Candle: {latest_candle_time.strftime('%H:%M')}")
-    
-        # Update state
-        st.session_state.last_candle_time = latest_candle_time
-    
-        # Run your strategy
-        signal = check_signal(df)
-        st.write("📌 Signal:", signal)
-     
    
 # ------------------------------------------------------------
 # Footer

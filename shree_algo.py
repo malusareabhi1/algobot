@@ -111,6 +111,29 @@ def parse_nifty_symbol(symbol):
 
 # ------------------------------------------------------------
 
+
+def compute_current_iv(kite, selected_option):
+                    spot = get_nifty_spot(kite)
+                    opt_ltp = kite.ltp(f"NFO:{selected_option['tradingsymbol']}")[f"NFO:{selected_option['tradingsymbol']}"]["last_price"]
+                
+                    strike = float(selected_option["strike"])
+                    expiry = selected_option["expiry"]          # '2025-12-09'
+                    opt_type = "c" if selected_option["instrument_type"] == "CE" else "p"
+                
+                    T_days = days_to_expiry(expiry)
+                    if T_days <= 0:
+                        return np.nan
+                
+                    T = T_days / 365.0
+                    intrinsic = max(0.0, spot - strike) if opt_type == "c" else max(0.0, strike - spot)
+                    opt_ltp = max(opt_ltp, intrinsic + 0.01)
+                
+                    try:
+                        iv = implied_volatility(opt_ltp, spot, strike, T, R, opt_type)
+                        return iv * 100.0  # %
+                    except Exception:
+                        return np.nan
+
 # ------------------------------------------------------------
 
 # ------------------------------------------------------------
@@ -5104,7 +5127,7 @@ elif MENU == "Test1":
         return max((expiry_date - today).days, 0)
     
     # ---------- compute current IV ----------
-    def compute_current_iv(underlying_price, option_price, strike, expiry_str, option_type):
+    def compute_current_iv_1(underlying_price, option_price, strike, expiry_str, option_type):
         """
         option_type: 'c' for CE, 'p' for PE (py_vollib convention)
         """

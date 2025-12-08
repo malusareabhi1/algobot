@@ -75,7 +75,9 @@ def load_instruments():
 def download_instruments_csv():
     """Download instruments.csv automatically from Zerodha and save locally."""
     url = "https://api.kite.trade/instruments"
-    file_path = "instruments.csv"
+    #file_path = "instruments.csv"
+    file_path = "https://raw.githubusercontent.com/malusareabhi1/algobot/main/instruments.csv"
+
 
     try:
         response = requests.get(url)

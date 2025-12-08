@@ -6421,7 +6421,7 @@ elif MENU == "Live Trade2":
         from dateutil import parser
         from py_vollib.black_scholes.implied_volatility import implied_volatility
     
-        st.title("Live Trade Test1")
+        st.title("Live Trade Test 2")
     
         # ---------------- SETUP ----------------
         if "kite" not in st.session_state or st.session_state.kite is None:

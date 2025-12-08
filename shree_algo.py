@@ -5335,7 +5335,7 @@ elif MENU =="LIVE TRADE 3":
 
         step_signals = generate_signals_stepwise(df_plot)
         if step_signals:
-                st.info(f"Total signals detected so far: {len(step_signals)}")
+                #st.info(f"Total signals detected so far: {len(step_signals)}")
             
                 latest_time, latest_sig = step_signals[-1]
                 

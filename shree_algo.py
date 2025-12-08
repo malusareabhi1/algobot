@@ -5250,6 +5250,36 @@ elif MENU =="Live Trade":
     
         st.plotly_chart(fig, use_container_width=True)
         # ------------- AUTO UPDATE CHART WITHOUT FULL REFRESH -------------
+        # --- PLACEHOLDER FOR CHART ---
+        chart_placeholder = st.empty()
+        
+        # --- FUNCTION MUST BE DEFINED FIRST ---
+        def draw_chart(df_plot, open_3pm, close_3pm):
+            fig = go.Figure(data=[go.Candlestick(
+                x=df_plot['Datetime'],
+                open=df_plot['Open_^NSEI'],
+                high=df_plot['High_^NSEI'],
+                low=df_plot['Low_^NSEI'],
+                close=df_plot['Close_^NSEI']
+            )])
+        
+            if open_3pm and close_3pm:
+                fig.add_hline(y=open_3pm, line_dash="dot", line_color="blue")
+                fig.add_hline(y=close_3pm, line_dash="dot", line_color="red")
+        
+            fig.update_layout(
+                title="Live Nifty 15m Chart — Auto Updating",
+                xaxis_rangeslider_visible=False,
+                xaxis=dict(
+                    rangebreaks=[
+                        dict(bounds=["sat", "mon"]),
+                        dict(bounds=[15.5, 9.25], pattern="hour")
+                    ]
+                ),
+            )
+        
+            chart_placeholder.plotly_chart(fig, use_container_width=True)
+
         if start <= now <= end:
             # Update only the chart every 60 seconds
             st_autorefresh(interval=60000, key="chart_refresh")

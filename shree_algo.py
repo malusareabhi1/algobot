@@ -201,49 +201,40 @@ def compute_current_iv(kite, selected_option):
 # ------------------------------------------------------------
 
 
+from datetime import datetime
+from py_vollib.black.implied_volatility import implied_volatility
+
 def compute_option_iv(option, spot_price):
-    from datetime import datetime
-    from py_vollib.black.implied_volatility import implied_volatility
-
     try:
-        # Option data
         strike = float(option["strike"])
-        st.write("Strike-",strike)
-        opt_type = option["option_type"].lower()  # 'call' or 'put'
-        st.write("opt_type-",opt_type)
+        opt_type = option["option_type"].lower()
         ltp = float(option["ltp"])
-        st.write("ltp-",ltp)
-        
-        # Time to expiry (T) in years
-        expiry = option["expiry"]  # Timestamp
 
-        st.write("expiry-",expiry)
+        expiry = option["expiry"].to_pydatetime()
         now = datetime.now()
 
-        days_to_expiry = (expiry - now).total_seconds() / (60 * 60 * 24)
+        days_to_expiry = (expiry - now).total_seconds() / (60*60*24)
         if days_to_expiry <= 0:
             return None
 
-        T = days_to_expiry / 365.0
+        T = days_to_expiry / 365
+        r = 0.07
 
-        r = 0.07  # Risk-free rate (7%)
-        
-        # Calculate IV using Black model
+        # Correct: positional args only
         iv = implied_volatility(
-            price=ltp,
-            F=spot_price,
-            K=strike,
-            r=r,
-            t=T,
-            flag='c' if opt_type == "call" else 'p'
+            ltp,
+            spot_price,
+            strike,
+            T,
+            r,
+            'c' if opt_type == "call" else 'p'
         )
 
-        return round(iv * 100, 2)  # return IV in %
+        return round(iv*100, 2)
 
     except Exception as e:
-        st.write("IV calc error:", e)
+        print("IV calc error:", e)
         return None
-
 # ------------------------------------------------------------
 
 # ------------------------------------------------------------

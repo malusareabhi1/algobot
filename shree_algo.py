@@ -5311,6 +5311,13 @@ elif MENU =="LIVE TRADE 3":
         st.plotly_chart(fig, use_container_width=True)
         #----------------------------------------------------------------------
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
+        signal = trading_signal_all_conditions(df_plot)
+
+        if signal is None:
+            st.warning("⚠ No signal yet (conditions not met).")
+        else:
+            st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
+            st.write(signal)
 
     
    

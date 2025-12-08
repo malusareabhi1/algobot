@@ -5162,7 +5162,127 @@ elif MENU == "Setting":
 
 
 elif MENU =="LIVE TRADE 3":
-   st.title("LIVE TRADE 3")
+    st.title("LIVE TRADE 3")
+    st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")
+
+    from streamlit_autorefresh import st_autorefresh
+    import yfinance as yf
+    import pandas as pd
+    import numpy as np
+    from datetime import datetime, timedelta, time
+    import pytz
+    import plotly.graph_objects as go
+    
+    # ------------------------ SESSION STATE INIT ------------------------
+    if "last_signal_candle" not in st.session_state:
+        st.session_state.last_signal_candle = None
+    
+    if "last_candle_time" not in st.session_state:
+        st.session_state.last_candle_time = None
+    
+    # ------------------------ TIME CONTROL ------------------------
+    IST = pytz.timezone("Asia/Kolkata")
+    now = datetime.now(IST)
+    
+    market_start = time(9, 30)
+    market_end   = time(15, 30)
+    
+    # refresh only inside market hours
+    if market_start <= now.time() <= market_end:
+        st_autorefresh(interval=60000, key="live_refresh")   # 1 minute refresh
+    else:
+        st.info("⏸ Live update paused — outside market hours.")
+    
+    # ------------------------ DOWNLOAD TODAY'S DATA ------------------------
+    today = now.date()
+    start_date = today
+    end_date = today + timedelta(days=1)
+    
+    df = yf.download("^NSEI", 
+                     start=start_date.strftime("%Y-%m-%d"), 
+                     end=end_date.strftime("%Y-%m-%d"),
+                     interval="15m")
+    
+    if df.empty:
+        st.warning("No live data yet.")
+        st.stop()
+    
+    df.reset_index(inplace=True)
+    
+    # timezone fix
+    df['Datetime'] = df['Datetime'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
+    
+    # ------------------------ IDENTIFY NEW CANDLE ------------------------
+    latest_candle_time = df.iloc[-1]['Datetime']
+    
+    new_candle = False
+    if st.session_state.last_candle_time != latest_candle_time:
+        new_candle = True
+        st.session_state.last_candle_time = latest_candle_time
+    
+    # ------------------------ YOUR SIGNAL LOGIC ------------------------
+    def check_signal(df):
+        """
+        Replace this with your strategy.
+        Return 'BUY', 'SELL' or None
+        """
+        if len(df) < 20:
+            return None
+    
+        close = df['Close'].iloc[-1]
+        prev = df['Close'].iloc[-2]
+    
+        if close > prev:
+            return "BUY"
+        elif close < prev:
+            return "SELL"
+        return None
+    
+    # run strategy only if fresh candle
+    signal = None
+    if new_candle and (market_start <= now.time() <= market_end):
+        signal = check_signal(df)
+        if signal:
+            st.session_state.last_signal_candle = (latest_candle_time, signal)
+    
+    # ------------------------ CHART ------------------------
+    fig = go.Figure(data=[go.Candlestick(
+        x=df["Datetime"],
+        open=df["Open"],
+        high=df["High"],
+        low=df["Low"],
+        close=df["Close"])
+    ])
+    
+    # highlight signal candle
+    if st.session_state.last_signal_candle:
+        sig_time, sig_type = st.session_state.last_signal_candle
+        sig_df = df[df["Datetime"] == sig_time]
+    
+        if not sig_df.empty:
+            fig.add_trace(go.Scatter(
+                x=[sig_time],
+                y=[sig_df["Close"].iloc[0]],
+                mode="markers+text",
+                text=[sig_type],
+                textposition="top center",
+                marker=dict(size=14, symbol="triangle-up" if sig_type=="BUY" else "triangle-down")
+            ))
+    
+    fig.update_layout(
+        title="📈 Live Nifty 15m Chart (Auto Updating)",
+        xaxis_rangeslider_visible=False
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # ------------------------ DISPLAY SIGNAL ------------------------
+    if st.session_state.last_signal_candle:
+        sig_time, sig_type = st.session_state.last_signal_candle
+        st.success(f"🚨 **{sig_type} SIGNAL at {sig_time.strftime('%H:%M')}**")
+    else:
+        st.info("No signal yet… waiting for next candle.")
+
 
 
 # ------------------------------------------------------------

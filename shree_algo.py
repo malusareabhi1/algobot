@@ -28,6 +28,37 @@ st.set_page_config(
 )
 # ------------------------------------------------------------
 
+# ---------- 1. Parse NIFTY option symbol ----------
+def parse_nifty_symbol(ts):
+            """
+            Parse NIFTY option symbol like NIFTY25D0926200CE
+            Returns: underlying, expiry_date (date), strike (float), opt_type ('c'/'p')
+            """
+            # Format: NIFTY YY M DD STRIKE CE/PE
+            # NIFTY25D09 26200 CE
+            underlying = "NIFTY"
+    
+            yy = int(ts[5:7])          # '25'
+            m_code = ts[7]             # 'D'
+            dd = int(ts[8:10])         # '09'
+            strike = float(ts[10:-2])  # '26200'
+            opt_code = ts[-2:]         # 'CE' or 'PE'
+    
+            # month code map as per NSE short codes
+            month_map = {
+                "F": 1, "G": 2, "H": 3, "J": 4, "K": 5, "M": 6,
+                "N": 7, "Q": 8, "U": 9, "V": 10, "X": 11, "Z": 12,
+                "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6,
+                "G": 7, "H": 8, "I": 9, "J": 10, "K": 11, "L": 12,
+            }
+            mm = month_map[m_code]
+            yyyy = 2000 + yy
+    
+            expiry_date = date(yyyy, mm, dd)
+            opt_type = "c" if opt_code.upper() == "CE" else "p"
+    
+            return underlying, expiry_date, strike, opt_type
+
 # ------------------------------------------------------------
 
 # ------------------------------------------------------------
@@ -74,7 +105,7 @@ def get_expiry_from_symbol(tradingsymbol):
         expiry = datetime.strptime(date_str, "%d%b%y")
         return expiry
     except Exception as e:
-        print(f"Error parsing expiry from {tradingsymbol}: {e}")
+        #print(f"Error parsing expiry from {tradingsymbol}: {e}")
         return None
 
 
@@ -5527,7 +5558,8 @@ elif MENU =="LIVE TRADE 3":
                     return 0.0
                 rank = (current_iv - iv_low) / (iv_high - iv_low) * 100.0
                 return max(0.0, min(100.0, rank))
-        symb_expiry=get_expiry_from_symbol(nearest_itm)
+        #symb_expiry=get_expiry_from_symbol(nearest_itm)
+        st.write(parse_nifty_symbol(trending_symbol))
         st.write("Expiry -",symb_expiry)
         spot_iv = compute_current_iv(kite, nearest_itm)
         st.write("Current IV (%):", spot_iv)

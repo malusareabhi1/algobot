@@ -5106,6 +5106,11 @@ elif MENU == "Support":
 
     #######################################################################################################
 elif MENU =="Live Trade":
+    from streamlit_autorefresh import st_autorefresh
+    import time             # Python's time module
+    from datetime import time  # datetime.time (conflict!)
+    # Initialize Kite in session_state
+    
     
 
 elif MENU=="Paper Trade":

@@ -5609,7 +5609,7 @@ elif MENU =="LIVE TRADE 3":
         
         
         #st.write("Expiry -",symb_expiry)
-        spot_iv = (kite, nearest_itm)
+        spot_iv = compute_current_iv(kite, nearest_itm)
         st.write("Current IV (%):", spot_iv)
             
         iv_hist = get_iv_history_for_option(kite, nearest_itm1)

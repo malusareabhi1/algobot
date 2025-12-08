@@ -25,7 +25,109 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+def trading_signal_all_conditions(df, quantity=10*75, return_all_signals=False):
+        """
+        Evaluate trading conditions based on Base Zone strategy with:
+        - CALL stop loss = recent swing low (last 10 candles)
+        - PUT stop loss = recent swing high (last 10 candles)
+        - Dynamic trailing stop loss based on swing points
+        - Time exit after 16 minutes if neither SL nor trailing SL hit
+        - Single active trade per day
+        """
 
+        signals = []
+        spot_price = df['Close_^NSEI'].iloc[-1]
+    
+        # Preprocess
+        df = df.copy()
+        df['Date'] = df['Datetime'].dt.date
+        unique_days = sorted(df['Date'].unique())
+        if len(unique_days) < 2:
+            return None
+    
+        # Day 0 and Day 1
+        day0 = unique_days[-2]  # Previous trading day
+        day1 = unique_days[-1]  # Current trading day
+    
+        # Get Base Zone from 3 PM candle of previous day
+        candle_3pm = df[(df['Date'] == day0) &
+                        (df['Datetime'].dt.hour == 15) &
+                        (df['Datetime'].dt.minute == 0)]
+        if candle_3pm.empty:
+            return None
+    
+        base_open = candle_3pm.iloc[0]['Open_^NSEI']
+        base_close = candle_3pm.iloc[0]['Close_^NSEI']
+        base_low = min(base_open, base_close)
+        base_high = max(base_open, base_close)
+    
+        # Get 09:15–09:30 candle of current day
+        candle_915 = df[(df['Date'] == day1) &
+                        (df['Datetime'].dt.hour == 9) &
+                        (df['Datetime'].dt.minute == 15)]
+        if candle_915.empty:
+            return None
+    
+        H1 = candle_915.iloc[0]['High_^NSEI']
+        L1 = candle_915.iloc[0]['Low_^NSEI']
+        C1 = candle_915.iloc[0]['Close_^NSEI']
+        entry_time = candle_915.iloc[0]['Datetime']
+    
+        expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+    
+        # Data after 09:30
+        day1_after_915 = df[(df['Date'] == day1) & (df['Datetime'] > entry_time)].sort_values('Datetime')
+    
+        # Helper functions
+        def get_recent_swing(current_time):
+            """
+            Return scalar swing_high, swing_low from last 10 candles before current_time.
+            If insufficient data return (np.nan, np.nan).
+            """
+            recent_data = df[(df['Date'] == day1) & (df['Datetime'] < current_time)].tail(10)
+            if recent_data.empty:
+                return np.nan, np.nan
+            # ensure scalar float values (not Series)
+            swing_high = recent_data['High_^NSEI'].max()
+            swing_low = recent_data['Low_^NSEI'].min()
+            # convert numpy scalars to python floats when possible
+            swing_high = float(swing_high) if not pd.isna(swing_high) else np.nan
+            swing_low = float(swing_low) if not pd.isna(swing_low) else np.nan
+            return swing_high, swing_low
+    
+        def update_trailing_sl(option_type, current_sl, current_time):
+            """
+            Safely update trailing SL using last-10-candle swing points.
+            - For CALL: SL tracks the most recent swing_low (move up only)
+            - For PUT: SL tracks the most recent swing_high (move down only)
+            """
+            new_high, new_low = get_recent_swing(current_time)
+    
+            # CALL: set/raise SL to new_low if valid
+            if option_type == 'CALL':
+                if pd.isna(new_low):
+                    # nothing to update
+                    return current_sl
+                # if current_sl is missing, initialize it
+                if current_sl is None or pd.isna(current_sl):
+                    return new_low
+                # update only if new_low is higher than current_sl (trail upward)
+                if new_low > current_sl:
+                    return new_low
+                return current_sl
+    
+            # PUT: set/lower SL to new_high if valid
+            if option_type == 'PUT':
+                if pd.isna(new_high):
+                    return current_sl
+                if current_sl is None or pd.isna(current_sl):
+                    return new_high
+                # update only if new_high is lower than current_sl (trail downward)
+                if new_high < current_sl:
+                    return new_high
+                return current_sl
+    
+            return current_sl
 def find_nearest_itm_option(kite, spot_price, option_type):
     # Load CSV
     df = load_zerodha_instruments()

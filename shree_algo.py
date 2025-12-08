@@ -5695,7 +5695,7 @@ elif MENU =="LIVE TRADE 3":
 
 #-----------------------------------IV Compute---------------------------------------------
 
-        spot_price = get_ltp(kite, "NSE:NIFTY 50")["last_price"]
+        spot_price = get_ltp(kite, "NSE:NIFTY 50")["ltp"]
         
         iv_percent = compute_option_iv(nearest_itm, spot)
         

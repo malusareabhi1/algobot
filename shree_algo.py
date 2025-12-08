@@ -5290,9 +5290,69 @@ elif MENU =="Live Trade":
             st.info("Live update paused — outside market hours.")
             #draw_chart()
             draw_chart(df_plot, open_3pm, close_3pm)
-                
 
-
+        ###############################################################################################################
+        #run_check_for_all_candles(df)  # df = your full OHLC DataFrame
+        
+        #display_todays_candles_with_trend(df)
+        display_todays_candles_with_trend_and_signal(df)
+        ########################
+        result_chain=find_nearest_itm_option()
+        #st.write(result_chain)
+        #calling all condition in one function
+        # --- HARD BLOCK: do not detect any signal before 9:30 AM ---
+        last_time = df["Datetime"].iloc[-1].time()
+        
+        import datetime
+        if last_time < datetime.time(9, 30):
+            st.warning("Waiting for first 15-min candle (till 9:30 AM)... No signals allowed before 9:30.")
+            signal = None
+        else:
+            signal = trading_signal_all_conditions(df)
+        #st.write("###  Signal")
+        #st.write(signal)
+        if signal:
+            signal_time = df["Datetime"].iloc[-1].time()   # last candle time
+            
+            if "kite" in st.session_state and st.session_state.kite:
+                    kite = st.session_state.kite
+            # Exclude unwanted keys
+            exclude_cols = ["stoploss", "quantity", "expiry", "exit_price"]
+            
+            # Filter the signal dict
+            filtered_signal = {k: v for k, v in signal.items() if k not in exclude_cols}
+            
+            # Show message and table
+            st.write(f"Trade signal detected:\n{signal['message']}")
+            st.table(pd.DataFrame([filtered_signal]))
+            #st.write(f"Trade signal detected:\n{signal['message']}")
+            #st.table(pd.DataFrame([signal]))
+            spot_price = signal['spot_price']
+            #option_type = signal['option_type']
+            ot = "CE" if signal["option_type"].upper() == "CALL" else "PE"
+            # Find nearest ITM option to buy
+            chain = get_option_chain(kite, "NIFTY")
+                #st.dataframe(chain)
+            # FIX: convert dict structure to list
+            if isinstance(chain, dict):
+            
+                # Case 1: NSE Option Chain Structure
+                if "records" in chain and "data" in chain["records"]:
+                    chain = chain["records"]["data"]
+            
+                # Case 2: Zerodha format
+                elif "data" in chain and isinstance(chain["data"], list):
+                    chain = chain["data"]
+            
+                # Case 3: Your custom scrapper might use "options"
+                elif "options" in chain:
+                    chain = chain["options"]
+            
+                else:
+                    raise ValueError("Unrecognized option chain format. Cannot extract list.")
+                    
+    
+    
 
 
 

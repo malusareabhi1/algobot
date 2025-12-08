@@ -5088,11 +5088,20 @@ elif MENU == "Test1":
         return q[f"{EXCHANGE}:{tradingsymbol}"]["last_price"]
     
     # ---------- helper: days to expiry ----------
-    def days_to_expiry(expiry_str):
+    def days_to_expiry0(expiry_str):
         # expiry_str like '2025-12-25'
         expiry = parser.parse(expiry_str).date()
         today = datetime.now().date()
         return max((expiry - today).days, 0)
+
+    def days_to_expiry(expiry):
+        """
+        expiry: datetime.datetime object
+        returns number of days until expiry (integer)
+        """
+        today = date.today()
+        expiry_date = expiry.date() if isinstance(expiry, datetime) else expiry
+        return max((expiry_date - today).days, 0)
     
     # ---------- compute current IV ----------
     def compute_current_iv(underlying_price, option_price, strike, expiry_str, option_type):

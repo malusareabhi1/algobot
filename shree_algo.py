@@ -6430,21 +6430,12 @@ elif MENU == "Live Trade2":
         st.dataframe(df_show, use_container_width=True)
 
   #------------------------------------------------------------------------------------------------
-        if isinstance(signal, dict):
-            try:
-                # Wrap dict into a list to create a single-row DataFrame
-                signal_df = pd.DataFrame([signal])
-                st.write("signal converted to DataFrame:", signal_df)
-            except Exception as e:
-                st.error(f"Cannot convert signal to DataFrame: {e}")
-                st.write("Raw signal dictionary:", signal)
-        else:
-            signal_df = signal
+       
 #---------------------------------------------------------------------------------------------------
         #run_check_for_all_candles(df)  # df = your full OHLC DataFrame
     
         #display_todays_candles_with_trend(df)
-        display_todays_candles_with_trend_and_signal(df)
+        st.write(display_todays_candles_with_trend_and_signal(df))
         ########################
         result_chain=find_nearest_itm_option()
         #st.write(result_chain)

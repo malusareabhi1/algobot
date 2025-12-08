@@ -5536,11 +5536,11 @@ elif MENU =="LIVE TRADE 3":
                     raise ValueError(f"Instrument token not found for {trading_symbol}")
             
                 # 2) Get today's minute candles
-            today = dt.date.today()
-            from_dt = dt.datetime.combine(today, dt.time(9, 15))
-            to_dt   = dt.datetime.combine(today, dt.time(15, 30))
+                today = dt.date.today()
+                from_dt = dt.datetime.combine(today, dt.time(9, 15))
+                to_dt   = dt.datetime.combine(today, dt.time(15, 30))
             
-            candles = kite.historical_data(
+                candles = kite.historical_data(
                     instrument_token=token,
                     from_date=from_dt,
                     to_date=to_dt,
@@ -5549,17 +5549,17 @@ elif MENU =="LIVE TRADE 3":
                     oi=False
                 )
             
-            # 3) Compute VWAP = sum(typical_price * volume) / sum(volume)
-            num = 0.0
-            den = 0.0
-            for c in candles:
+                # 3) Compute VWAP = sum(typical_price * volume) / sum(volume)
+                num = 0.0
+                den = 0.0
+                for c in candles:
                     tp = (c["high"] + c["low"] + c["close"]) / 3.0
                     vol = c["volume"]
                     num += tp * vol
                     den += vol
             
-            vwap = num / den if den else 0.0
-            return vwap
+                vwap = num / den if den else 0.0
+                return vwap
             
         selected_option = trading_symbol
         vwap_value = get_vwap_for_option(selected_option)

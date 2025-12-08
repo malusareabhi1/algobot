@@ -304,23 +304,41 @@ def get_nifty_option_chain(df):
     if df.empty:
         return df
 
-    # Filter NIFTY Index Options (OPTIDX)
+    # 1) Filter only NFO options (no futures)
     chain = df[
-        (df["instrument_type"] == "OPTIDX") &
-        (df["tradingsymbol"].str.startswith("NIFTY"))
+        (df["exchange"] == "NFO") &
+        (df["tradingsymbol"].str.startswith("NIFTY")) &
+        (df["instrument_type"].isin(["CE", "PE", "OPTIDX"]))
     ].copy()
 
-    # Keep only weekly expiry (not monthly)
-    if "expiry" in chain.columns:
-        today = pd.Timestamp.today().normalize()
-        chain["days"] = (chain["expiry"] - today).dt.days
-        chain = chain[chain["days"] >= 0]
-        chain = chain[chain["days"] <= 7]  # weekly expiry
+    if chain.empty:
+        print("⚠ Warning: NIFTY not found with CE/PE/OPTIDX labels. Retrying relaxed filter...")
+        chain = df[
+            (df["exchange"] == "NFO") &
+            (df["tradingsymbol"].str.contains("NIFTY")) &
+            (df["strike"] > 0)
+        ].copy()
 
-    # Remove futures / mislabelled rows
+    if chain.empty:
+        raise ValueError("❌ Still no NIFTY options found! Your instruments.csv may be outdated.")
+
+    # 2) Fix expiry
+    chain["expiry"] = pd.to_datetime(chain["expiry"], errors="coerce")
+
+    # 3) Auto-select nearest upcoming expiry (weekly OR monthly)
+    upcoming = chain["expiry"].dropna().sort_values().unique()
+    if len(upcoming) == 0:
+        raise ValueError("❌ No expiry dates found in NIFTY chain!")
+
+    nearest_expiry = upcoming[0]   # closest expiry date
+
+    chain = chain[chain["expiry"] == nearest_expiry]
+
+    # 4) Remove anything invalid
     chain = chain[chain["strike"] > 0]
 
     return chain
+
 
 
         

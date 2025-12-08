@@ -555,7 +555,7 @@ def find_nearest_itm_option0():
     #st.write(option_chain_df.head())
     return  option_chain_df
 
-def find_nearest_itm_option(kite, spot_price, option_type):
+def find_nearest_itm_option_dec(kite, spot_price, option_type):
     df = load_zerodha_instruments()
     chain = get_nifty_option_chain(df)
 
@@ -575,6 +575,31 @@ def find_nearest_itm_option(kite, spot_price, option_type):
         "ltp": ltp
     }
 
+def find_nearest_itm_option(kite, spot_price, option_type):
+    # Load Zerodha instruments CSV
+    df = load_zerodha_instruments()
+
+    # Extract only NIFTY option instruments
+    chain = get_nifty_option_chain(df)
+
+    if chain.empty:
+        raise ValueError("No NIFTY options found in Zerodha instruments")
+
+    # Select nearest ITM option
+    selected = find_nearest_itm_from_zerodha(chain, spot_price, option_type)
+
+    tradingsymbol = selected["tradingsymbol"]
+
+    # Fetch LTP safely
+    ltp = get_ltp(kite, tradingsymbol)
+
+    return {
+        "tradingsymbol": tradingsymbol,
+        "strike": selected["strike"],
+        "instrument_token": selected["instrument_token"],
+        "option_type": option_type.upper(),
+        "ltp": ltp,
+    }
 
 
 

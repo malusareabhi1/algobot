@@ -5499,7 +5499,7 @@ elif MENU =="Live Trade":
         #display_todays_candles_with_trend(df)
         display_todays_candles_with_trend_and_signal(df)
         ########################
-        result_chain=find_nearest_itm_option()
+        #result_chain=find_nearest_itm_option()
         #st.write(result_chain)
         #calling all condition in one function
         # --- HARD BLOCK: do not detect any signal before 9:30 AM ---

@@ -6684,6 +6684,41 @@ elif MENU == "Live Trade2":
                     #st.table(trade_log_df)
         else:
                     st.write("No trade signal for today based on conditions.")
+
+        # --- GET TODAY'S 15M CANDLES STARTING 9:15 AM ---
+        today = datetime.now(ist).date()
+        
+        df_today = df[
+            (df['Datetime'].dt.date == today) &
+            (df['Datetime'].dt.time >= datetime.time(9, 15))
+        ]
+        
+        st.write("Today 15m candles:", df_today.tail())
+        
+        # --- ONLY CHECK SIGNAL ON COMPLETED 15-MIN CANDLE ---
+        if len(df_today) > 1:
+            last_completed_candle = df_today.iloc[-2]
+            signal = trading_signal_all_conditions(df_today)
+        else:
+            last_completed_candle = None
+            signal = None
+        
+        # --- STORE AND SHOW SIGNAL ---
+        if "last_valid_signal" not in st.session_state:
+            st.session_state.last_valid_signal = None
+        
+        if signal:
+            signal["generated_at"] = str(df_today.iloc[-2]["Datetime"])
+            st.session_state.last_valid_signal = signal
+            st.success("New Signal Generated")
+        
+        # Always show last signal of the day
+        if st.session_state.last_valid_signal:
+            st.write("### Last Signal (from today's candles)")
+            st.table(pd.DataFrame([st.session_state.last_valid_signal]))
+        else:
+            st.info("No signal generated today yet.")
+
                
 
 

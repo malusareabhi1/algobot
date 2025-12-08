@@ -5179,8 +5179,10 @@ elif MENU =="LIVE TRADE 3":
     # -------------------- AUTO REFRESH (Market Time Only) --------------------
     ist = pytz.timezone("Asia/Kolkata")
     now = datetime.now(ist).time()
-    start = datetime.time(9,15)
-    end   = datetime.time(15,30)
+    start = time(9, 15)
+    end   = time(15, 30)
+    #start = datetime.time(9,15)
+    #end   = datetime.time(15,30)
     
     if start <= now <= end:
         st_autorefresh(interval=60000, key="chart_refresh")

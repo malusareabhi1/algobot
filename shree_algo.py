@@ -6135,6 +6135,39 @@ elif MENU =="Live Trade":
         return signals if signals else None
 #----------------------------------------------------------------------------------------------------------
     def get_option_chain(symbol="NIFTY"):
+        if "kite" not in st.session_state:
+            return {}  # avoid crash
+    
+        kite = st.session_state.kite   # safe kite object
+    
+        try:
+            instruments = kite.instruments("NFO")
+        except Exception as e:
+            st.error(f"Failed to load instruments: {e}")
+            return {}
+    
+        chain = {}
+
+    for inst in instruments:
+        if inst["name"] != symbol:
+            continue
+
+        ts = inst["tradingsymbol"]
+
+        try:
+            strike = int(ts[-7:-2])
+            opt_type = ts[-2:]
+        except:
+            continue
+
+        if strike not in chain:
+            chain[strike] = {"CE": None, "PE": None}
+
+        chain[strike][opt_type] = inst
+
+    return chain
+
+    def get_option_chain_ddd(symbol="NIFTY"):
         instruments = load_nfo_instruments()
     
         chain = {}

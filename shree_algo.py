@@ -5614,7 +5614,7 @@ elif MENU =="Live Trade":
         else:
             signal = trading_signal_all_conditions(df)
         #st.write("###  Signal")
-        #st.write(signal)
+        st.write(signal)
         if signal:
             signal_time = df["Datetime"].iloc[-1].time()   # last candle time
             

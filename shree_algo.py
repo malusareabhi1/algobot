@@ -6757,7 +6757,230 @@ elif MENU == "Live Trade2":
                 ltp = result['option_data']['lastPrice']
 #-----------------------------------------------------------------------------------------------------------------------------------------------
 
-               
+               # ---------------- Black-Scholes Helpers -----------------
+            
+           
+            
+            st.write("Instrument Symbl:", trading_symbol)
+            #st.write("Spot Price:", strike)
+            #st.write(parse_symbol(trading_symbol))
+            #st.write("IV Rank:", iv_rank)
+            #st.write("Current HV:", current_hv)
+            #st.write("1Y Low:", low_hv)
+            #st.write("1Y High:", high_hv)
+            #---------------------------------------------------------------------------------------------------------------
+
+            from datetime import datetime, timedelta, date
+            import numpy as np
+            import pandas as pd
+            from py_vollib.black_scholes.implied_volatility import implied_volatility
+            
+            R = 0.07  # risk-free
+            
+            def get_nifty_spot(kite):
+                q = kite.ltp("NSE:NIFTY 50")
+                return q["NSE:NIFTY 50"]["last_price"]
+            
+            def days_to_expiry(expiry_str_or_date):
+                if isinstance(expiry_str_or_date, str):
+                    expiry = datetime.strptime(expiry_str_or_date, "%Y-%m-%d").date()
+                else:
+                    expiry = expiry_str_or_date
+                today = date.today()
+                return max((expiry - today).days, 0)
+            
+            def compute_current_iv(kite, selected_option):
+                spot = get_nifty_spot(kite)
+                opt_ltp = kite.ltp(f"NFO:{selected_option['tradingsymbol']}")[f"NFO:{selected_option['tradingsymbol']}"]["last_price"]
+            
+                strike = float(selected_option["strike"])
+                expiry = selected_option["expiry"]          # '2025-12-09'
+                opt_type = "c" if selected_option["instrument_type"] == "CE" else "p"
+            
+                T_days = days_to_expiry(expiry)
+                if T_days <= 0:
+                    return np.nan
+            
+                T = T_days / 365.0
+                intrinsic = max(0.0, spot - strike) if opt_type == "c" else max(0.0, strike - spot)
+                opt_ltp = max(opt_ltp, intrinsic + 0.01)
+            
+                try:
+                    iv = implied_volatility(opt_ltp, spot, strike, T, R, opt_type)
+                    return iv * 100.0  # %
+                except Exception:
+                    return np.nan
+            
+            def get_iv_history_for_option(kite, selected_option):
+                instr_token = selected_option["instrument_token"]
+                strike = float(selected_option["strike"])
+                expiry = datetime.strptime(selected_option["expiry"], "%Y-%m-%d").date()
+                opt_type = "c" if selected_option["instrument_type"] == "CE" else "p"
+            
+                to_dt = datetime.now()
+                from_dt = to_dt - timedelta(days=365)
+            
+                # option history
+                hist_opt = kite.historical_data(
+                    instrument_token=instr_token,
+                    from_date=from_dt,
+                    to_date=to_dt,
+                    interval="day",
+                    continuous=False,
+                    oi=True
+                )
+                opt_df = pd.DataFrame(hist_opt)
+                if opt_df.empty:
+                    return pd.Series(dtype=float)
+            
+                # Nifty spot history
+                nifty_token = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["instrument_token"]
+                hist_spot = kite.historical_data(
+                    instrument_token=nifty_token,
+                    from_date=from_dt,
+                    to_date=to_dt,
+                    interval="day",
+                    continuous=False,
+                    oi=False
+                )
+                spot_df = pd.DataFrame(hist_spot)
+            
+                opt_df["date"] = opt_df["date"].dt.date
+                spot_df["date"] = spot_df["date"].dt.date
+                df = pd.merge(opt_df[["date", "close"]], spot_df[["date", "close"]],
+                              on="date", suffixes=("_opt", "_spot"))
+            
+                iv_vals = []
+                for _, row in df.iterrows():
+                    t_days = (expiry - row["date"]).days
+                    if t_days <= 0:
+                        iv_vals.append(np.nan)
+                        continue
+                    T = t_days / 365.0
+                    price = float(row["close_opt"])
+                    spot_price = float(row["close_spot"])
+                    intrinsic = max(0.0, spot_price - strike) if opt_type == "c" else max(0.0, strike - spot_price)
+                    price = max(price, intrinsic + 0.01)
+                    try:
+                        iv = implied_volatility(price, spot_price, strike, T, R, opt_type)
+                        iv_vals.append(iv * 100.0)
+                    except Exception:
+                        iv_vals.append(np.nan)
+            
+                df["iv"] = iv_vals
+                df = df.dropna(subset=["iv"])
+                return df["iv"]
+            
+            def compute_iv_rank(iv_history, current_iv):
+                if iv_history.empty or np.isnan(current_iv):
+                    return np.nan
+                iv_low = iv_history.min()
+                iv_high = iv_history.max()
+                if iv_high == iv_low:
+                    return 0.0
+                rank = (current_iv - iv_low) / (iv_high - iv_low) * 100.0
+                return max(0.0, min(100.0, rank))
+
+            spot_iv = compute_current_iv(kite, selected_option)
+            st.write("Current IV (%):", spot_iv)
+            
+            iv_hist = get_iv_history_for_option(kite, selected_option)
+            st.write("History points:", len(iv_hist))
+            
+            iv_rank = compute_iv_rank(iv_hist, spot_iv)
+            st.write("IV Rank:", iv_rank)
+
+            quote = kite.ltp("NSE:INDIA VIX")          # define quote here
+            #st.write(quote)                            # optional debug
+            vix_now = quote["NSE:INDIA VIX"]["last_price"]
+            #vix_now = quote["NSE:INDIA VIX"]["last_price"]
+
+            st.write("India VIX:", vix_now)
+
+            #-------------------------------------------------------------------------------------------------------------
+            def get_vwap_for_option(trading_symbol="NIFTY25D0926200CE"):
+                import datetime as dt
+                # 1) Find instrument token in NFO
+                instruments = kite.instruments("NFO")
+                token = None
+                for ins in instruments:
+                    if ins["tradingsymbol"] == trading_symbol and ins["segment"] == "NFO-OPT":
+                        token = ins["instrument_token"]
+                        break
+                if token is None:
+                    raise ValueError(f"Instrument token not found for {trading_symbol}")
+            
+                # 2) Get today's minute candles
+                today = dt.date.today()
+                from_dt = dt.datetime.combine(today, dt.time(9, 15))
+                to_dt   = dt.datetime.combine(today, dt.time(15, 30))
+            
+                candles = kite.historical_data(
+                    instrument_token=token,
+                    from_date=from_dt,
+                    to_date=to_dt,
+                    interval="minute",
+                    continuous=False,
+                    oi=False
+                )
+            
+                # 3) Compute VWAP = sum(typical_price * volume) / sum(volume)
+                num = 0.0
+                den = 0.0
+                for c in candles:
+                    tp = (c["high"] + c["low"] + c["close"]) / 3.0
+                    vol = c["volume"]
+                    num += tp * vol
+                    den += vol
+            
+                vwap = num / den if den else 0.0
+                return vwap
+            
+            selected_option = trading_symbol
+            vwap_value = get_vwap_for_option(selected_option)
+            st.write(f"VWAP for {selected_option}: {vwap_value:.2f}")    
+            
+            #--------------------------------------------------------------------------------------------------------------------
+            def iv_filter(iv_value, iv_rank):
+                # iv_value, iv_rank in decimals (0.22 = 22%)
+                if iv_value > 0.35:   # > 35%
+                    return False
+                if iv_value < 0.10:   # < 10%
+                    return False
+                if iv_rank < 0.20 or iv_rank > 0.70:  # 20%–70%
+                    return False
+                return True
+            
+            def vix_filter(vix_value):
+                # vix_value is the India VIX number
+                if vix_value < 12:
+                    return False
+                if vix_value > 22:
+                    return False
+                return True
+            
+            def combined_filter(option_iv, iv_rank, vix_value):
+                half=3
+                full=6
+                
+                if iv_filter(option_iv, iv_rank) and vix_filter(vix_value):
+                    # higher risk regime → half size
+                    if option_iv > 0.25 or vix_value > 18:
+                        size = half
+                    else:
+                        size = full
+                    return True, size
+                return False, "none"
+            
+            # Example: IV=22%, IVR=45%, VIX=15
+            option_iv = 0.22
+            iv_rank = 0.45
+            vix_value = 15
+            
+            allowed, size = combined_filter(option_iv, iv_rank, vix_value)
+            st.write("Trade: LotSize:")
+            st.write(allowed, size)  # True full
+            qty=size
 
 
 

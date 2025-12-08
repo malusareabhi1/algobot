@@ -6133,10 +6133,66 @@ elif MENU =="Live Trade":
                 return sig
     
         return signals if signals else None
+#----------------------------------------------------------------------------------------------------------
+    def get_option_chain(symbol="NIFTY"):
+        instruments = load_nfo_instruments()
+    
+        chain = {}
+    
+        for inst in instruments:
+            if inst["name"] != symbol:
+                continue
+            
+            ts = inst["tradingsymbol"]
+    
+            # Example: NIFTY25D0926200CE
+            # Extract strike + type
+            try:
+                strike = int(ts[-7:-2])      # 26200
+                opt_type = ts[-2:]           # CE or PE
+            except:
+                continue
+    
+            if strike not in chain:
+                chain[strike] = {"CE": None, "PE": None}
+    
+            chain[strike][opt_type] = inst
+    
+        return chain
+
+    def enrich_chain_with_ltp(chain):
+        for strike, data in chain.items():
+            for opt_type in ["CE", "PE"]:
+                if data[opt_type] is not None:
+                    ts = data[opt_type]["tradingsymbol"]
+                    try:
+                        q = kite.ltp(f"NFO:{ts}")
+                        data[opt_type]["ltp"] = q[f"NFO:{ts}"]["last_price"]
+                    except:
+                        data[opt_type]["ltp"] = None
+        return chain
+
+    def find_nearest_itm_option(symbol="NIFTY"):
+        spot = kite.ltp(f"NSE:{symbol}")[f"NSE:{symbol}"]["last_price"]
+    
+        chain = get_option_chain(symbol)
+        chain = enrich_chain_with_ltp(chain)
+    
+        strikes = sorted(chain.keys())
+        nearest = min(strikes, key=lambda x: abs(x - spot))
+    
+        itm = chain[nearest]
+    
+        return {
+            "spot": spot,
+            "strike": nearest,
+            "call": itm["CE"],
+            "put": itm["PE"]
+        }
 
     
     ################################################################################################
-    def find_nearest_itm_option():
+    def find_nearest_itm_option_dec():
         import nsepython
         from nsepython import nse_optionchain_scrapper
     

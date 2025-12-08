@@ -6407,8 +6407,17 @@ elif MENU == "Live Trade2":
         df_show = df_signal[df_signal['Signal'] != "No Signal"]
         df_show = df_show[['Time', 'Open', 'High', 'Low', 'Close', 'Signal', 'Reason']]
         st.dataframe(df_show, use_container_width=True)
-
-
+#---------------------------------------------------------------------------------------------------
+        #run_check_for_all_candles(df)  # df = your full OHLC DataFrame
+    
+        #display_todays_candles_with_trend(df)
+        display_todays_candles_with_trend_and_signal(df)
+        ########################
+        result_chain=find_nearest_itm_option()
+        #st.write(result_chain)
+        #calling all condition in one function
+        # --- HARD BLOCK: do not detect any signal before 9:30 AM ---
+        last_time = df["Datetime"].iloc[-1].time()
 
 
         

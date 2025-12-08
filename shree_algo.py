@@ -19,12 +19,68 @@ st_autorefresh(interval=30000, key="live_data_refresh")
 # ------------------------------------------------------------
 # Page Config & Global Theming
 # ------------------------------------------------------------
+
 st.set_page_config(
     page_title="TALK AlgoLabs Trading Platform",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded",
 )
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+# ------------------------------------------------------------
+
+
+def download_instruments_csv():
+    """Download instruments.csv automatically from Zerodha and save locally."""
+    url = "https://api.kite.trade/instruments"
+    file_path = "instruments.csv"
+
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            with open(file_path, "wb") as f:
+                f.write(response.content)
+            return True, file_path
+        else:
+            return False, f"HTTP Error: {response.status_code}"
+    except Exception as e:
+        return False, str(e)
+        
 #--------------------------------------------------------------------------------------------------
 def find_nearest_itm_option(kite, spot_price, option_type):
     df = load_zerodha_instruments()
@@ -3662,6 +3718,16 @@ elif MENU == "Zerodha Broker API":
             st.session_state.connected_broker = "Zerodha"
 
             st.success("🎉 Zerodha Connected Successfully!")
+            st.info("Downloading latest instruments.csv…")
+
+            ok, msg = download_instruments_csv()
+        
+            if ok:
+                st.success("instruments.csv downloaded successfully.")
+            else:
+                st.error(f"Failed to download instruments.csv: {msg}")
+
+        
 
         except Exception as e:
             st.error(f"Login failed: {e}")

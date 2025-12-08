@@ -6428,6 +6428,18 @@ elif MENU == "Live Trade2":
         df_show = df_signal[df_signal['Signal'] != "No Signal"]
         df_show = df_show[['Time', 'Open', 'High', 'Low', 'Close', 'Signal', 'Reason']]
         st.dataframe(df_show, use_container_width=True)
+
+  #------------------------------------------------------------------------------------------------
+        if isinstance(signal, dict):
+            try:
+                # Wrap dict into a list to create a single-row DataFrame
+                signal_df = pd.DataFrame([signal])
+                st.write("signal converted to DataFrame:", signal_df)
+            except Exception as e:
+                st.error(f"Cannot convert signal to DataFrame: {e}")
+                st.write("Raw signal dictionary:", signal)
+        else:
+            signal_df = signal
 #---------------------------------------------------------------------------------------------------
         #run_check_for_all_candles(df)  # df = your full OHLC DataFrame
     

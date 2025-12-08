@@ -5862,7 +5862,7 @@ elif MENU =="LIVE TRADE 3":
         interval="day"
     )
     vix_df = pd.DataFrame(vix_hist)
-     st.write(vix_df[["date", "close"]])
+    st.write(vix_df[["date", "close"]])
         
 
 #--------------------------------------------------------------------------------

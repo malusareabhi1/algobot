@@ -205,11 +205,16 @@ def compute_option_iv(option, spot_price):
     try:
         # Option data
         strike = float(option["strike"])
+        st.write("Strike-",strike)
         opt_type = option["option_type"].lower()  # 'call' or 'put'
+        st.write("opt_type-",opt_type)
         ltp = float(option["ltp"])
-
+        st.write("ltp-",ltp)
+        
         # Time to expiry (T) in years
         expiry = option["expiry"]  # Timestamp
+
+        st.write("expiry-",expiry)
         now = datetime.datetime.now()
 
         days_to_expiry = (expiry - now).total_seconds() / (60 * 60 * 24)

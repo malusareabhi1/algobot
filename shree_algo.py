@@ -6592,97 +6592,97 @@ elif MENU == "Live Trade2":
         
             if "kite" in st.session_state and st.session_state.kite:
                     kite = st.session_state.kite
-                # Exclude unwanted keys
-                exclude_cols = ["stoploss", "quantity", "expiry", "exit_price"]
-                
-                # Filter the signal dict
-                filtered_signal = {k: v for k, v in signal.items() if k not in exclude_cols}
-                
-                # Show message and table
-                st.write(f"Trade signal detected:\n{signal['message']}")
-                st.table(pd.DataFrame([filtered_signal]))
-                #st.write(f"Trade signal detected:\n{signal['message']}")
-                #st.table(pd.DataFrame([signal]))
-                spot_price = signal['spot_price']
-                #option_type = signal['option_type']
-                ot = "CE" if signal["option_type"].upper() == "CALL" else "PE"
-                # Find nearest ITM option to buy
-                chain = get_option_chain(kite, "NIFTY")
-                    #st.dataframe(chain)
-                # FIX: convert dict structure to list
-                if isinstance(chain, dict):
-                
-                    # Case 1: NSE Option Chain Structure
-                    if "records" in chain and "data" in chain["records"]:
-                        chain = chain["records"]["data"]
-                
-                    # Case 2: Zerodha format
-                    elif "data" in chain and isinstance(chain["data"], list):
-                        chain = chain["data"]
-                
-                    # Case 3: Your custom scrapper might use "options"
-                    elif "options" in chain:
-                        chain = chain["options"]
-                
-                    else:
-                        raise ValueError("Unrecognized option chain format. Cannot extract list.")
-        
-                result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)
-                #st.write("Result")
-                #st.table(pd.DataFrame([filtered_signal]))
-                if isinstance(chain, pd.DataFrame):
-                    chain = chain.to_dict(orient="records")
+                    # Exclude unwanted keys
+                    exclude_cols = ["stoploss", "quantity", "expiry", "exit_price"]
                     
-                # ---- LOAD ZERODHA INSTRUMENTS ----
-                df = pd.read_csv("https://api.kite.trade/instruments")
-                
-                # ---- FILTER ONLY NIFTY OPTIONS ----
-                nifty_chain = df[
-                    (df["segment"] == "NFO-OPT") &
-                    (df["name"] == "NIFTY")
-                ]
-                
-                if nifty_chain.empty:
-                    raise ValueError("No NIFTY option instruments found in Zerodha instruments")
-                
-                # ---- CONVERT TO LIST OF DICT ----
-                chain = nifty_chain.to_dict(orient="records")
-                
-                # ---- GET SELECTED OPTION ----
-        
-                selected_option = option_chain_finder_zerodha(chain, spot_price, option_type=ot, lots=1, lot_size=75)
-                st.write("### Trade for Current Signal")
-                st.table(selected_option)
-               # st.write("###  find_nearest_itm_option")
-                #st.write(result)
-                
-                # Convert dict to DataFrame, then transpose
-                ltp = kite.ltp(f"NFO:{selected_option['tradingsymbol']}")
-                selected_option["ltp"] = list(ltp.values())[0]["last_price"]
-                st.write("LTP:", selected_option["ltp"])
-        
-                
-                #st.write("Nearest ITM Call option to BUY:")
-                df_option = pd.DataFrame([result['option_data']]).T
-                df_option.columns = ["Value"]  # Rename column for clarity
-                
-                #st.table(df_option)
-                #st.write(df_option)
-                #st.table(pd.DataFrame([result['option_data']]))
+                    # Filter the signal dict
+                    filtered_signal = {k: v for k, v in signal.items() if k not in exclude_cols}
+                    
+                    # Show message and table
+                    st.write(f"Trade signal detected:\n{signal['message']}")
+                    st.table(pd.DataFrame([filtered_signal]))
+                    #st.write(f"Trade signal detected:\n{signal['message']}")
+                    #st.table(pd.DataFrame([signal]))
+                    spot_price = signal['spot_price']
+                    #option_type = signal['option_type']
+                    ot = "CE" if signal["option_type"].upper() == "CALL" else "PE"
+                    # Find nearest ITM option to buy
+                    chain = get_option_chain(kite, "NIFTY")
+                        #st.dataframe(chain)
+                    # FIX: convert dict structure to list
+                    if isinstance(chain, dict):
+                    
+                        # Case 1: NSE Option Chain Structure
+                        if "records" in chain and "data" in chain["records"]:
+                            chain = chain["records"]["data"]
+                    
+                        # Case 2: Zerodha format
+                        elif "data" in chain and isinstance(chain["data"], list):
+                            chain = chain["data"]
+                    
+                        # Case 3: Your custom scrapper might use "options"
+                        elif "options" in chain:
+                            chain = chain["options"]
+                    
+                        else:
+                            raise ValueError("Unrecognized option chain format. Cannot extract list.")
             
-                st.write(f"Total Quantity: {result['total_quantity']}")
-                trade_log_df = generate_trade_log_from_option(result, signal)
-                #st.write("### Trade Log for Current Signal")
-        
-                #sst.write("### Trade Log for Current Signal")
-        
-                #for i, row in trade_log_df.iterrows():
-                    #st.write(f"**Trade {i+1}:**")
-                    #st.table(row.to_frame(name="Value"))
-                #st.write("### Trade Log for Current Signal")
-                #st.table(trade_log_df)
-            else:
-                st.write("No trade signal for today based on conditions.")
+                    result = option_chain_finder(result_chain, spot_price, option_type=ot, lots=10, lot_size=75)
+                    #st.write("Result")
+                    #st.table(pd.DataFrame([filtered_signal]))
+                    if isinstance(chain, pd.DataFrame):
+                        chain = chain.to_dict(orient="records")
+                        
+                    # ---- LOAD ZERODHA INSTRUMENTS ----
+                    df = pd.read_csv("https://api.kite.trade/instruments")
+                    
+                    # ---- FILTER ONLY NIFTY OPTIONS ----
+                    nifty_chain = df[
+                        (df["segment"] == "NFO-OPT") &
+                        (df["name"] == "NIFTY")
+                    ]
+                    
+                    if nifty_chain.empty:
+                        raise ValueError("No NIFTY option instruments found in Zerodha instruments")
+                    
+                    # ---- CONVERT TO LIST OF DICT ----
+                    chain = nifty_chain.to_dict(orient="records")
+                    
+                    # ---- GET SELECTED OPTION ----
+            
+                    selected_option = option_chain_finder_zerodha(chain, spot_price, option_type=ot, lots=1, lot_size=75)
+                    st.write("### Trade for Current Signal")
+                    st.table(selected_option)
+                   # st.write("###  find_nearest_itm_option")
+                    #st.write(result)
+                    
+                    # Convert dict to DataFrame, then transpose
+                    ltp = kite.ltp(f"NFO:{selected_option['tradingsymbol']}")
+                    selected_option["ltp"] = list(ltp.values())[0]["last_price"]
+                    st.write("LTP:", selected_option["ltp"])
+            
+                    
+                    #st.write("Nearest ITM Call option to BUY:")
+                    df_option = pd.DataFrame([result['option_data']]).T
+                    df_option.columns = ["Value"]  # Rename column for clarity
+                    
+                    #st.table(df_option)
+                    #st.write(df_option)
+                    #st.table(pd.DataFrame([result['option_data']]))
+                
+                    st.write(f"Total Quantity: {result['total_quantity']}")
+                    trade_log_df = generate_trade_log_from_option(result, signal)
+                    #st.write("### Trade Log for Current Signal")
+            
+                    #sst.write("### Trade Log for Current Signal")
+            
+                    #for i, row in trade_log_df.iterrows():
+                        #st.write(f"**Trade {i+1}:**")
+                        #st.table(row.to_frame(name="Value"))
+                    #st.write("### Trade Log for Current Signal")
+                    #st.table(trade_log_df)
+                else:
+                    st.write("No trade signal for today based on conditions.")
 
 
 

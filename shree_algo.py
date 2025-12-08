@@ -5162,8 +5162,8 @@ elif MENU == "Setting":
 
 
 elif MENU =="LIVE TRADE 3":
-    st.title("LIVE TRADE 3")
-    st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")
+    st.title("🔴 LIVE TRADE 3")
+    #st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")
 
     from streamlit_autorefresh import st_autorefresh
     import yfinance as yf
@@ -5210,7 +5210,15 @@ elif MENU =="LIVE TRADE 3":
     df.reset_index(inplace=True)
     
     # timezone fix
-    df['Datetime'] = df['Datetime'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
+    #df['Datetime'] = df['Datetime'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
+    # --- FIX TIMEZONE ISSUE ---
+    if df['Datetime'].dt.tz is None:  
+        # naive → localize then convert
+        df['Datetime'] = df['Datetime'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
+    else:
+        # already tz-aware → only convert
+        df['Datetime'] = df['Datetime'].dt.tz_convert('Asia/Kolkata')
+
     
     # ------------------------ IDENTIFY NEW CANDLE ------------------------
     latest_candle_time = df.iloc[-1]['Datetime']

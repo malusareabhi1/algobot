@@ -375,13 +375,24 @@ def find_nearest_itm_option(kite, spot_price, option_type):
         ltp = None
         print(f"⚠ Warning: Unable to fetch LTP for {tradingsymbol}: {e}")
 
-    return {
-        "tradingsymbol": tradingsymbol,
-        "strike": selected.get("strike"),
-        "instrument_token": selected.get("instrument_token"),
+    
+    # Prepare detailed output
+    detailed = {
+        "tradingsymbol": selected["tradingsymbol"],
+        "strike": float(selected["strike"]),
+        "instrument_token": int(selected["instrument_token"]),
         "option_type": option_type.upper(),
+        "expiry": selected.get("expiry"),
+        "lot_size": selected.get("lot_size", selected.get("lot_sizes", 75)),
+        "tick_size": selected.get("tick_size"),
+        "segment": selected.get("segment"),
+        "exchange": selected.get("exchange", "NFO"),
+        "name": selected.get("name", "NIFTY"),
         "ltp": ltp
     }
+
+    return detailed
+    
 
 
 #----------------------------------------------------------------------------------------

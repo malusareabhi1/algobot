@@ -6103,7 +6103,8 @@ elif MENU =="LIVE TRADE 3":
     end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
     
     #st.write(st.session_state)
-    
+    st.write("Start time",start_time)
+    st.write("End time",end_time)
     
 
     # Convert signal_time to datetime with timezone

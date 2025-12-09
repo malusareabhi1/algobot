@@ -5905,10 +5905,10 @@ def combined_filter(option_iv, iv_rank, vix_value):
 
 # Apply IV + VIX Filter
 # -------------------------
-allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_now)
-
-st.write("Allowed to Trade?", allowed)
-st.write("Position Size:", position_size)
+    allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_now)
+    
+    st.write("Allowed to Trade?", allowed)
+    st.write("Position Size:", position_size)
 
 #--------------------------------------------------------------------------------
 

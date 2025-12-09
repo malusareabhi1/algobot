@@ -58,7 +58,21 @@ def calculate_lots(available_fund, level):
 
 
 #-----------------------------------------------------------------------------
+def fetch_india_vix():
+    s = requests.Session()
+    s.headers.update({
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json",
+        "Referer": "https://www.nseindia.com/"
+    })
+    s.get("https://www.nseindia.com", timeout=10)  # cookies सेट
 
+    r = s.get("https://www.nseindia.com/api/allIndices", timeout=10)
+    data = r.json()
+
+    for idx in data["data"]:
+        if idx.get("index") == "INDIA VIX":
+            return float(idx["last"])
 
 #-----------------------------------------------------------------------------
 
@@ -5952,21 +5966,7 @@ elif MENU =="LIVE TRADE 3":
 #--------------------------------VIX------------------------------------------------
 
 
-def fetch_india_vix():
-    s = requests.Session()
-    s.headers.update({
-        "User-Agent": "Mozilla/5.0",
-        "Accept": "application/json",
-        "Referer": "https://www.nseindia.com/"
-    })
-    s.get("https://www.nseindia.com", timeout=10)  # cookies सेट
 
-    r = s.get("https://www.nseindia.com/api/allIndices", timeout=10)
-    data = r.json()
-
-    for idx in data["data"]:
-        if idx.get("index") == "INDIA VIX":
-            return float(idx["last"])
 
 vix_now = fetch_india_vix()
 st.write("India VIX:", vix_now)

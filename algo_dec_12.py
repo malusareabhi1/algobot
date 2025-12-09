@@ -27,6 +27,48 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+#-----------------------------------------------------------------------------
+def classify_fund_level(available_fund):
+    if available_fund >= 100000:
+        return "FULL"
+    elif available_fund >= 50000:
+        return "MID"
+    elif available_fund >= 25000:
+        return "LOW"
+    else:
+        return "INSUFFICIENT"
+
+
+#-----------------------------------------------------------------------------
+def calculate_lots(available_fund, level):
+    capital_units = available_fund // 100000  # how many 1L blocks
+
+    if capital_units < 1:
+        capital_units = 1   # minimum 1L unit to avoid 0 lots
+
+    if level == "FULL":
+        return capital_units * 6
+    elif level == "MID":
+        return capital_units * 4
+    elif level == "LOW":
+        return capital_units * 2
+    else:
+        return 0
+
+
+#-----------------------------------------------------------------------------
+
+
+#-----------------------------------------------------------------------------
+
+
+#-----------------------------------------------------------------------------
+
+
+#-----------------------------------------------------------------------------
+
+
 # ------------------------------------------------------------
 
 def is_near_expiry(option):
@@ -5947,11 +5989,19 @@ st.write("SKIPPING IV and IV RANK :")
 
 funds = get_kite_funds(kite)
 
-if funds is None:
-    st.warning("Unable to fetch funds — Not connected or API error")
+if funds:
+    available_cash = funds["available"]["cash"]
+
+    level = classify_fund_level(available_cash)
+    lots = calculate_lots(available_cash, level)
+
+    st.subheader("💰 Account Status")
+    st.write("Available Cash:", available_cash)
+    st.write("Fund Level:", level)
+    st.write("Allowed Lots:", lots)
 else:
-    st.write("Available Margin:", funds.get("available", {}).get("cash", 0))
-    st.write("Used Margin:", funds.get("utilised", {}).get("debits", 0))
+    st.error("Unable to fetch funds.")
+
 
 #--------------------------------------------------------------------------------
 

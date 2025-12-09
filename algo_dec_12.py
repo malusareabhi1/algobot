@@ -5929,7 +5929,9 @@ st.write("Position Size:", position_size)
 #-------------------------------CChecking Expiry-------------------------------------------------
 
 is_near_expiry=is_near_expiry(nearest_itm)
-st.write("is_near_expiry :", is_near_expiry)
+st.write(tradingsymbol," is_near_expiry :", is_near_expiry)
+
+st.write("SKIPPING IV and IV RANK :")
 #--------------------------------------------------------------------------------
 
 

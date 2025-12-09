@@ -6058,82 +6058,82 @@ elif MENU =="LIVE TRADE 3":
 
 #-------------------------------CChecking Expiry-------------------------------------------------
 
-is_near_expiry=is_near_expiry(nearest_itm)
-st.write(trending_symbol," is_near_expiry :", is_near_expiry)
-
-st.write("SKIPPING IV and IV RANK :")
+    is_near_expiry=is_near_expiry(nearest_itm)
+    st.write(trending_symbol," is_near_expiry :", is_near_expiry)
+    
+    st.write("SKIPPING IV and IV RANK :")
 #-------------------------------Zerodha Fund -------------------------------------------------
 
-funds = get_kite_funds(kite)
-#funds =120000
-if funds:
-    available_cash = funds["available"]["cash"]
-    #available_cash =120000
-    #available_cash =75000
-    #available_cash =30000
-    level = classify_fund_level(available_cash)
-    lots = calculate_lots(available_cash, level)
-
-    st.subheader("💰 Account Status")
-    st.write("Available Cash:", available_cash)
-    st.write("Fund Level:", level)
-    st.write("Allowed Lots:", lots)
-    qty=lots
-else:
-    st.error("Unable to fetch funds.")
+    funds = get_kite_funds(kite)
+    #funds =120000
+    if funds:
+        available_cash = funds["available"]["cash"]
+        #available_cash =120000
+        #available_cash =75000
+        #available_cash =30000
+        level = classify_fund_level(available_cash)
+        lots = calculate_lots(available_cash, level)
+    
+        st.subheader("💰 Account Status")
+        st.write("Available Cash:", available_cash)
+        st.write("Fund Level:", level)
+        st.write("Allowed Lots:", lots)
+        qty=lots
+    else:
+        st.error("Unable to fetch funds.")
 
 
 #-----------------------------------Place Order---------------------------------------------
 
-# IST timezone
-ist = pytz.timezone("Asia/Kolkata")
-now_dt = datetime.now(ist)      # full datetime object
-now = now_dt.time()             # extract only time for comparisons
-
-# ------------------------------------------------
-#st.write(f"Placing order for: **{trading_symbol}**")
-#st.write(f"Quantity: {qty}, LTP: {ltp}")
-
-# Trading window
-start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
-end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
-
-st.write(st.session_state)
-# ------------------------------------------------
-# Check 1: Only run if current time is within trading window
-if start_time <= now <= end_time:
-
-    # Check 2: Signal time reached
-    if now >= signal_time:
-
-        # Check 3: Order placed only once
-        if not st.session_state.order_executed:
-
-            try:
-                order_id = kite.place_order(
-                    tradingsymbol=trading_symbol,
-                    exchange=kite.EXCHANGE_NFO,
-                    transaction_type=kite.TRANSACTION_TYPE_BUY,
-                    quantity=qty,
-                    order_type=kite.ORDER_TYPE_MARKET,
-                    variety=kite.VARIETY_REGULAR,
-                    product=kite.PRODUCT_MIS
-                )
-
-                st.session_state.order_executed = True  # Mark executed
-                st.success(f"Order Placed Successfully! Order ID: {order_id}")
-
-            except Exception as e:
-                st.error(f"Order Failed: {e}")
-
+    # IST timezone
+    ist = pytz.timezone("Asia/Kolkata")
+    now_dt = datetime.now(ist)      # full datetime object
+    now = now_dt.time()             # extract only time for comparisons
+    
+    # ------------------------------------------------
+    #st.write(f"Placing order for: **{trading_symbol}**")
+    #st.write(f"Quantity: {qty}, LTP: {ltp}")
+    
+    # Trading window
+    start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
+    end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+    
+    st.write(st.session_state)
+    # ------------------------------------------------
+    # Check 1: Only run if current time is within trading window
+    if start_time <= now <= end_time:
+    
+        # Check 2: Signal time reached
+        if now >= signal_time:
+    
+            # Check 3: Order placed only once
+            if not st.session_state.order_executed:
+    
+                try:
+                    order_id = kite.place_order(
+                        tradingsymbol=trading_symbol,
+                        exchange=kite.EXCHANGE_NFO,
+                        transaction_type=kite.TRANSACTION_TYPE_BUY,
+                        quantity=qty,
+                        order_type=kite.ORDER_TYPE_MARKET,
+                        variety=kite.VARIETY_REGULAR,
+                        product=kite.PRODUCT_MIS
+                    )
+    
+                    st.session_state.order_executed = True  # Mark executed
+                    st.success(f"Order Placed Successfully! Order ID: {order_id}")
+    
+                except Exception as e:
+                    st.error(f"Order Failed: {e}")
+    
+            else:
+                st.info("Order already executed for this signal.")
+    
         else:
-            st.info("Order already executed for this signal.")
-
+            st.info("Waiting for signal time...")
+    
     else:
-        st.info("Waiting for signal time...")
-
-else:
-    st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
+        st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
 
 #--------------------------------------------------------------------------------
 

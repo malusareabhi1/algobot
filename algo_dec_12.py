@@ -4700,7 +4700,7 @@ elif MENU =="Live Trade":
         st.session_state.order_executed = False
     
     if "" not in st.session_state:
-        st.session_state. = None
+        st.session_state.signal_time = None
     # Add after data processing:
     def is_kite_connected(kite):
         try:

@@ -4699,8 +4699,8 @@ elif MENU =="Live Trade":
     if "order_executed" not in st.session_state:
         st.session_state.order_executed = False
     
-    if "signal_time" not in st.session_state:
-        st.session_state.signal_time = None
+    if "" not in st.session_state:
+        st.session_state. = None
     # Add after data processing:
     def is_kite_connected(kite):
         try:
@@ -4718,7 +4718,7 @@ elif MENU =="Live Trade":
     if "order_executed" not in st.session_state:
         st.session_state.order_executed = False
     
-    if "signal_time" not in st.session_state:
+    if "" not in st.session_state:
         st.session_state.signal_time = None
     
     # NEW: initialize last_valid_signal
@@ -5860,8 +5860,17 @@ elif MENU =="LIVE TRADE 3":
         else:
             st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
             #signal_time = st.session_state.signal_time
-            st.session_state.signal_time = signal['entry_time']
-            signal_time = st.session_state.signal_time
+            # Suppose entry_time is in string format: "10:15:00"
+            if isinstance(signal['entry_time'], str):
+                signal_time = datetime.strptime(signal['entry_time'], "%H:%M:%S").time()
+            else:
+                signal_time = signal['entry_time']  # already a datetime.time object
+            
+            # Save safely in session_state
+            st.session_state.signal_time = signal_time
+
+            #st.session_state.signal_time = signal['entry_time']
+            #signal_time = st.session_state.signal_time
             st.write(f"🔔 Signal generated at: {st.session_state.signal_time}")
             #st.write(signal)
             df_sig_tab = pd.DataFrame([signal])

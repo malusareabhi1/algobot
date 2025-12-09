@@ -5906,10 +5906,6 @@ def fetch_india_vix():
 vix_now = fetch_india_vix()
 st.write("India VIX:", vix_now)
 
-
-
-
-
 # Apply IV + VIX Filter
 # -------------------------
     #allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_now)

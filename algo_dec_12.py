@@ -5993,6 +5993,7 @@ if funds:
     available_cash = funds["available"]["cash"]
     available_cash =120000
     available_cash =75000
+    available_cash =30000
     level = classify_fund_level(available_cash)
     lots = calculate_lots(available_cash, level)
 

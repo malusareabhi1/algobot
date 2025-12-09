@@ -6111,10 +6111,10 @@ elif MENU =="LIVE TRADE 3":
     #st.write("signal_time",signal_time)
     # ------------------------------------------------
     # Check 1: Only run if current time is within trading window
-    if start_time <= now <= end_time:
+    if start_time <= now_dt <= end_time:
     
         # Check 2: Signal time reached
-        if now >= signal_time:
+        if now_dt >= signal_time:
     
             # Check 3: Order placed only once
             if not st.session_state.order_executed:

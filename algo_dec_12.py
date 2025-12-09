@@ -5717,60 +5717,7 @@ elif MENU =="Kite Instrument":
         except Exception as e:
             raise Exception(f"Failed to download instruments.csv → {e}")
     
-    def upload_to_github(file_path, repo, token, dest_path):
-        #url = f"https://api.github.com/repos/{repo}/contents/{dest_path}"
-        url=f"https://github.com/malusareabhi1/algobot/tree/main"
     
-        # Read file content
-        with open(file_path, "rb") as f:
-            content = f.read()
-    
-        # Convert file to base64
-        encoded = base64.b64encode(content).decode()
-    
-        # Check if file already exists
-        res = requests.get(url, headers={"Authorization": f"token {token}"})
-    
-        if res.status_code == 200:
-            sha = res.json()["sha"]
-        else:
-            sha = None
-    
-        data = {
-            "message": "Updated instruments.csv",
-            "content": encoded,
-            "sha": sha
-        }
-    
-        response = requests.put(
-            url,
-            json=data,
-            headers={"Authorization": f"token {token}"}
-        )
-    
-        if response.status_code in [200, 201]:
-            return "Uploaded to GitHub successfully!"
-        else:
-            return f"Failed: {response.text}"
-    
-    
-    # -------------------------------
-    # USAGE
-    # -------------------------------
-    
-    # 1. Save Zerodha instruments file
-    csv_file = download_instruments_csv(kite)
-    
-    # 2. Upload to GitHub
-    message = upload_to_github(
-        file_path=csv_file,
-        repo="malusareabhi1/algobot",
-        #repo="shreealgo/algo-dec",   # your repo name
-        token=st.secrets["github_token"],        
-        dest_path="instruments.csv"
-    )
-    
-    st.write(message)
     
 #----------------------------------------------------------------------------------------------------------------------------------
 elif MENU =="LIVE TRADE 3":

@@ -5875,9 +5875,9 @@ elif MENU =="LIVE TRADE 3":
     st.write("IV Rank:", iv_info["iv_rank"], "%")
    
     if(iv_info["iv"]=='None'): 
-    iv_info["iv"]=0  
+        iv_info["iv"]=0  
     if(iv_info["iv_rank"]=='None'): 
-    iv_info["iv_rank"]=0
+        iv_info["iv_rank"]=0
 
     st.write("Current IV:", iv_info["iv"], "%")
     st.write("IV Rank:", iv_info["iv_rank"], "%")

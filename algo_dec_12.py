@@ -6100,6 +6100,7 @@ elif MENU =="LIVE TRADE 3":
     
     #st.write(st.session_state)
     st.write("signal_time",signal_time)
+    st.write(" Now time",now)
     # ------------------------------------------------
     # Check 1: Only run if current time is within trading window
     if start_time <= now <= end_time:

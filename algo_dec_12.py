@@ -6098,7 +6098,8 @@ elif MENU =="LIVE TRADE 3":
     start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
     end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
     
-    st.write(st.session_state)
+    #st.write(st.session_state)
+    st.write("signal_time",signal_time)
     # ------------------------------------------------
     # Check 1: Only run if current time is within trading window
     if start_time <= now <= end_time:

@@ -6088,7 +6088,14 @@ elif MENU =="LIVE TRADE 3":
     # IST timezone
     ist = pytz.timezone("Asia/Kolkata")
     now_dt = datetime.now(ist)      # full datetime object
-    now = now_dt.time()             # extract only time for comparisons
+    now_time_str = now_dt.time()             # extract only time for comparisons
+    
+    now_time = datetime.strptime(now_time_str, "%H:%M:%S.%f").time()
+
+    # Create NEW datetime with same date & timezone as signal_time, but with now_time
+    now_dt = datetime.combine(signal_time.date(), now_time, tzinfo=signal_time.tzinfo)
+    
+    st.write("Created NOW datetime:", now_dt)
     
     # ------------------------------------------------
     #st.write(f"Placing order for: **{trading_symbol}**")

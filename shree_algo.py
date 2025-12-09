@@ -28,6 +28,28 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 # ------------------------------------------------------------
+#--------------------------------------------------------------------------------
+# -------------------------
+# IV Filter Functions
+# -------------------------
+def iv_filter(iv_value, iv_rank):
+    if iv_value > 35 or iv_value < 10:
+        return False
+    if iv_rank < 20 or iv_rank > 70:
+        return False
+    return True
+
+def vix_filter(vix_value):
+    if vix_value < 12 or vix_value > 22:
+        return False
+    return True
+
+def combined_filter(option_iv, iv_rank, vix_value):
+    if iv_filter(option_iv, iv_rank) and vix_filter(vix_value):
+        size = "half" if option_iv > 25 or vix_value > 18 else "full"
+        return True, size
+    else:
+        return False, "none"
 
 # ---------- 1. Parse NIFTY option symbol ----------
 def parse_nifty_symbol0(ts):
@@ -5879,28 +5901,7 @@ vix_now = fetch_india_vix()
 st.write("India VIX:", vix_now)
 
 
-#--------------------------------------------------------------------------------
-# -------------------------
-# IV Filter Functions
-# -------------------------
-def iv_filter(iv_value, iv_rank):
-    if iv_value > 35 or iv_value < 10:
-        return False
-    if iv_rank < 20 or iv_rank > 70:
-        return False
-    return True
 
-def vix_filter(vix_value):
-    if vix_value < 12 or vix_value > 22:
-        return False
-    return True
-
-def combined_filter(option_iv, iv_rank, vix_value):
-    if iv_filter(option_iv, iv_rank) and vix_filter(vix_value):
-        size = "half" if option_iv > 25 or vix_value > 18 else "full"
-        return True, size
-    else:
-        return False, "none"
 
 
 # Apply IV + VIX Filter

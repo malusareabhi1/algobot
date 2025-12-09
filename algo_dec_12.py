@@ -5800,6 +5800,7 @@ elif MENU =="LIVE TRADE 3":
             st.warning("⚠ No signal yet (conditions not met).")
         else:
             st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
+            signal_time = st.session_state.signal_time
             #st.write(signal)
 #--------------------------------------------------------------------------------
 

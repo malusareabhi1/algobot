@@ -6117,8 +6117,8 @@ elif MENU =="LIVE TRADE 3":
     end_datetime   = datetime.combine(today, end_time_only, tzinfo=ist)
 #-----------------------------------------------------------------------------------------------------------------    
     # ---------- SHOW RESULTS ----------
-    print("Start datetime:", start_datetime)
-    print("End datetime:",   end_datetime)
+    st.write("Start datetime:", start_datetime)
+    st.write("End datetime:",   end_datetime)
 
     # Convert signal_time to datetime with timezone
     #signal_time = datetime.fromisoformat(signal_time)

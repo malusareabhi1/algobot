@@ -5704,6 +5704,10 @@ elif MENU == "Setting":
 #--------------------------------------------------------------------------------------------------------------------------------    
 elif MENU =="Kite Instrument":
     st.title("🔴Kite Instrument Setting")
+    if "kite" not in st.session_state:
+        st.session_state.kite = None
+    else:
+        kite = st.session_state.get("kite")
     def download_instruments_csv(kite, file_path="instruments.csv"):
         try:
             instruments = kite.instruments()

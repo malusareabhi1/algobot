@@ -6014,8 +6014,8 @@ now_dt = datetime.now(ist)      # full datetime object
 now = now_dt.time()             # extract only time for comparisons
 
 # ------------------------------------------------
-st.write(f"Placing order for: **{trading_symbol}**")
-st.write(f"Quantity: {qty}, LTP: {ltp}")
+#st.write(f"Placing order for: **{trading_symbol}**")
+#st.write(f"Quantity: {qty}, LTP: {ltp}")
 
 # Trading window
 start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)

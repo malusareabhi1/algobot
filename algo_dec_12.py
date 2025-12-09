@@ -5860,7 +5860,7 @@ elif MENU =="LIVE TRADE 3":
         else:
             st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
             #signal_time = st.session_state.signal_time
-            st.session_state.signal_time = sig['entry_time']
+            st.session_state.signal_time = signal['entry_time']
             signal_time = st.session_state.signal_time
             st.write(f"🔔 Signal generated at: {st.session_state.signal_time}")
             #st.write(signal)

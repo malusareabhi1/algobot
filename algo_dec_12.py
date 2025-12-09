@@ -6101,6 +6101,8 @@ elif MENU =="LIVE TRADE 3":
     #st.write(st.session_state)
     st.write("signal_time",signal_time)
     st.write(" Now time",now)
+    st.session_state.signal_time
+    type(st.session_state.signal_time)
 
     # Convert signal_time to datetime with timezone
     signal_time = datetime.fromisoformat(signal_time)

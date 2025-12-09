@@ -1823,7 +1823,7 @@ with st.sidebar:
 
     MENU = st.radio(
         "Navigate",
-        ["Home", "Strategies","My Account", "Zerodha Broker API","Groww Broker API", "Dashboard","Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","Live Trade2","LIVE TRADE 3","Test1","Logout"],
+        ["Home", "Strategies","My Account", "Zerodha Broker API","Groww Broker API", "Dashboard","Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","Live Trade2","LIVE TRADE 3","Test1","Kite Instrument","Logout"],
         index=0,
     )
 
@@ -5701,8 +5701,72 @@ elif MENU == "Setting":
         "max_trades": int(max_trades),
         "lot_size": int(manual_lot_size)
     }
-
-
+#--------------------------------------------------------------------------------------------------------------------------------    
+elif MENU =="Kite Instrument":
+    st.title("🔴Kite Instrument Setting")
+    def download_instruments_csv(kite, file_path="instruments.csv"):
+        try:
+            instruments = kite.instruments()
+            df = pd.DataFrame(instruments)
+            df.to_csv(file_path, index=False)
+            return file_path
+        except Exception as e:
+            raise Exception(f"Failed to download instruments.csv → {e}")
+    
+    def upload_to_github(file_path, repo, token, dest_path):
+        url = f"https://api.github.com/repos/{repo}/contents/{dest_path}"
+    
+        # Read file content
+        with open(file_path, "rb") as f:
+            content = f.read()
+    
+        # Convert file to base64
+        encoded = base64.b64encode(content).decode()
+    
+        # Check if file already exists
+        res = requests.get(url, headers={"Authorization": f"token {token}"})
+    
+        if res.status_code == 200:
+            sha = res.json()["sha"]
+        else:
+            sha = None
+    
+        data = {
+            "message": "Updated instruments.csv",
+            "content": encoded,
+            "sha": sha
+        }
+    
+        response = requests.put(
+            url,
+            json=data,
+            headers={"Authorization": f"token {token}"}
+        )
+    
+        if response.status_code in [200, 201]:
+            return "Uploaded to GitHub successfully!"
+        else:
+            return f"Failed: {response.text}"
+    
+    
+    # -------------------------------
+    # USAGE
+    # -------------------------------
+    
+    # 1. Save Zerodha instruments file
+    csv_file = download_instruments_csv(kite)
+    
+    # 2. Upload to GitHub
+    message = upload_to_github(
+        file_path=csv_file,
+        repo="YOUR_GITHUB_USERNAME/YOUR_REPO_NAME",
+        token="YOUR_GITHUB_PAT_TOKEN",
+        dest_path="instruments.csv"
+    )
+    
+    st.write(message)
+    
+#----------------------------------------------------------------------------------------------------------------------------------
 elif MENU =="LIVE TRADE 3":
     st.title("🔴 LIVE TRADE 3")
     #st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")

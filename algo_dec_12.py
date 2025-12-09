@@ -13,7 +13,7 @@ import streamlit as st
 import requests
 import yfinance as yf
 from streamlit_autorefresh import st_autorefresh
-
+import base64
 # Auto-refresh every 30 seconds
 st_autorefresh(interval=30000, key="live_data_refresh")
 #st.sidebar.image("shree.jpg",width=15)  # Correct parameter

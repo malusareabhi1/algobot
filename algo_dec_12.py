@@ -5988,7 +5988,7 @@ st.write("SKIPPING IV and IV RANK :")
 #-------------------------------Zerodha Fund -------------------------------------------------
 
 funds = get_kite_funds(kite)
-
+funds =120000
 if funds:
     available_cash = funds["available"]["cash"]
 

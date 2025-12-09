@@ -6105,7 +6105,20 @@ elif MENU =="LIVE TRADE 3":
     #st.write(st.session_state)
     st.write("Start time",start_time)
     st.write("End time",end_time)
+#--------------------------------------------------------------------------------------------------------------
+    # Step 1: define time-only values
+    start_time_only = time(9, 30, 0)
+    end_time_only   = time(14, 30, 0)
     
+    # Step 2: combine with today's date + IST
+    today = now_dt.date()
+    
+    start_datetime = datetime.combine(today, start_time_only, tzinfo=ist)
+    end_datetime   = datetime.combine(today, end_time_only, tzinfo=ist)
+#-----------------------------------------------------------------------------------------------------------------    
+    # ---------- SHOW RESULTS ----------
+    print("Start datetime:", start_datetime)
+    print("End datetime:",   end_datetime)
 
     # Convert signal_time to datetime with timezone
     #signal_time = datetime.fromisoformat(signal_time)

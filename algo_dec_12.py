@@ -6090,9 +6090,9 @@ elif MENU =="LIVE TRADE 3":
     now_dt = datetime.now(ist)      # full datetime object
     now_time_str = now_dt.time()             # extract only time for comparisons
     
-    st.write("signal_time",signal_time)
+    #st.write("signal_time",signal_time)
     #st.write(" Now time",now_time_str)
-    st.write(" Now date time",now_dt)
+    #st.write(" Now date time",now_dt)
     
     # ------------------------------------------------
     #st.write(f"Placing order for: **{trading_symbol}**")
@@ -6103,8 +6103,8 @@ elif MENU =="LIVE TRADE 3":
     end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
     
     #st.write(st.session_state)
-    st.write("Start time",start_time)
-    st.write("End time",end_time)
+    #st.write("Start time",start_time)
+    #st.write("End time",end_time)
 #--------------------------------------------------------------------------------------------------------------
     # Step 1: define time-only values
     start_time_only = time(9, 30, 0)
@@ -6117,8 +6117,8 @@ elif MENU =="LIVE TRADE 3":
     end_datetime   = datetime.combine(today, end_time_only, tzinfo=ist)
 #-----------------------------------------------------------------------------------------------------------------    
     # ---------- SHOW RESULTS ----------
-    st.write("Start datetime:", start_datetime)
-    st.write("End datetime:",   end_datetime)
+    #st.write("Start datetime:", start_datetime)
+    #st.write("End datetime:",   end_datetime)
 
     # Convert signal_time to datetime with timezone
     #signal_time = datetime.fromisoformat(signal_time)

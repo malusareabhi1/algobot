@@ -6001,6 +6001,7 @@ if funds:
     st.write("Available Cash:", available_cash)
     st.write("Fund Level:", level)
     st.write("Allowed Lots:", lots)
+    qty=lots
 else:
     st.error("Unable to fetch funds.")
 

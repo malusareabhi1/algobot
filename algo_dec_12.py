@@ -148,7 +148,7 @@ def parse_nifty_symbol(symbol):
 
 def compute_current_iv_3(kite, selected_option):
                     spot = get_nifty_spot(kite)
-                    opt_ltp = kite.ltp(f"NFO:{selected_option['tradingsymbol']}")[f"NFO:{selected_option['tradingsymbol']}"]["ltp"]
+                    opt_ltp = kite.ltp(f"NFO:{selected_option['']}")[f"NFO:{selected_option['']}"]["ltp"]
                 
                     strike = float(selected_option["strike"])
                     expiry = selected_option["expiry"]          # '2025-12-09'
@@ -5929,7 +5929,7 @@ st.write("Position Size:", position_size)
 #-------------------------------CChecking Expiry-------------------------------------------------
 
 is_near_expiry=is_near_expiry(nearest_itm)
-st.write(tradingsymbol," is_near_expiry :", is_near_expiry)
+st.write(trending_symbol," is_near_expiry :", is_near_expiry)
 
 st.write("SKIPPING IV and IV RANK :")
 #--------------------------------------------------------------------------------

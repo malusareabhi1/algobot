@@ -6091,7 +6091,7 @@ elif MENU =="LIVE TRADE 3":
     now_time_str = now_dt.time()             # extract only time for comparisons
     
     st.write("signal_time",signal_time)
-    st.write(" Now time",now_time_str)
+    #st.write(" Now time",now_time_str)
     st.write(" Now date time",now_dt)
     
     # ------------------------------------------------

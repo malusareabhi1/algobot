@@ -5907,6 +5907,8 @@ st.write("India VIX:", vix_now)
 # Apply IV + VIX Filter
 # -------------------------
     #allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_now)
+if(iv_info["iv"]='None') iv_info["iv"]=0
+if(iv_info["iv_rank"]='None') iv_info["iv_rank"]=0
 allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_now)
 st.write("Allowed to Trade?", allowed)
 st.write("Position Size:", position_size)

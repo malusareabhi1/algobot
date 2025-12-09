@@ -41,6 +41,17 @@ def is_near_expiry(option):
         return True   # Safe default → treat as near expiry
 
 #--------------------------------------------------------------------------------
+def get_kite_funds(kite):
+    if not is_kite_connected(kite):
+        return None
+
+    try:
+        funds = kite.margins(segment="equity")
+        return funds
+    except Exception as e:
+        print("Fund fetch error:", e)
+        return None
+
 # -------------------------
 # IV Filter Functions
 # -------------------------
@@ -5932,8 +5943,15 @@ is_near_expiry=is_near_expiry(nearest_itm)
 st.write(trending_symbol," is_near_expiry :", is_near_expiry)
 
 st.write("SKIPPING IV and IV RANK :")
-#--------------------------------------------------------------------------------
+#-------------------------------Zerodha Fund -------------------------------------------------
 
+funds = get_kite_funds(kite)
+
+if funds is None:
+    st.warning("Unable to fetch funds — Not connected or API error")
+else:
+    st.write("Available Margin:", funds.get("available", {}).get("cash", 0))
+    st.write("Used Margin:", funds.get("utilised", {}).get("debits", 0))
 
 #--------------------------------------------------------------------------------
 

@@ -5861,6 +5861,8 @@ elif MENU =="LIVE TRADE 3":
             st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
             signal_time = st.session_state.signal_time
             #st.write(signal)
+            df_sig_tab = pd.DataFrame([signal])
+            st.table(df_sig_tab)
 #--------------------------------------------------------------------------------
 
         def generate_signals_stepwise(df):

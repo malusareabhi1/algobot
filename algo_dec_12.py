@@ -5718,7 +5718,8 @@ elif MENU =="Kite Instrument":
             raise Exception(f"Failed to download instruments.csv → {e}")
     
     def upload_to_github(file_path, repo, token, dest_path):
-        url = f"https://api.github.com/repos/{repo}/contents/{dest_path}"
+        #url = f"https://api.github.com/repos/{repo}/contents/{dest_path}"
+        url=f"https://github.com/malusareabhi1/algobot/tree/main"
     
         # Read file content
         with open(file_path, "rb") as f:
@@ -5763,8 +5764,9 @@ elif MENU =="Kite Instrument":
     # 2. Upload to GitHub
     message = upload_to_github(
         file_path=csv_file,
-        repo="YOUR_GITHUB_USERNAME/YOUR_REPO_NAME",
-        token="YOUR_GITHUB_PAT_TOKEN",
+        repo="malusareabhi1/algobot",
+        #repo="shreealgo/algo-dec",   # your repo name
+        token=st.secrets["github_token"],        
         dest_path="instruments.csv"
     )
     

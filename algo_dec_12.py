@@ -5796,7 +5796,7 @@ elif MENU =="LIVE TRADE 3":
         
     iv_percent = compute_option_iv(nearest_itm, spot)
         
-    st.write("IV:", iv_percent)
+    #st.write("IV:", iv_percent)
 
         
          

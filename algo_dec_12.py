@@ -58,7 +58,7 @@ def calculate_lots(available_fund, level):
 
 
 #-----------------------------------------------------------------------------
-def fetch_india_vix():
+def fetch_india_vix0():
     s = requests.Session()
     s.headers.update({
         "User-Agent": "Mozilla/5.0",
@@ -75,6 +75,51 @@ def fetch_india_vix():
             return float(idx["last"])
 
 #-----------------------------------------------------------------------------
+import requests
+import json
+
+def fetch_india_vix():
+    url = "https://www.nseindia.com/api/allIndices"
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json",
+        "Cache-Control": "no-cache"
+    }
+
+    try:
+        r = requests.get(url, headers=headers, timeout=7)
+    except Exception as e:
+        print("❌ Request failed:", e)
+        return None
+
+    # -----------------------------
+    # SAFE JSON PARSE (fixes your error)
+    # -----------------------------
+    try:
+        text = r.text.strip()
+
+        # If text is empty → invalid
+        if text == "" or text.startswith("<"):
+            print("❌ NSE returned HTML/empty. Not JSON.")
+            return None
+
+        data = json.loads(text)   # safer than r.json()
+
+    except Exception as e:
+        print("❌ JSON decode failed:", e)
+        return None
+    # -----------------------------
+
+    # Extract VIX
+    try:
+        for item in data.get("data", []):
+            if item.get("index") == "India VIX":
+                return float(item.get("last"))
+    except:
+        return None
+
+    return None
+
 
 
 #-----------------------------------------------------------------------------

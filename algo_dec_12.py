@@ -6006,50 +6006,55 @@ else:
 
 
 #-----------------------------------Place Order---------------------------------------------
+
 # IST timezone
 ist = pytz.timezone("Asia/Kolkata")
-now_dt = datetime.now(ist)     # full datetime object
-now = now_dt.time()            # extract time only for comparisons
-            #------------------------------------------------
+now_dt = datetime.now(ist)      # full datetime object
+now = now_dt.time()             # extract only time for comparisons
+
+# ------------------------------------------------
 st.write(f"Placing order for: **{trading_symbol}**")
 st.write(f"Quantity: {qty}, LTP: {ltp}")
-            
-            #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
-            # Condition 1: Current time >= signal candle time
-            # Trading window
+
+# Trading window
 start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
 end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
-            
-            # Check 1: Only run if current time is within trading window
+
+# ------------------------------------------------
+# Check 1: Only run if current time is within trading window
 if start_time <= now <= end_time:
-            
-                # Check 2: Signal time reached
+
+    # Check 2: Signal time reached
     if now >= signal_time:
-            
-                    # Check 3: Order placed only once
+
+        # Check 3: Order placed only once
         if not st.session_state.order_executed:
-                try:
-                            order_id = kite.place_order(
-                                tradingsymbol=trading_symbol,
-                                exchange=kite.EXCHANGE_NFO,
-                                transaction_type=kite.TRANSACTION_TYPE_BUY,
-                                quantity=qty,
-                                order_type=kite.ORDER_TYPE_MARKET,
-                                variety=kite.VARIETY_REGULAR,
-                                product=kite.PRODUCT_MIS
-                            )
-            
-                    st.session_state.order_executed = True   # Mark executed
-                    st.success(f"Order Placed Successfully! Order ID: {order_id}")
-            
-                except Exception as e:
-                         st.error(f"Order Failed: {e}")
-            
+
+            try:
+                order_id = kite.place_order(
+                    tradingsymbol=trading_symbol,
+                    exchange=kite.EXCHANGE_NFO,
+                    transaction_type=kite.TRANSACTION_TYPE_BUY,
+                    quantity=qty,
+                    order_type=kite.ORDER_TYPE_MARKET,
+                    variety=kite.VARIETY_REGULAR,
+                    product=kite.PRODUCT_MIS
+                )
+
+                st.session_state.order_executed = True  # Mark executed
+                st.success(f"Order Placed Successfully! Order ID: {order_id}")
+
+            except Exception as e:
+                st.error(f"Order Failed: {e}")
+
         else:
             st.info("Order already executed for this signal.")
-            
+
+    else:
+        st.info("Waiting for signal time...")
+
 else:
-             st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
+    st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
 
 #--------------------------------------------------------------------------------
 

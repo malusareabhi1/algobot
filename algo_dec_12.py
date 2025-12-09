@@ -5859,7 +5859,10 @@ elif MENU =="LIVE TRADE 3":
             st.warning("⚠ No signal yet (conditions not met).")
         else:
             st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
+            #signal_time = st.session_state.signal_time
+            st.session_state.signal_time = sig['entry_time']
             signal_time = st.session_state.signal_time
+            st.write(f"🔔 Signal generated at: {st.session_state.signal_time}")
             #st.write(signal)
             df_sig_tab = pd.DataFrame([signal])
             st.table(df_sig_tab)

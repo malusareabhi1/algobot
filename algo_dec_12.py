@@ -6090,12 +6090,9 @@ elif MENU =="LIVE TRADE 3":
     now_dt = datetime.now(ist)      # full datetime object
     now_time_str = now_dt.time()             # extract only time for comparisons
     
-    now_time = datetime.strptime(now_time_str, "%H:%M:%S.%f").time()
-
-    # Create NEW datetime with same date & timezone as signal_time, but with now_time
-    now_dt = datetime.combine(signal_time.date(), now_time, tzinfo=signal_time.tzinfo)
-    
-    st.write("Created NOW datetime:", now_dt)
+    st.write("signal_time",signal_time)
+    st.write(" Now time",now_time_str)
+    st.write(" Now date time",now_dt)
     
     # ------------------------------------------------
     #st.write(f"Placing order for: **{trading_symbol}**")
@@ -6106,14 +6103,12 @@ elif MENU =="LIVE TRADE 3":
     end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
     
     #st.write(st.session_state)
-    st.write("signal_time",signal_time)
-    st.write(" Now time",now)
-    st.session_state.signal_time
-    type(st.session_state.signal_time)
+    
+    
 
     # Convert signal_time to datetime with timezone
     #signal_time = datetime.fromisoformat(signal_time)
-    st.write("signal_time",signal_time)
+    #st.write("signal_time",signal_time)
     # ------------------------------------------------
     # Check 1: Only run if current time is within trading window
     if start_time <= now <= end_time:

@@ -28,6 +28,18 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 # ------------------------------------------------------------
+
+def is_near_expiry(option):
+    """
+    Returns True if option expiry is today or expired.
+    """
+    try:
+        expiry_date = datetime.strptime(option["expiry"], "%Y-%m-%d").date()
+        today = datetime.now().date()
+        return expiry_date <= today  # Expiry today OR already expired
+    except:
+        return True   # Safe default → treat as near expiry
+
 #--------------------------------------------------------------------------------
 # -------------------------
 # IV Filter Functions
@@ -5904,11 +5916,6 @@ def fetch_india_vix():
 
 vix_now = fetch_india_vix()
 st.write("India VIX:", vix_now)
-
-
-
-
-
 # Apply IV + VIX Filter
 # -------------------------
     #allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_now)
@@ -5919,9 +5926,10 @@ allowed, position_size = combined_filter(iv_value, iv_rank_value, vix_now)
 st.write("Allowed to Trade?", allowed)
 st.write("Position Size:", position_size)
 
-#--------------------------------------------------------------------------------
+#-------------------------------CChecking Expiry-------------------------------------------------
 
-
+is_near_expiry=is_near_expiry(nearest_itm)
+st.write("is_near_expiry :", is_near_expiry)
 #--------------------------------------------------------------------------------
 
 

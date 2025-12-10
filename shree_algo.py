@@ -28,6 +28,22 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+
+#----------------------------------VIX KITE------------------------------
+
+def fetch_india_vix_kite(kite):
+    try:
+        # India VIX instrument token: 264969
+        data = kite.ltp("NSE:INDIAVIX")
+        vix = data["NSE:INDIAVIX"]["last_price"]
+        return float(vix)
+    except Exception as e:
+        print("VIX fetch error from Kite:", e)
+        return None
+
+vix_now = fetch_india_vix_kite(kite)
+st.write("India VIX: kite", vix_now)
 # ---------------------------------VIX---------------------------
 
 def fetch_india_vix():

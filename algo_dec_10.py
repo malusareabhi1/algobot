@@ -28,6 +28,21 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+#--------------------------------------------LOT SIZE-----------------------------------
+
+
+def get_lot_size(cash):
+    if cash >= 100000:
+        return 6
+    elif cash >= 50000:
+        return 4
+    elif cash >= 25000:
+        return 2
+    else:
+        return 0   # avoid trade
+
+
+
 #--------------------------------------Fund Status------------------------------------
 
 def get_fund_status(kite, segment="equity"):
@@ -6046,6 +6061,9 @@ elif MENU =="LIVE TRADE 3":
         st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
         st.write(f"**Collateral:** ₹{funds['collateral']}")
         st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
+        #cash_balance = 73500
+        lots = get_lot_size(funds['cash'])
+        st.write("Lot Size:", lots)
 
     st.divider()
     #------------------------------------PLACING ORDERS--------------------------------------------
@@ -6063,7 +6081,8 @@ elif MENU =="LIVE TRADE 3":
     #st.write("end_time", end_time)
     #st.write("Now Time", now)
     st.write("signal_time",signal_time)
-    qty=75
+    qty=75*lots
+    
     #-------------------------------------------------------------------------------
 
     # Convert to Python datetime (with timezone if needed)

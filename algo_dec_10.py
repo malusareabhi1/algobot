@@ -6041,7 +6041,13 @@ elif MENU =="LIVE TRADE 3":
 
     st.write("Current IV:", iv_info["iv"], "%")
     st.write("IV Rank:", iv_info["iv_rank"], "%")
+    #-----------------------Add PARA----------------------------------------------
+    # IV
+    result = "Pass" if 0.10 <= iv_info["iv"] <= 0.35 else "Fail"
+    add_param_row("IV", round(iv_info["iv"], 2), "0.10 - 0.35", result)
 
+    
+#-------------------------------------------------------------------------
     if(iv_info["iv"]=='None'):
         # Safely extract values
         iv_value = iv_info.get("iv") or 0

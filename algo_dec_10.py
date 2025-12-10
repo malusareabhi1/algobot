@@ -6115,14 +6115,7 @@ elif MENU =="LIVE TRADE 3":
         st.write("Lot Size:", lots)
         qty=75*lots
     st.divider()
-    #-----------------------------------------Display PARA-------------------------------------------
-    if st.session_state.param_rows:
-        df = pd.DataFrame(st.session_state.param_rows)
-        st.table(df)
-    else:
-        st.write("No parameters added yet.")
-    
-    
+   
     
     #------------------------------------PLACING ORDERS--------------------------------------------
     st.write(f"Placing order for:", trending_symbol)
@@ -6158,7 +6151,19 @@ elif MENU =="LIVE TRADE 3":
     result = "Pass" if start_time <= signal_time <= end_time else "Fail"
     add_param_row("Signal Time", str(signal_time.time()), "09:30 - 14:30", result)
 
-     #------------------------------------------------------------------------------   
+     #------------------------------------------------------------------------------ 
+
+
+
+
+     #-----------------------------------------Display PARA-------------------------------------------
+    if st.session_state.param_rows:
+        df = pd.DataFrame(st.session_state.param_rows)
+        st.table(df)
+    else:
+        st.write("No parameters added yet.")
+    
+    
     # Check 1: Only run if current time is within trading window
     if start_time <= now <= end_time:
             

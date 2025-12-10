@@ -5990,15 +5990,15 @@ elif MENU =="LIVE TRADE 3":
     st.write("end_time", end_time)
     st.write("Now Time", now)
     # Check 1: Only run if current time is within trading window
-            if start_time <= now <= end_time:
+    if start_time <= now <= end_time:
             
-                # Check 2: Signal time reached
-                if now >= signal_time:
+            # Check 2: Signal time reached
+        if now >= signal_time:
             
-                    # Check 3: Order placed only once
-                    if not st.session_state.order_executed:
-                        try:
-                            order_id = kite.place_order(
+            # Check 3: Order placed only once
+                if not st.session_state.order_executed:
+                    try:
+                        order_id = kite.place_order(
                                 tradingsymbol=trading_symbol,
                                 exchange=kite.EXCHANGE_NFO,
                                 transaction_type=kite.TRANSACTION_TYPE_BUY,
@@ -6008,17 +6008,17 @@ elif MENU =="LIVE TRADE 3":
                                 product=kite.PRODUCT_MIS
                             )
             
-                            st.session_state.order_executed = True   # Mark executed
-                            st.success(f"Order Placed Successfully! Order ID: {order_id}")
+                        st.session_state.order_executed = True   # Mark executed
+                        st.success(f"Order Placed Successfully! Order ID: {order_id}")
             
-                        except Exception as e:
-                            st.error(f"Order Failed: {e}")
-            
-                    else:
-                        st.info("Order already executed for this signal.")
+                    except Exception as e:
+                        st.error(f"Order Failed: {e}")
             
             else:
-                st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
+                    st.info("Order already executed for this signal.")
+            
+        else:
+            st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
     #--------------------------------------------------------------------------------
 
 

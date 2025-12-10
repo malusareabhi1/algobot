@@ -41,7 +41,7 @@ def fetch_india_vix_kite(kite):
         #st.write(kite.ltp("NSE:INDIAVIX"))
         #st.write(kite.ltp("264969"))
         #st.write(kite.ltp("INDICES:INDIAVIX"))
-        return float(vix)
+        return (vix)
     except Exception as e:
         st.write("VIX fetch error from Kite:", e)
         return None
@@ -5949,10 +5949,10 @@ elif MENU =="LIVE TRADE 3":
         
 
 #--------------------------------VIX------------------------------------------------
-    vix_now =fetch_vix_from_fyers()
+    #vix_now =fetch_vix_from_fyers()
     
     
-    st.write("India VIX:", vix_now)
+    #st.write("India VIX:", vix_now)
     
     # Apply IV + VIX Filter
     # -------------------------
@@ -5966,7 +5966,7 @@ elif MENU =="LIVE TRADE 3":
     
     #--------------------------------------------------------------------------------
     vix_now = fetch_india_vix_kite(kite)
-    st.write("New India VIX: kite", vix_now)
+    st.write("India VIX: kite", vix_now)
     
     #--------------------------------------------------------------------------------
 

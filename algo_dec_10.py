@@ -20,7 +20,7 @@ st_autorefresh(interval=30000, key="live_data_refresh")
 #st.sidebar.image("shree.jpg",width=15)  # Correct parameter
 # ------------------------------------------------------------
 # Page Config & Global Theming
-# ------------------------------------------------------------
+# -------------------------------------------------------------------
 #------------------------Parameters--------------------------------
 st.set_page_config(
     page_title="TALK AlgoLabs Trading Platform",
@@ -28,7 +28,35 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+#--------------------------------------Fund Status------------------------------------
 
+def get_fund_status(kite, segment="equity"):
+    """
+    Returns Zerodha fund/margin status.
+    segment = "equity" or "commodity"
+    """
+
+    try:
+        funds = kite.margins(segment=segment)
+
+        result = {
+            "net": funds.get("net", 0),
+            "cash": funds["available"].get("cash", 0),
+            "opening_balance": funds["available"].get("opening_balance", 0),
+            "collateral": funds["available"].get("collateral", 0),
+            "intraday_payin": funds["available"].get("intraday_payin", 0),
+            "option_premium": funds["utilised"].get("option_premium", 0),
+            "span": funds["utilised"].get("span", 0),
+            "exposure": funds["utilised"].get("exposure", 0),
+            "payout": funds["utilised"].get("payout", 0)
+        }
+
+        return result
+
+    except Exception as e:
+        return {"error": str(e)}
+
+#-------------------------------------PARA-----------------------------------------------------
 if "param_rows" not in st.session_state:
     st.session_state.param_rows = []
 
@@ -66,33 +94,6 @@ def get_lot_size(cash):
 
 
 
-#--------------------------------------Fund Status------------------------------------
-
-def get_fund_status(kite, segment="equity"):
-    """
-    Returns Zerodha fund/margin status.
-    segment = "equity" or "commodity"
-    """
-
-    try:
-        funds = kite.margins(segment=segment)
-
-        result = {
-            "net": funds.get("net", 0),
-            "cash": funds["available"].get("cash", 0),
-            "opening_balance": funds["available"].get("opening_balance", 0),
-            "collateral": funds["available"].get("collateral", 0),
-            "intraday_payin": funds["available"].get("intraday_payin", 0),
-            "option_premium": funds["utilised"].get("option_premium", 0),
-            "span": funds["utilised"].get("span", 0),
-            "exposure": funds["utilised"].get("exposure", 0),
-            "payout": funds["utilised"].get("payout", 0)
-        }
-
-        return result
-
-    except Exception as e:
-        return {"error": str(e)}
 
 
 #----------------------------------VIX KITE------------------------------

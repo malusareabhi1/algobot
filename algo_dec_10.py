@@ -6210,8 +6210,10 @@ elif MENU =="LIVE TRADE 3":
     result = "Pass" if start <= sig_t <= end else "Fail"
     
     add_param_row("Signal Time", str(signal_time_ist.time()),"09:30 - 14:30",result)
-     #------------------------------------------------------------------------------ 
-   
+     #------------------------------------ADD PCR------------------------------------------ 
+    pcr_value = get_nifty_pcr(kite)
+    result = "Pass" if 0.80 <= pcr_value <= 1.30 else "Fail"
+    add_param_row("PCR", round(pcr_value, 2), "0.80 - 1.30", result)
 
 
      #-----------------------------------------Display PARA-------------------------------------------

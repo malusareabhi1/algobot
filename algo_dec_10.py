@@ -21,7 +21,7 @@ st_autorefresh(interval=30000, key="live_data_refresh")
 # ------------------------------------------------------------
 # Page Config & Global Theming
 # ------------------------------------------------------------
-
+#------------------------Parameters--------------------------------
 st.set_page_config(
     page_title="TALK AlgoLabs Trading Platform",
     page_icon="📈",
@@ -31,6 +31,20 @@ st.set_page_config(
 
 if "param_rows" not in st.session_state:
     st.session_state.param_rows = []
+
+def add_param_row(parameter, value, value_range, result):
+    st.session_state.param_rows.append({
+        "Parameters": parameter,
+        "Values": value,
+        "Range": value_range,
+        "Result": result
+    })
+if st.session_state.param_rows:
+    df = pd.DataFrame(st.session_state.param_rows)
+    st.table(df)
+else:
+    st.write("No parameters added yet.")
+
     
 #--------------------------------------------LOT SIZE-----------------------------------
 

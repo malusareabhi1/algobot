@@ -6001,7 +6001,7 @@ elif MENU =="LIVE TRADE 3":
     now_dt = datetime.now(ist)     # full datetime object
     now = now_dt.time()            # extract time only for comparisons
     
-    #------------------------------------------------
+    #--------------------------------------------------------------------------------
     st.write(f"Placing order for:", trending_symbol)
     if(position_size=='none'):
         position_size=1;
@@ -6017,6 +6017,17 @@ elif MENU =="LIVE TRADE 3":
     #st.write("Now Time", now)
     st.write("signal_time",signal_time)
     qty=75
+    #-------------------------------------------------------------------------------
+
+    # Convert to Python datetime (with timezone if needed)
+    signal_time = pd.to_datetime(signal_time).to_pydatetime()
+    
+    # Optional: ensure same timezone as now
+    #import pytz
+    tz = pytz.timezone("Asia/Kolkata")
+    signal_time = signal_time.replace(tzinfo=tz)
+
+    #--------------------------------------------------------------------------------
     # Check 1: Only run if current time is within trading window
     if start_time <= now <= end_time:
             

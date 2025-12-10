@@ -6095,26 +6095,7 @@ elif MENU =="LIVE TRADE 3":
 
     tz = pytz.timezone("Asia/Kolkata")
     now = datetime.now(tz)
-    #----------------------------------FUND-----------------------------------------------------
-    st.divider()
-
-    funds = get_fund_status(kite)
-
-    st.subheader("💰 Zerodha Fund Status")
     
-    if "error" in funds:
-        st.error(funds["error"])
-    else:
-        st.write(f"**Net Balance:** ₹{funds['net']}")
-        st.write(f"**Cash:** ₹{funds['cash']}")
-        st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
-        st.write(f"**Collateral:** ₹{funds['collateral']}")
-        st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
-        #cash_balance = 73500
-        lots = get_lot_size(funds['cash'])
-        st.write("Lot Size:", lots)
-        qty=75*lots
-    st.divider()
    
     
     #------------------------------------PLACING ORDERS--------------------------------------------
@@ -6163,7 +6144,26 @@ elif MENU =="LIVE TRADE 3":
     
     add_param_row("Signal Time", str(signal_time_ist.time()),"09:30 - 14:30",result)
      #------------------------------------------------------------------------------ 
+    #----------------------------------FUND-----------------------------------------------------
+    st.divider()
 
+    funds = get_fund_status(kite)
+
+    st.subheader("💰 Zerodha Fund Status")
+    
+    if "error" in funds:
+        st.error(funds["error"])
+    else:
+        st.write(f"**Net Balance:** ₹{funds['net']}")
+        st.write(f"**Cash:** ₹{funds['cash']}")
+        st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
+        st.write(f"**Collateral:** ₹{funds['collateral']}")
+        st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
+        #cash_balance = 73500
+        lots = get_lot_size(funds['cash'])
+        st.write("Lot Size:", lots)
+        qty=75*lots
+    st.divider()
 
 
 

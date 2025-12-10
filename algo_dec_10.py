@@ -19,7 +19,7 @@ from streamlit_autorefresh import st_autorefresh
 # Market hours condition
 start = time(9, 30)   # 9:30 AM
 end = time(15, 25)    # 3:25 PM
-    
+now = datetime.now(ist).time()    
 # Refresh only between 9:30–3:25
 if start <= now <= end:
      st_autorefresh(interval=60000, key="refresh")  # 1 minute refresh

@@ -5999,7 +5999,7 @@ elif MENU =="LIVE TRADE 3":
                 if not st.session_state.order_executed:
                     try:
                         order_id = kite.place_order(
-                                tradingsymbol=trading_symbol,
+                                tradingsymbol=trending_symbol,
                                 exchange=kite.EXCHANGE_NFO,
                                 transaction_type=kite.TRANSACTION_TYPE_BUY,
                                 quantity=qty,

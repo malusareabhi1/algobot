@@ -6032,6 +6032,7 @@ elif MENU =="LIVE TRADE 3":
     tz = pytz.timezone("Asia/Kolkata")
     now = datetime.now(tz)
     #----------------------------------FUND-----------------------------------------------------
+    st.divider()
 
     funds = get_fund_status(kite)
 
@@ -6046,7 +6047,7 @@ elif MENU =="LIVE TRADE 3":
         st.write(f"**Collateral:** ₹{funds['collateral']}")
         st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
 
-    
+    st.divider()
     #------------------------------------PLACING ORDERS--------------------------------------------
     st.write(f"Placing order for:", trending_symbol)
     if(position_size=='none'):
@@ -6107,7 +6108,7 @@ elif MENU =="LIVE TRADE 3":
     else:
         st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
 #--------------------------------ORDERS------------------------------------------------
-
+    st.divider()
     #st.autorefresh(interval=5000)  # refresh every 5 seconds
     
     if "last_order_id" in st.session_state:

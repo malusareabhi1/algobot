@@ -6131,7 +6131,7 @@ elif MENU =="LIVE TRADE 3":
     st.write("start_time", start_time)
     st.write("end_time", end_time)
     #st.write("Now Time", now)
-    st.write("signal_time",signal_time)
+    #st.write("signal_time",signal_time)
     
     
     #-------------------------------------------------------------------------------

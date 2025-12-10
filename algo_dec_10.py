@@ -6023,7 +6023,7 @@ elif MENU =="LIVE TRADE 3":
         st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
 #--------------------------------ORDERS------------------------------------------------
 
-    st.autorefresh(interval=5000)  # refresh every 5 seconds
+    #st.autorefresh(interval=5000)  # refresh every 5 seconds
     
     if "last_order_id" in st.session_state:
         order_id = st.session_state["last_order_id"]

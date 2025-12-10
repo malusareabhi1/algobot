@@ -5967,8 +5967,24 @@ elif MENU =="LIVE TRADE 3":
     st.write("Position Size:", position_size)
     
     #--------------------------------------------------------------------------------
-    
-    
+    import pytz
+            
+    # IST timezone
+    ist = pytz.timezone("Asia/Kolkata")
+    now_dt = datetime.now(ist)     # full datetime object
+    now = now_dt.time()            # extract time only for comparisons
+    st.write("Now", now)
+    #------------------------------------------------
+    st.write(f"Placing order for: **{trading_symbol}**")
+    st.write(f"Quantity: {qty}, LTP: {ltp}")
+            
+    #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
+    # Condition 1: Current time >= signal candle time
+    # Trading window
+    start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
+    end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+    st.write("start_time", start_time)
+    st.write("end_time", end_time)
     #--------------------------------------------------------------------------------
 
 

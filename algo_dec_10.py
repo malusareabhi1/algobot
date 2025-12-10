@@ -6039,12 +6039,16 @@ elif MENU =="LIVE TRADE 3":
         
     iv_info = get_iv_rank(kite, nearest_itm, lookback_days=30)
 
-    st.write("Current IV:", iv_info["iv"], "%")
-    st.write("IV Rank:", iv_info["iv_rank"], "%")
-    #-----------------------Add PARA----------------------------------------------
+    ##st.write("Current IV:", iv_info["iv"], "%")
+    #st.write("IV Rank:", iv_info["iv_rank"], "%")
+#-----------------------Add PARA----------------------------------------------
     # IV
     result = "Pass" if 0.10 <= iv_info["iv"] <= 0.35 else "Fail"
     add_param_row("IV", round(iv_info["iv"], 2), "0.10 - 0.35", result)
+
+    # IV Rank
+    result = "Pass" if 0.20 <= iv_info["iv_rank"] <= 0.70 else "Fail"
+    add_param_row("IV Rank", round(iv_info["iv_rank"], 2), "0.20 - 0.70", result)
 
     
 #-------------------------------------------------------------------------

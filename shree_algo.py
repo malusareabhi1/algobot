@@ -49,12 +49,29 @@ def fetch_india_vix():
 #vix_now = fetch_india_vix()
 #----------------------------------VIX----------------------------------------------
 
+#import requests
+
 def fetch_vix_from_fyers():
-    import requests
-    url = "https://public.fyers.in/symphony/instruments/vix.json"
-    r = requests.get(url, timeout=5)
-    data = r.json()
-    return float(data["vix"]["current_value"])
+    """
+    Reliable India VIX fetcher (public API, always JSON)
+    """
+    url = "https://api.indiavix.in/vix"
+
+    try:
+        r = requests.get(url, timeout=10)
+
+        # Verify JSON content
+        if "application/json" not in r.headers.get("Content-Type", ""):
+            print("Non-JSON response received")
+            return None
+
+        data = r.json()
+
+        return float(data.get("vix", None))
+    
+    except Exception as e:
+        print(f"VIX fetch error: {e}")
+        return None
 
 
 # -------------------------

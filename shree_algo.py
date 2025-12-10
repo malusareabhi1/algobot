@@ -42,8 +42,7 @@ def fetch_india_vix_kite(kite):
         print("VIX fetch error from Kite:", e)
         return None
 
-vix_now = fetch_india_vix_kite(kite)
-st.write("India VIX: kite", vix_now)
+
 # ---------------------------------VIX---------------------------
 
 def fetch_india_vix():
@@ -5962,7 +5961,8 @@ st.write("Allowed to Trade?", allowed)
 st.write("Position Size:", position_size)
 
 #--------------------------------------------------------------------------------
-
+vix_now = fetch_india_vix_kite(kite)
+st.write("India VIX: kite", vix_now)
 
 #--------------------------------------------------------------------------------
 

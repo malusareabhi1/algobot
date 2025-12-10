@@ -5822,8 +5822,11 @@ elif MENU =="LIVE TRADE 3":
             st.warning("⚠ No signal yet (conditions not met).")
         else:
             st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
-            #
-            st.write(signal)
+            entry_time = signal['entry_time']
+            st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS
+            signal_time=entry_time.strftime("%H:%M:%S")
+            st.write("Signal Time only:-", signal_time)  # HH:MM:SS
+            #            st.write(signal)
 #--------------------------------------------------------------------------------
 
         def generate_signals_stepwise(df):
@@ -5859,7 +5862,7 @@ elif MENU =="LIVE TRADE 3":
 #-----------------------------------Nearest ITM Option ---------------------------------------------
 
         if signal is not None:
-            signal_time = df["Datetime"].iloc[-1].time()   # last candle time
+            #signal_time = df["Datetime"].iloc[-1].time()   # last candle time
             option_type = signal["option_type"]     # CALL / PUT
             st.write("Option type ",option_type)
             spot = signal["spot_price"]

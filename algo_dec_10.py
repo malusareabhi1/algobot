@@ -6128,8 +6128,8 @@ elif MENU =="LIVE TRADE 3":
     # Trading window
     start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
     end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
-    st.write("start_time", start_time)
-    st.write("end_time", end_time)
+    #st.write("start_time", start_time)
+    #st.write("end_time", end_time)
     #st.write("Now Time", now)
     #st.write("signal_time",signal_time)
     
@@ -6143,8 +6143,7 @@ elif MENU =="LIVE TRADE 3":
     #import pytz
     tz = pytz.timezone("Asia/Kolkata")
     signal_time = signal_time.replace(tzinfo=tz)
-    #
-    st.write("signal_time",signal_time)
+    #    st.write("signal_time",signal_time)
     #st.write("Now Time", now)
     #--------------------------------------------------------------------------------
      #-----------------------Add PARA----------------------------------------------

@@ -45,6 +45,11 @@ if st.session_state.param_rows:
 else:
     st.write("No parameters added yet.")
 
+funds = get_fund_status(kite)
+cash = (funds['cash'])
+#iv_value = 0.26
+result = "Pass" if 75000 <= cash <= 25000 else "Fail"
+add_param_row("CASH", cash, "25K - 100K", result)
     
 #--------------------------------------------LOT SIZE-----------------------------------
 

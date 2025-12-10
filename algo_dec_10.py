@@ -6148,6 +6148,11 @@ elif MENU =="LIVE TRADE 3":
     #st.write("Now Time", now)
     #--------------------------------------------------------------------------------
      #-----------------------Add PARA----------------------------------------------
+    # Define IST timezone
+    ist = pytz.timezone("Asia/Kolkata")
+    
+    # Convert signal_time to IST
+    signal_time_ist = signal_time.astimezone(ist)
     import datetime as dt
 
     start = dt.time(9, 30)

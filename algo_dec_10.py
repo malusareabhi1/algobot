@@ -5951,7 +5951,8 @@ elif MENU =="LIVE TRADE 3":
 #--------------------------------VIX------------------------------------------------
     #vix_now =fetch_vix_from_fyers()
     
-    
+    vix_now = fetch_india_vix_kite(kite)
+    st.write("India VIX: kite", vix_now)
     #st.write("India VIX:", vix_now)
     
     # Apply IV + VIX Filter
@@ -5965,8 +5966,7 @@ elif MENU =="LIVE TRADE 3":
     st.write("Position Size:", position_size)
     
     #--------------------------------------------------------------------------------
-    vix_now = fetch_india_vix_kite(kite)
-    st.write("India VIX: kite", vix_now)
+    
     
     #--------------------------------------------------------------------------------
 

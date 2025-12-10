@@ -28,8 +28,35 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-# ------------------------------------------------------------
-#--------------------------------------------------------------------------------
+# ---------------------------------VIX---------------------------
+
+def fetch_india_vix():
+    s = requests.Session()
+    s.headers.update({
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json",
+        "Referer": "https://www.nseindia.com/"
+    })
+    s.get("https://www.nseindia.com", timeout=10)  # cookies सेट
+
+    r = s.get("https://www.nseindia.com/api/allIndices", timeout=10)
+    data = r.json()
+
+    for idx in data["data"]:
+        if idx.get("index") == "INDIA VIX":
+            return float(idx["last"])
+
+#vix_now = fetch_india_vix()
+#----------------------------------VIX----------------------------------------------
+
+def fetch_vix_from_fyers():
+    import requests
+    url = "https://public.fyers.in/symphony/instruments/vix.json"
+    r = requests.get(url, timeout=5)
+    data = r.json()
+    return float(data["vix"]["current_value"])
+
+
 # -------------------------
 # IV Filter Functions
 # -------------------------
@@ -5886,25 +5913,9 @@ elif MENU =="LIVE TRADE 3":
         
 
 #--------------------------------VIX------------------------------------------------
+vix_now =fetch_vix_from_fyers()
 
 
-def fetch_india_vix():
-    s = requests.Session()
-    s.headers.update({
-        "User-Agent": "Mozilla/5.0",
-        "Accept": "application/json",
-        "Referer": "https://www.nseindia.com/"
-    })
-    s.get("https://www.nseindia.com", timeout=10)  # cookies सेट
-
-    r = s.get("https://www.nseindia.com/api/allIndices", timeout=10)
-    data = r.json()
-
-    for idx in data["data"]:
-        if idx.get("index") == "INDIA VIX":
-            return float(idx["last"])
-
-vix_now = fetch_india_vix()
 st.write("India VIX:", vix_now)
 
 # Apply IV + VIX Filter

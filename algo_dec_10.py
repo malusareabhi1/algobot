@@ -5822,7 +5822,8 @@ elif MENU =="LIVE TRADE 3":
             st.warning("⚠ No signal yet (conditions not met).")
         else:
             st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
-            #st.write(signal)
+            #
+            st.write(signal)
 #--------------------------------------------------------------------------------
 
         def generate_signals_stepwise(df):

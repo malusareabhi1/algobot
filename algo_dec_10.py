@@ -37,7 +37,7 @@ def fetch_india_vix_kite(kite):
         # India VIX instrument token: 264969
         #data = kite.ltp("NSE:INDIAVIX")
         vix = kite.ltp("264969")
-        vix_value = data["264969"]["last_price"]
+        vix_value = vix["264969"]["last_price"]
         #vix = data["NSE:INDIAVIX"]["last_price"]
         #st.write(kite.ltp("NSE:INDIAVIX"))
         #st.write(kite.ltp("264969"))

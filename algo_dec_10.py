@@ -6143,7 +6143,8 @@ elif MENU =="LIVE TRADE 3":
     #import pytz
     tz = pytz.timezone("Asia/Kolkata")
     signal_time = signal_time.replace(tzinfo=tz)
-    #st.write("signal_time",signal_time)
+    #
+    st.write("signal_time",signal_time)
     #st.write("Now Time", now)
     #--------------------------------------------------------------------------------
      #-----------------------Add PARA----------------------------------------------

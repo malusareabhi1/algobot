@@ -5823,9 +5823,9 @@ elif MENU =="LIVE TRADE 3":
         else:
             st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
             entry_time = signal['entry_time']
-            st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS
+            #st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS
             signal_time=entry_time.strftime("%H:%M:%S")
-            st.write("Signal Time only:-", signal_time)  # HH:MM:SS
+            #st.write("Signal Time only:-", signal_time)  # HH:MM:SS
             #            st.write(signal)
 #--------------------------------------------------------------------------------
 

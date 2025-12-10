@@ -6000,6 +6000,9 @@ elif MENU =="LIVE TRADE 3":
     ist = pytz.timezone("Asia/Kolkata")
     now_dt = datetime.now(ist)     # full datetime object
     now = now_dt.time()            # extract time only for comparisons
+
+    tz = pytz.timezone("Asia/Kolkata")
+    now = datetime.now(tz)
     
     #--------------------------------------------------------------------------------
     st.write(f"Placing order for:", trending_symbol)

@@ -6221,15 +6221,15 @@ elif MENU =="LIVE TRADE 3":
 
 #-------------------------------------lot ty------------------------------------------------
      # Default lot size
-     qty = 1
+    qty = 1
      
      # Apply rule
-     if iv_result == "Fail" or iv_rank_result == "Fail":
+    if iv_result == "Fail" or iv_rank_result == "Fail":
          qty = 2
-     if iv_result == "Pass" and iv_rank_result == "pass" and vix_result=="pass" and pcr_result=="pass":
+    if iv_result == "Pass" and iv_rank_result == "pass" and vix_result=="pass" and pcr_result=="pass":
          qty = 6    
 
-     add_param_row("LOT QTY", lot_qty, "2 or 6", "OK")
+    add_param_row("LOT QTY", lot_qty, "2 or 6", "OK")
      #-----------------------------------------Display PARA-------------------------------------------
     if st.session_state.param_rows:
         df = pd.DataFrame(st.session_state.param_rows)

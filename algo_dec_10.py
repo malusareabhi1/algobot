@@ -6064,14 +6064,14 @@ elif MENU =="LIVE TRADE 3":
         #cash_balance = 73500
         lots = get_lot_size(funds['cash'])
         st.write("Lot Size:", lots)
-
+        qty=75*lots
     st.divider()
     #------------------------------------PLACING ORDERS--------------------------------------------
     st.write(f"Placing order for:", trending_symbol)
     if(position_size=='none'):
         position_size=1;
     #st.write(f"Quantity: {qty}, LTP: {ltp}")
-    st.write(f"Quantity  order for:", position_size)        
+    st.write(f"Quantity  order for:", qty)        
     #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
     # Condition 1: Current time >= signal candle time
     # Trading window
@@ -6081,7 +6081,7 @@ elif MENU =="LIVE TRADE 3":
     #st.write("end_time", end_time)
     #st.write("Now Time", now)
     st.write("signal_time",signal_time)
-    qty=75*lots
+    
     
     #-------------------------------------------------------------------------------
 

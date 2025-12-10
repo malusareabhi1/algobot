@@ -6225,9 +6225,9 @@ elif MENU =="LIVE TRADE 3":
      
      # Apply rule
     if iv_result == "Fail" or iv_rank_result == "Fail":
-         qty = 2
+         lot_qty = 2
     if iv_result == "Pass" and iv_rank_result == "pass" and vix_result=="pass" and pcr_result=="pass":
-         qty = 6    
+         lot_qty = 6    
 
     add_param_row("LOT QTY", lot_qty, "2 or 6", "OK")
      #-----------------------------------------Display PARA-------------------------------------------

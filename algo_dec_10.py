@@ -16,7 +16,16 @@ import yfinance as yf
 from streamlit_autorefresh import st_autorefresh
 
 # Auto-refresh every 30 seconds
-st_autorefresh(interval=30000, key="live_data_refresh")
+# Market hours condition
+start = time(9, 30)   # 9:30 AM
+end = time(15, 25)    # 3:25 PM
+    
+# Refresh only between 9:30–3:25
+if start <= now <= end:
+     st_autorefresh(interval=60000, key="refresh")  # 1 minute refresh
+else:
+    st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
+#st_autorefresh(interval=30000, key="live_data_refresh")
 #st.sidebar.image("shree.jpg",width=15)  # Correct parameter
 # ------------------------------------------------------------
 # Page Config & Global Theming

@@ -5737,6 +5737,7 @@ elif MENU == "Setting":
 elif MENU =="LIVE TRADE 3":
     st.title("🔴 LIVE TRADE 3")
     #st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")
+    st.session_state.param_rows = []
     from streamlit_autorefresh import st_autorefresh
     import time             # Python's time module
     from datetime import time  # datetime.time (conflict!)

@@ -28,6 +28,10 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+if "param_rows" not in st.session_state:
+    st.session_state.param_rows = []
+    
 #--------------------------------------------LOT SIZE-----------------------------------
 
 

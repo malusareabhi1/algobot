@@ -37,9 +37,12 @@ def fetch_india_vix_kite(kite):
         # India VIX instrument token: 264969
         data = kite.ltp("NSE:INDIAVIX")
         vix = data["NSE:INDIAVIX"]["last_price"]
+        st.write(kite.ltp("NSE:INDIAVIX"))
+        st.write(kite.ltp("264969"))
+        st.write(kite.ltp("INDICES:INDIAVIX"))
         return float(vix)
     except Exception as e:
-        print("VIX fetch error from Kite:", e)
+        st.write("VIX fetch error from Kite:", e)
         return None
 
 

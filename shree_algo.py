@@ -5962,7 +5962,7 @@ st.write("Position Size:", position_size)
 
 #--------------------------------------------------------------------------------
 vix_now = fetch_india_vix_kite(kite)
-st.write("India VIX: kite", vix_now)
+st.write("New India VIX: kite", vix_now)
 
 #--------------------------------------------------------------------------------
 

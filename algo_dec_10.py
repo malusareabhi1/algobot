@@ -28,6 +28,13 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+def is_kite_connected(kite):
+        try:
+            kite.profile()
+            return True
+        except:
+            return False
+
 #--------------------------------------Fund Status------------------------------------
 
 def get_fund_status(kite, segment="equity"):
@@ -4732,13 +4739,7 @@ elif MENU =="Live Trade":
     if "signal_time" not in st.session_state:
         st.session_state.signal_time = None
     # Add after data processing:
-    def is_kite_connected(kite):
-        try:
-            kite.profile()
-            return True
-        except:
-            return False
-
+    
     if is_kite_connected(kite):
         st.success("Kite connection active")
     else:

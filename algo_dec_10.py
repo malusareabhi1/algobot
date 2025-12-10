@@ -94,6 +94,40 @@ def add_param_row(parameter, value, value_range, result):
     })
 
 
+#-------------------------------------PCR---------------------------------------------------
+def get_nifty_pcr(kite, instruments_csv="instruments.csv"):
+    import pandas as pd
+
+    # Load instruments file
+    inst = pd.read_csv(instruments_csv)
+
+    nifty_opts = inst[
+        (inst['name'] == 'NIFTY') &
+        (inst['segment'] == 'NFO-OPT')
+    ]
+
+    # Nearest weekly expiry
+    nearest_expiry = nifty_opts['expiry'].min()
+
+    weekly = nifty_opts[nifty_opts['expiry'] == nearest_expiry]
+
+    calls = weekly[weekly['instrument_type'] == 'CE']
+    puts  = weekly[weekly['instrument_type'] == 'PE']
+
+    call_symbols = [f"NFO:{ts}" for ts in calls['tradingsymbol']]
+    put_symbols  = [f"NFO:{ts}" for ts in puts['tradingsymbol']]
+
+    # Fetch OI
+    call_data = kite.quote(call_symbols)
+    put_data  = kite.quote(put_symbols)
+
+    total_call_oi = sum(call_data[s]['oi'] for s in call_symbols)
+    total_put_oi  = sum(put_data[s]['oi'] for s in put_symbols)
+
+    # Calculate PCR
+    pcr = total_put_oi / total_call_oi if total_call_oi > 0 else 0
+
+    return pcr
 
     
 #--------------------------------------------LOT SIZE-----------------------------------

@@ -6149,8 +6149,13 @@ elif MENU =="LIVE TRADE 3":
     #--------------------------------------------------------------------------------
      #-----------------------Add PARA----------------------------------------------
     # VIX
-    result = "Pass" if start_time <= signal_time <= end_time else "Fail"
-    add_param_row("Signal Time", str(signal_time.time()), "09:30 - 14:30", result)
+    # Define IST timezone
+    ist = pytz.timezone("Asia/Kolkata")
+    
+    # Convert signal_time to IST
+    signal_time_ist = signal_time.astimezone(ist)
+    result = "Pass" if start_time <= signal_time_ist <= end_time else "Fail"
+    add_param_row("Signal Time", str(signal_time_ist.time()), "09:30 - 14:30", result)
 
      #------------------------------------------------------------------------------ 
 

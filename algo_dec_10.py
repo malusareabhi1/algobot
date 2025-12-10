@@ -662,7 +662,7 @@ def trading_signal_all_conditions(df, quantity=10*75, return_all_signals=False):
         # Get 09:15–09:30 candle of current day
         candle_915 = df[(df['Date'] == day1) &
                         (df['Datetime'].dt.hour == 9) &
-                        (df['Datetime'].dt.minute == 15)]
+                        (df['Datetime'].dt.minute == 30)]
         if candle_915.empty:
             return None
     

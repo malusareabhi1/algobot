@@ -79,11 +79,7 @@ def add_param_row(parameter, value, value_range, result):
         "Range": value_range,
         "Result": result
     })
-if st.session_state.param_rows:
-    df = pd.DataFrame(st.session_state.param_rows)
-    st.table(df)
-else:
-    st.write("No parameters added yet.")
+
 
 
     
@@ -6104,6 +6100,15 @@ elif MENU =="LIVE TRADE 3":
         st.write("Lot Size:", lots)
         qty=75*lots
     st.divider()
+    #-----------------------------------------Display PARA-------------------------------------------
+    if st.session_state.param_rows:
+        df = pd.DataFrame(st.session_state.param_rows)
+        st.table(df)
+    else:
+        st.write("No parameters added yet.")
+    
+    
+    
     #------------------------------------PLACING ORDERS--------------------------------------------
     st.write(f"Placing order for:", trending_symbol)
     if(position_size=='none'):

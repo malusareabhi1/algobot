@@ -85,12 +85,7 @@ if st.session_state.param_rows:
 else:
     st.write("No parameters added yet.")
 
-if is_kite_connected(kite):
-        funds = get_fund_status(kite)
-        cash = (funds['cash'])
-        #iv_value = 0.26
-        result = "Pass" if 75000 <= cash <= 25000 else "Fail"
-        add_param_row("CASH", cash, "25K - 100K", result)
+
     
 #--------------------------------------------LOT SIZE-----------------------------------
 
@@ -5753,6 +5748,7 @@ elif MENU =="LIVE TRADE 3":
     # --- SESSION STATE INIT ---
     if "order_executed" not in st.session_state:
         st.session_state.order_executed = False
+        
     
     if "signal_time" not in st.session_state:
         st.session_state.signal_time = None
@@ -5773,6 +5769,16 @@ elif MENU =="LIVE TRADE 3":
     # Place at the very top of your script (or just before plotting)
     #st_autorefresh(interval=60000, limit=None, key="refresh")
     # Current time in IST
+    #----------------------------------------------------------------------
+    #if is_kite_connected(kite):
+    funds = get_fund_status(kite)
+    cash = (funds['cash'])
+    #iv_value = 0.26
+    result = "Pass" if 75000 <= cash <= 25000 else "Fail"
+    add_param_row("CASH", cash, "25K - 100K", result)
+
+
+    #---------------------------------------------------------------------
     ist = pytz.timezone("Asia/Kolkata")
     now = datetime.now(ist).time()
     

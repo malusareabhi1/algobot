@@ -5875,12 +5875,13 @@ elif MENU =="LIVE TRADE 3":
     st.write("Current IV:", iv_info["iv"], "%")
     st.write("IV Rank:", iv_info["iv_rank"], "%")
 
-    # Safely extract values
-    iv_value = iv_info.get("iv") or 0
-    iv_rank_value = iv_info.get("iv_rank") or 0
-    
-    st.write("After None Current IV:", iv_value, "%")
-    st.write("After None IV Rank:", iv_rank_value, "%")
+    if(iv_info["iv"]=='None'):
+        # Safely extract values
+        iv_value = iv_info.get("iv") or 0
+        iv_rank_value = iv_info.get("iv_rank") or 0
+        
+        st.write("After None Current IV:", iv_value, "%")
+        st.write("After None IV Rank:", iv_rank_value, "%")
     
         
 

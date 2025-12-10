@@ -47,6 +47,28 @@ def fetch_india_vix_kite(kite):
         st.write("VIX fetch error from Kite:", e)
         return None
 
+#---------------------------------ORDeRS----------------------------
+
+def show_kite_orders(kite):
+    try:
+        orders = kite.orders()   # fetch all orders
+        
+        if not orders:
+            st.warning("No orders found.")
+            return
+        
+        # Convert to DataFrame for neat display
+        import pandas as pd
+        df = pd.DataFrame(orders)
+
+        # Optional: sort latest first
+        df = df.sort_values("order_timestamp", ascending=False)
+
+        st.subheader("📦 Order Book")
+        st.dataframe(df, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Error fetching orders: {e}")
 
 # ---------------------------------VIX---------------------------
 
@@ -6032,7 +6054,8 @@ elif MENU =="LIVE TRADE 3":
         st.write(order)
 
 
-#--------------------------------------------------------------------------------
+#------------------------------------ORDERS--------------------------------------------
+    show_kite_orders(kite)
 
 #--------------------------------------------------------------------------------
 

@@ -6145,7 +6145,12 @@ elif MENU =="LIVE TRADE 3":
 
     # Convert to Python datetime (with timezone if needed)
     signal_time = pd.to_datetime(signal_time).to_pydatetime()
-    
+    #-----------------------Add PARA----------------------------------------------
+    # VIX
+    result = "Pass" if start_time <= signal_time <= end_time else "Fail"
+    add_param_row("Signal Time", str(signal_time.time()), "09:30 - 14:30", result)
+
+     #------------------------------------------------------------------------------   
     # Optional: ensure same timezone as now
     #import pytz
     tz = pytz.timezone("Asia/Kolkata")

@@ -6066,9 +6066,14 @@ elif MENU =="LIVE TRADE 3":
     #vix_now =fetch_vix_from_fyers()
     
     vix_now = fetch_india_vix_kite(kite)
-    st.write("India VIX: kite", vix_now)
+    #st.write("India VIX: kite", vix_now)
     #st.write("India VIX:", vix_now)
-    
+ #-----------------------Add PARA----------------------------------------------
+    # VIX
+    result = "Pass" if vix_now < 15 else "Fail"
+    add_param_row("VIX", round(vix_now, 2), "< 15", result)
+
+ #------------------------------------------------------------------------------   
     # Apply IV + VIX Filter
     # -------------------------
         #allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_now)

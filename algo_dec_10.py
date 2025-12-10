@@ -6091,10 +6091,12 @@ elif MENU =="LIVE TRADE 3":
 #-----------------------Add PARA----------------------------------------------
     # IV
     result = "Pass" if 0.10 <= iv_info["iv"] <= 0.35 else "Fail"
+    iv_result = result    
     add_param_row("IV", round(iv_info["iv"], 2), "0.10 - 0.35", result)
 
     # IV Rank
     result = "Pass" if 0.20 <= iv_info["iv_rank"] <= 0.70 else "Fail"
+    iv_rank_result  = result    
     add_param_row("IV Rank", round(iv_info["iv_rank"], 2), "0.20 - 0.70", result)
 
     
@@ -6118,6 +6120,7 @@ elif MENU =="LIVE TRADE 3":
  #-----------------------Add PARA----------------------------------------------
     # VIX
     result = "Pass" if vix_now < 15 else "Fail"
+    vix_result  = result     
     add_param_row("VIX", round(vix_now, 2), "< 15", result)
 
  #------------------------------------------------------------------------------   
@@ -6213,9 +6216,20 @@ elif MENU =="LIVE TRADE 3":
      #------------------------------------ADD PCR------------------------------------------ 
     pcr_value = get_nifty_pcr(kite)
     result = "Pass" if 0.80 <= pcr_value <= 1.30 else "Fail"
+    pcr_result= result
     add_param_row("PCR", round(pcr_value, 2), "0.80 - 1.30", result)
 
+#-------------------------------------lot ty------------------------------------------------
+     # Default lot size
+     qty = 1
+     
+     # Apply rule
+     if iv_result == "Fail" or iv_rank_result == "Fail":
+         qty = 2
+      if iv_result == "Pass" and iv_rank_result == "pass" and vix_result=="pass" and pcr_result=="pass":
+         qty = 6    
 
+     add_param_row("LOT QTY", lot_qty, "2 or 6", "OK")
      #-----------------------------------------Display PARA-------------------------------------------
     if st.session_state.param_rows:
         df = pd.DataFrame(st.session_state.param_rows)

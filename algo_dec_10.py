@@ -28,6 +28,33 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+#--------------------------------------Fund Status------------------------------------
+
+def get_fund_status(kite, segment="equity"):
+    """
+    Returns Zerodha fund/margin status.
+    segment = "equity" or "commodity"
+    """
+
+    try:
+        funds = kite.margins(segment=segment)
+
+        result = {
+            "net": funds.get("net", 0),
+            "cash": funds["available"].get("cash", 0),
+            "opening_balance": funds["available"].get("opening_balance", 0),
+            "collateral": funds["available"].get("collateral", 0),
+            "intraday_payin": funds["available"].get("intraday_payin", 0),
+            "option_premium": funds["utilised"].get("option_premium", 0),
+            "span": funds["utilised"].get("span", 0),
+            "exposure": funds["utilised"].get("exposure", 0),
+            "payout": funds["utilised"].get("payout", 0)
+        }
+
+        return result
+
+    except Exception as e:
+        return {"error": str(e)}
 
 
 #----------------------------------VIX KITE------------------------------
@@ -5992,8 +6019,9 @@ elif MENU =="LIVE TRADE 3":
     allowed, position_size = combined_filter(iv_value, iv_rank_value, vix_now)
     st.write("Allowed to Trade?", allowed)
     st.write("Position Size:", position_size)
+    #-----------------------------------------------------------------------------------------
     
-    #--------------------------------------------------------------------------------
+    #---------------------------------tIME-----------------------------------------------
     import pytz
             
     # IST timezone
@@ -6003,8 +6031,23 @@ elif MENU =="LIVE TRADE 3":
 
     tz = pytz.timezone("Asia/Kolkata")
     now = datetime.now(tz)
+    #----------------------------------FUND-----------------------------------------------------
+
+    funds = get_fund_status(kite)
+
+    st.subheader("💰 Zerodha Fund Status")
     
-    #--------------------------------------------------------------------------------
+    if "error" in funds:
+        st.error(funds["error"])
+    else:
+        st.write(f"**Net Balance:** ₹{funds['net']}")
+        st.write(f"**Cash:** ₹{funds['cash']}")
+        st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
+        st.write(f"**Collateral:** ₹{funds['collateral']}")
+        st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
+
+    
+    #------------------------------------PLACING ORDERS--------------------------------------------
     st.write(f"Placing order for:", trending_symbol)
     if(position_size=='none'):
         position_size=1;

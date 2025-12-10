@@ -5975,7 +5975,7 @@ elif MENU =="LIVE TRADE 3":
     now = now_dt.time()            # extract time only for comparisons
     st.write("Now", now)
     #------------------------------------------------
-    st.write(f"Placing order for:", tradingsymbol)
+    st.write(f"Placing order for:", trending_symbol)
     st.write(f"Quantity: {qty}, LTP: {ltp}")
             
     #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):

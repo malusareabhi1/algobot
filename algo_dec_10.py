@@ -28,6 +28,11 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+if "kite" not in st.session_state:
+        st.session_state.kite = None
+else:
+        kite = st.session_state.get("kite")
+
 def is_kite_connected(kite):
         try:
             kite.profile()

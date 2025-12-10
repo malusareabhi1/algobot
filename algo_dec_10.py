@@ -5973,7 +5973,7 @@ elif MENU =="LIVE TRADE 3":
     ist = pytz.timezone("Asia/Kolkata")
     now_dt = datetime.now(ist)     # full datetime object
     now = now_dt.time()            # extract time only for comparisons
-    st.write("Now", now)
+    
     #------------------------------------------------
     st.write(f"Placing order for:", trending_symbol)
     if(position_size=='none'):
@@ -5987,6 +5987,7 @@ elif MENU =="LIVE TRADE 3":
     end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
     st.write("start_time", start_time)
     st.write("end_time", end_time)
+    st.write("Now Time", now)
     #--------------------------------------------------------------------------------
 
 

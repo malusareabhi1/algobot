@@ -6124,43 +6124,43 @@ elif MENU =="LIVE TRADE 3":
     # -------------------------
         #allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_now)
     # Safely extract values
-    iv_value = iv_info.get("iv") or 0
-    iv_rank_value = iv_info.get("iv_rank") or 0
-    allowed, position_size = combined_filter(iv_value, iv_rank_value, vix_now)
-    st.write("Allowed to Trade?", allowed)
-    st.write("Position Size:", position_size)
+        iv_value = iv_info.get("iv") or 0
+        iv_rank_value = iv_info.get("iv_rank") or 0
+        allowed, position_size = combined_filter(iv_value, iv_rank_value, vix_now)
+        st.write("Allowed to Trade?", allowed)
+        st.write("Position Size:", position_size)
     #-----------------------------------------------------------------------------------------
     
     #---------------------------------tIME-----------------------------------------------
-    import pytz
+        import pytz
             
     # IST timezone
-    ist = pytz.timezone("Asia/Kolkata")
-    now_dt = datetime.now(ist)     # full datetime object
-    now = now_dt.time()            # extract time only for comparisons
+        ist = pytz.timezone("Asia/Kolkata")
+        now_dt = datetime.now(ist)     # full datetime object
+        now = now_dt.time()            # extract time only for comparisons
 
-    tz = pytz.timezone("Asia/Kolkata")
-    now = datetime.now(tz)
+        tz = pytz.timezone("Asia/Kolkata")
+        now = datetime.now(tz)
      #----------------------------------FUND-----------------------------------------------------
-    st.divider()
+        st.divider()
 
-    funds = get_fund_status(kite)
+        funds = get_fund_status(kite)
 
-    st.subheader("💰 Zerodha Fund Status")
+        st.subheader("💰 Zerodha Fund Status")
     
-    if "error" in funds:
-        st.error(funds["error"])
-    else:
-        st.write(f"**Net Balance:** ₹{funds['net']}")
-        st.write(f"**Cash:** ₹{funds['cash']}")
-        st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
-        st.write(f"**Collateral:** ₹{funds['collateral']}")
-        st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
-        #cash_balance = 73500
-        lots = get_lot_size(funds['cash'])
-        st.write("Lot Size:", lots)
-        qty=75*lots
-    st.divider()
+        if "error" in funds:
+               st.error(funds["error"])
+        else:
+             st.write(f"**Net Balance:** ₹{funds['net']}")
+             st.write(f"**Cash:** ₹{funds['cash']}")
+             st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
+             st.write(f"**Collateral:** ₹{funds['collateral']}")
+             st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
+             #cash_balance = 73500
+             lots = get_lot_size(funds['cash'])
+             st.write("Lot Size:", lots)
+             qty=75*lots
+             st.divider()
 
    
     

@@ -6819,7 +6819,7 @@ elif MENU=="Live IV/RANK":
      
      
      
-    spot = 25898.0   # live NIFTY spot
+    spot = 25898.55  # live NIFTY spot
      
     result = compute_option_iv_details(option, spot)
      

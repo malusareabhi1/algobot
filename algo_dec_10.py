@@ -4330,14 +4330,9 @@ elif MENU == "Zerodha Broker API":
             st.session_state.connected_broker = "Zerodha"
 
             st.success("🎉 Zerodha Connected Successfully!")
-            st.info("Downloading latest instruments.csv…")
+            #st.info("Downloading latest instruments.csv…")
 
-            ok, msg = download_instruments_csv()
-        
-            if ok:
-                st.success("instruments.csv downloaded successfully.")
-            else:
-                st.error(f"Failed to download instruments.csv: {msg}")
+           
 
         
 

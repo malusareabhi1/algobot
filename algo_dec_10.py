@@ -6263,13 +6263,13 @@ elif MENU =="LIVE TRADE 3":
              else:
                  st.info("Order already executed for this signal.")
             
-         else:
+        else:
              st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
 #--------------------------------ORDERS------------------------------------------------
-         st.divider()
+        st.divider()
          #st.autorefresh(interval=5000)  # refresh every 5 seconds
     
-         if "last_order_id" in st.session_state:
+        if "last_order_id" in st.session_state:
              order_id = st.session_state["last_order_id"]
              order = kite.order_history(order_id)[-1]
              st.write("### 🔄 Live Order Update")

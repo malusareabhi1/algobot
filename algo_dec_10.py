@@ -6165,16 +6165,16 @@ elif MENU =="LIVE TRADE 3":
    
     
     #------------------------------------PLACING ORDERS--------------------------------------------
-    st.write(f"Placing order for:", trending_symbol)
-    if(position_size=='none'):
-        position_size=1;
-    #st.write(f"Quantity: {qty}, LTP: {ltp}")
-    st.write(f"Quantity  order for:", qty)        
-    #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
-    # Condition 1: Current time >= signal candle time
-    # Trading window
-    start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
-    end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+        st.write(f"Placing order for:", trending_symbol)
+        if(position_size=='none'):
+             position_size=1;
+        #st.write(f"Quantity: {qty}, LTP: {ltp}")
+        st.write(f"Quantity  order for:", qty)        
+        #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
+        # Condition 1: Current time >= signal candle time
+        # Trading window
+        start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
+        end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
     #st.write("start_time", start_time)
     #st.write("end_time", end_time)
     #st.write("Now Time", now)
@@ -6183,37 +6183,37 @@ elif MENU =="LIVE TRADE 3":
     
     #-------------------------------------------------------------------------------
 
-    # Convert to Python datetime (with timezone if needed)
-    signal_time = pd.to_datetime(signal_time).to_pydatetime()
+        # Convert to Python datetime (with timezone if needed)
+        signal_time = pd.to_datetime(signal_time).to_pydatetime()
    
     # Optional: ensure same timezone as now
     #import pytz
-    tz = pytz.timezone("Asia/Kolkata")
-    signal_time = signal_time.replace(tzinfo=tz)
+        tz = pytz.timezone("Asia/Kolkata")
+        signal_time = signal_time.replace(tzinfo=tz)
     #    st.write("signal_time",signal_time)
     #st.write("Now Time", now)
     #--------------------------------------------------------------------------------
      #-----------------------Add PARA----------------------------------------------
     # Define IST timezone
-    ist = pytz.timezone("Asia/Kolkata")
+        ist = pytz.timezone("Asia/Kolkata")
     
     # Convert signal_time to IST
-    signal_time_ist = signal_time.astimezone(ist)
-    import datetime as dt
+       signal_time_ist = signal_time.astimezone(ist)
+       import datetime as dt
 
-    start = dt.time(9, 30)
-    end   = dt.time(14, 30)
+       start = dt.time(9, 30)
+       end   = dt.time(14, 30)
     
-    sig_t = signal_time_ist.time()
+       sig_t = signal_time_ist.time()
     
-    result = "Pass" if start <= sig_t <= end else "Fail"
+       result = "Pass" if start <= sig_t <= end else "Fail"
     
-    add_param_row("Signal Time", str(signal_time_ist.time()),"09:30 - 14:30",result)
+       add_param_row("Signal Time", str(signal_time_ist.time()),"09:30 - 14:30",result)
      #------------------------------------ADD PCR------------------------------------------ 
-    pcr_value = get_nifty_pcr(kite)
-    result = "Pass" if 0.80 <= pcr_value <= 1.30 else "Fail"
-    pcr_result= result
-    add_param_row("PCR", round(pcr_value, 2), "0.80 - 1.30", result)
+       pcr_value = get_nifty_pcr(kite)
+       result = "Pass" if 0.80 <= pcr_value <= 1.30 else "Fail"
+       pcr_result= result
+       add_param_row("PCR", round(pcr_value, 2), "0.80 - 1.30", result)
 
 #-------------------------------------lot ty------------------------------------------------
      # Default lot size

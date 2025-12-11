@@ -165,7 +165,7 @@ option = {
 }
 
 
-spot = 25820.40   # live NIFTY spot
+spot = 25888.40   # live NIFTY spot
 
 result = compute_option_iv_details(option, spot)
 

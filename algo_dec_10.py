@@ -52,9 +52,181 @@ def is_kite_connected(kite):
             return True
         except:
             return False
-#----------------------------------------------------------------------------------------------
+#----------------------------------IV , RANK------------------------------------------------------------
+
+def safe_float(x, default=None):
+    try:
+        if x is None:
+            return default
+        if isinstance(x, str):
+            x = x.strip()
+            if x in ["", "--", "NaN", "None"]:
+                return default
+        return float(x)
+    except Exception:
+        return default
 
 def get_iv_rank(kite, option, lookback_days=252):
+    """
+    Calculate IV and IV Rank for a selected NIFTY option using Zerodha kite.
+    - option: dict with keys: instrument_token, strike, option_type (CE/PE), expiry, tradingsymbol (optional)
+    - compute_option_iv(option_dict, spot_price) must accept option_dict and spot and return float IV (in % or decimal depending on impl).
+    """
+    try:
+        # --- 1) Get current spot ---
+        spot_resp = kite.ltp("NSE:NIFTY 50")
+        # safe extraction
+        spot_now = None
+        try:
+            spot_now = safe_float(spot_resp["NSE:NIFTY 50"]["last_price"])
+        except Exception:
+            # try alternative keys
+            try:
+                spot_now = safe_float(list(spot_resp.values())[0]["last_price"])
+            except Exception:
+                spot_now = None
+
+        if spot_now is None:
+            raise ValueError("Cannot read NIFTY spot from kite.ltp response")
+
+        # --- 2) Current option LTP (real-time) ---
+        # Try to fetch option LTP via instrument token or tradingsymbol
+        opt_ltp = None
+        try:
+            # if option contains tradingsymbol use it
+            if "tradingsymbol" in option:
+                opt_sym = option["tradingsymbol"]
+                opt_resp = kite.ltp(opt_sym)
+                # choose the first value
+                opt_ltp = safe_float(list(opt_resp.values())[0].get("last_price"))
+            else:
+                opt_resp = kite.ltp(option["instrument_token"])
+                opt_ltp = safe_float(list(opt_resp.values())[0].get("last_price"))
+        except Exception:
+            # fallback: if option dict itself has an ltp/last_price provided externally
+            opt_ltp = safe_float(option.get("ltp") or option.get("last_price"))
+
+        # Build a dict to pass to compute_option_iv
+        cur_option_for_iv = {
+            "strike": option["strike"],
+            "option_type": option["option_type"],
+            "expiry": option["expiry"],
+            # the key name 'market_price' or 'ltp' must match what compute_option_iv expects
+            "market_price": opt_ltp if opt_ltp is not None else 0.0
+        }
+
+        current_iv = compute_option_iv(cur_option_for_iv, spot_now)
+        # if compute_option_iv returns decimal (0.09) and you expect percent (9.0), normalize accordingly
+        # handle None
+        if current_iv is None:
+            # debug: show what we tried
+            print("DEBUG: compute_option_iv returned None for current option. Inputs:", cur_option_for_iv, "spot", spot_now)
+            return {"iv": None, "iv_rank": None}
+
+        # ensure numeric
+        current_iv = safe_float(current_iv)
+        if current_iv is None:
+            return {"iv": None, "iv_rank": None}
+
+        # --- 3) Historical fetch (we will align by date) ---
+        # fetch a bigger historical window to accommodate holidays
+        from_date = (datetime.now() - timedelta(days=lookback_days * 2)).strftime("%Y-%m-%d")
+        to_date = datetime.now().strftime("%Y-%m-%d")
+
+        # spot history
+        nifty_token = kite.ltp("NSE:NIFTY 50")
+        # extract instrument_token safely
+        try:
+            nifty_token_val = list(nifty_token.values())[0]["instrument_token"]
+        except Exception:
+            nifty_token_val = None
+
+        if nifty_token_val is None:
+            raise ValueError("Could not obtain instrument_token for NIFTY from kite.ltp")
+
+        nifty_hist = kite.historical_data(
+            instrument_token=nifty_token_val,
+            from_date=from_date,
+            to_date=to_date,
+            interval="day"
+        )
+        nifty_df = pd.DataFrame(nifty_hist)
+        if not nifty_df.empty:
+            # ensure datetime column named 'date' exists and normalized to date only
+            if 'date' in nifty_df.columns:
+                nifty_df['date'] = pd.to_datetime(nifty_df['date']).dt.date
+            else:
+                # create date from 'time'/'datetime' columns if present
+                nifty_df['date'] = pd.to_datetime(nifty_df.iloc[:,0]).dt.date
+
+            nifty_df = nifty_df[['date', 'close']].rename(columns={'close':'spot_close'})
+
+        # option history
+        option_hist = kite.historical_data(
+            instrument_token=option["instrument_token"],
+            from_date=from_date,
+            to_date=to_date,
+            interval="day"
+        )
+        option_df = pd.DataFrame(option_hist)
+        if not option_df.empty:
+            option_df['date'] = pd.to_datetime(option_df['date']).dt.date
+            option_df = option_df[['date', 'close']].rename(columns={'close':'opt_close'})
+
+        # Merge on date using inner join to ensure matching days only
+        if option_df.empty or nifty_df.empty:
+            print("DEBUG: historical data empty. option_df len:", len(option_df), "nifty_df len:", len(nifty_df))
+            return {"iv": round(current_iv,2), "iv_rank": None}
+
+        merged = pd.merge(nifty_df, option_df, on='date', how='inner')
+        if merged.empty:
+            # try nearest-date merge (in case of mismatched trading days)
+            merged = pd.merge_asof(option_df.sort_values('date'), 
+                                   nifty_df.sort_values('date'), 
+                                   on='date', direction='nearest', tolerance=pd.Timedelta('2D'))
+            # after merge_asof, column names might be opt_close and spot_close
+            if merged is None or merged.empty:
+                print("DEBUG: No merged historical rows after merge_asof")
+                return {"iv": round(current_iv,2), "iv_rank": None}
+
+        # Compute historical IVs
+        ivs = []
+        for _, row in merged.iterrows():
+            hist_opt = {
+                "strike": option["strike"],
+                "option_type": option["option_type"],
+                "ltp": safe_float(row.get('opt_close')),
+                "expiry": option["expiry"],
+                # ensure compute_option_iv gets the same key name it expects; adjust if needed
+            }
+            spot_price = safe_float(row.get('spot_close'))
+            if hist_opt["ltp"] is None or spot_price is None:
+                continue
+            iv_val = compute_option_iv(hist_opt, spot_price)
+            iv_val = safe_float(iv_val)
+            if iv_val is not None:
+                ivs.append(iv_val)
+
+        if not ivs:
+            print("DEBUG: no historical IVs computed. merged rows:", len(merged))
+            return {"iv": round(current_iv,2), "iv_rank": None}
+
+        iv_low = min(ivs)
+        iv_high = max(ivs)
+
+        if iv_high - iv_low == 0:
+            iv_rank = 0.0
+        else:
+            iv_rank = (current_iv - iv_low) / (iv_high - iv_low) * 100.0
+
+        return {"iv": round(current_iv, 2), "iv_rank": round(iv_rank, 2)}
+
+    except Exception as e:
+        print("IV Rank error:", e)
+        return {"iv": None, "iv_rank": None}
+
+#----------------------------------------------------------------------------------------
+def get_iv_rank0(kite, option, lookback_days=252):
         """
         Calculate IV and IV Rank for a selected NIFTY option using Zerodha.
         """

@@ -1,13 +1,26 @@
 from datetime import datetime
 
+
+
 def days_to_expiry(expiry_timestamp):
-    """Convert expiry Timestamp to days remaining."""
+    """Safe expiry-day calculator for timezone or non-timezone timestamps."""
+
     if expiry_timestamp is None:
         return 0
 
-    now = datetime.now(expiry_timestamp.tzinfo)
+    # If expiry has no timezone, make both naive
+    if expiry_timestamp.tzinfo is None:
+        now = datetime.now()
+    else:
+        now = datetime.now(expiry_timestamp.tzinfo)
+
     diff = expiry_timestamp - now
-    return max(diff.days + diff.seconds / 86400, 0)
+
+    # Convert to days (can include fractional days)
+    days = diff.total_seconds() / 86400
+
+    return max(days, 0)
+
 from math import log, sqrt, exp
 from scipy.stats import norm
 

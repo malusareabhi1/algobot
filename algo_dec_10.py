@@ -6080,7 +6080,7 @@ elif MENU =="LIVE TRADE 3":
             print("IV Rank error:", e)
             return {"iv": None, "iv_rank": None}
         
-    iv_info = get_iv_rank(kite, nearest_itm, lookback_days=30)
+        iv_info = get_iv_rank(kite, nearest_itm, lookback_days=30)
 
     ##st.write("Current IV:", iv_info["iv"], "%")
     #st.write("IV Rank:", iv_info["iv_rank"], "%")

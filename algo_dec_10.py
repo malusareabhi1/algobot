@@ -6158,11 +6158,11 @@ elif MENU =="LIVE TRADE 3":
         if "error" in funds:
                st.error(funds["error"])
         else:
-             st.write(f"**Net Balance:** ₹{funds['net']}")
+             #st.write(f"**Net Balance:** ₹{funds['net']}")
              st.write(f"**Cash:** ₹{funds['cash']}")
-             st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
-             st.write(f"**Collateral:** ₹{funds['collateral']}")
-             st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
+             #st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
+             #st.write(f"**Collateral:** ₹{funds['collateral']}")
+             #st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
              #cash_balance = 73500
              lots = get_lot_size(funds['cash'])
              st.write("Lot Size:", lots)

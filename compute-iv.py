@@ -1,6 +1,43 @@
 from datetime import datetime
 import pandas as pd
 import streamlit as st
+
+
+def get_option_instrument_details(tradingsymbol):
+    df = load_kite_instruments()
+    row = df[df["tradingsymbol"] == tradingsymbol]
+
+    if row.empty:
+        return None
+
+    row = row.iloc[0]
+
+    return {
+        "tradingsymbol": tradingsymbol,
+        "strike": row["strike"],
+        "instrument_token": int(row["instrument_token"]),
+        "option_type": "CALL" if row["instrument_type"] == "CE" else "PUT",
+        "expiry": str(row["expiry"]),
+        "lot_size": int(row["lot_size"]),
+        "tick_size": float(row["tick_size"]),
+        "segment": row["segment"],
+        "exchange": row["exchange"],
+        "name": row["name"]
+    }
+
+def enrich_with_ltp(kite, option_data):
+    symbol = f"NFO:{option_data['tradingsymbol']}"
+    ltp_data = kite.ltp(symbol)
+    option_data["ltp"] = ltp_data[symbol]["last_price"]
+    return option_data
+    
+def get_live_option_details(kite, tradingsymbol):
+    base = get_option_instrument_details(tradingsymbol)
+    if base is None:
+        return None
+    return enrich_with_ltp(kite, base)
+
+
 def days_to_expiry(expiry_timestamp):
     """Robust expiry calculator handling messy formats like Timestamp('2025-12-16')."""
 
@@ -142,27 +179,13 @@ def compute_option_iv_details(option_dict, spot_price):
         "iv": iv,
         "iv_rank": iv_rank
     }
-option = {
-    "tradingsymbol": "NIFTY25D1625850CE",
-    "strike": 25850,
-    "option_type": "CALL",
-    "expiry": "Timestamp('2025-12-16 00:00:00')",   # your Pandas Timestamp
-    "ltp": 138.65
-}
+    
+tradingsymbol = "NIFTY25D1625850CE"
 
-option = {
-    "tradingsymbol": "NIFTY25D1625850CE",
-    "strike": 25850,
-    "instrument_token": 12343810,
-    "option_type": "CALL",
-    "expiry": "Timestamp('2025-12-16 00:00:00')",
-    "lot_size": 75,
-    "tick_size": 0.05,
-    "segment": "NFO-OPT",
-    "exchange": "NFO",
-    "name": "NIFTY",
-    "ltp": 160
-}
+option = get_live_option_details(kite, tradingsymbol)
+
+st.write(option)
+
 
 
 spot = 25888.40   # live NIFTY spot

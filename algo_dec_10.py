@@ -5827,7 +5827,8 @@ elif MENU =="LIVE TRADE 3":
     
     # Refresh only between 9:30–3:25
     if start <= now <= end:
-        st_autorefresh(interval=60000, key="refresh")  # 1 minute refresh
+        #st_autorefresh(interval=60000, key="refresh")  # 1 minute refresh
+        st_autorefresh(interval=60000, key="refresh_live3")
     else:
         st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
 

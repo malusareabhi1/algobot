@@ -6376,7 +6376,7 @@ elif MENU =="LIVE TRADE 3":
 
     
         
-        iv_info = get_iv_rank0(kite, nearest_itm, lookback_days=30)
+        iv_info = get_iv_rank0(kite, nearest_itm, lookback_days=250)
        
         #st.write("New Way Iv ",iv)  
          # Fix missing values

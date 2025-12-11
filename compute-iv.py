@@ -161,7 +161,7 @@ option = {
     "segment": "NFO-OPT",
     "exchange": "NFO",
     "name": "NIFTY",
-    "ltp": 157
+    "ltp": 160
 }
 
 

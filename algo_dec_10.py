@@ -223,7 +223,7 @@ def get_iv_rank(kite, option, lookback_days=252):
 
     except Exception as e:
         print("IV Rank error:", e)
-        return {"iv": None, "iv_rank": None}
+        return {"iv": 0, "iv_rank": 0}
 
 #----------------------------------------------------------------------------------------
 def get_iv_rank0(kite, option, lookback_days=252):

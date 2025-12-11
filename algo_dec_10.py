@@ -6172,11 +6172,11 @@ elif MENU =="LIVE TRADE 3":
    
     
     #------------------------------------PLACING ORDERS--------------------------------------------
-        st.write(f"Placing order for:", trending_symbol)
+        #st.write(f"Placing order for:", trending_symbol)
         if(position_size=='none'):
              position_size=1;
         #st.write(f"Quantity: {qty}, LTP: {ltp}")
-        st.write(f"Quantity  order for:", qty)        
+        #st.write(f"Quantity  order for:", qty)        
         #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
         # Condition 1: Current time >= signal candle time
         # Trading window

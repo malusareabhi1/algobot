@@ -6082,28 +6082,28 @@ elif MENU =="LIVE TRADE 3":
         
         iv_info = get_iv_rank(kite, nearest_itm, lookback_days=30)
 
-    ##st.write("Current IV:", iv_info["iv"], "%")
-    #st.write("IV Rank:", iv_info["iv_rank"], "%")
+         ##st.write("Current IV:", iv_info["iv"], "%")
+         #st.write("IV Rank:", iv_info["iv_rank"], "%")
 #-----------------------Add PARA----------------------------------------------
     # IV
-    result = "Pass" if 0.10 <= iv_info["iv"] <= 0.35 else "Fail"
-    iv_result = result    
-    add_param_row("IV", round(iv_info["iv"], 2), "0.10 - 0.35", result)
+        result = "Pass" if 0.10 <= iv_info["iv"] <= 0.35 else "Fail"
+        iv_result = result    
+        add_param_row("IV", round(iv_info["iv"], 2), "0.10 - 0.35", result)
 
     # IV Rank
-    result = "Pass" if 0.20 <= iv_info["iv_rank"] <= 0.70 else "Fail"
-    iv_rank_result  = result    
-    add_param_row("IV Rank", round(iv_info["iv_rank"], 2), "0.20 - 0.70", result)
+        result = "Pass" if 0.20 <= iv_info["iv_rank"] <= 0.70 else "Fail"
+        iv_rank_result  = result    
+        add_param_row("IV Rank", round(iv_info["iv_rank"], 2), "0.20 - 0.70", result)
 
     
 #-------------------------------------------------------------------------
-    if(iv_info["iv"]=='None'):
-        # Safely extract values
-        iv_value = iv_info.get("iv") or 0
-        iv_rank_value = iv_info.get("iv_rank") or 0
-        
-        st.write("After None Current IV:", iv_value, "%")
-        st.write("After None IV Rank:", iv_rank_value, "%")
+        if(iv_info["iv"]=='None'):
+             # Safely extract values
+             iv_value = iv_info.get("iv") or 0
+             iv_rank_value = iv_info.get("iv_rank") or 0
+             
+             st.write("After None Current IV:", iv_value, "%")
+             st.write("After None IV Rank:", iv_rank_value, "%")
     
         
 

@@ -1,22 +1,27 @@
 from datetime import datetime
-
-
+import pandas as pd
 
 def days_to_expiry(expiry_timestamp):
-    """Safe expiry-day calculator for timezone or non-timezone timestamps."""
+    """Robust expiry calculator handling str, datetime, Timestamp."""
 
     if expiry_timestamp is None:
         return 0
 
-    # If expiry has no timezone, make both naive
+    # Convert string to pandas Timestamp
+    if isinstance(expiry_timestamp, str):
+        expiry_timestamp = pd.to_datetime(expiry_timestamp)
+
+    # Convert numpy datetime64 to Timestamp
+    if not hasattr(expiry_timestamp, "tzinfo"):
+        expiry_timestamp = pd.to_datetime(expiry_timestamp)
+
+    # Handle timezone or non-timezone datetime
     if expiry_timestamp.tzinfo is None:
         now = datetime.now()
     else:
         now = datetime.now(expiry_timestamp.tzinfo)
 
     diff = expiry_timestamp - now
-
-    # Convert to days (can include fractional days)
     days = diff.total_seconds() / 86400
 
     return max(days, 0)

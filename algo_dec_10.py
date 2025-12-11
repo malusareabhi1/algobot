@@ -6119,6 +6119,12 @@ elif MENU == "Setting":
 elif MENU =="LIVE TRADE 3":
     st.title("🔴 LIVE TRADE 3")
     #st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")
+    if not is_kite_connected(kite):
+        st.warning("Please login first to access your account details.")
+        st.stop()     # Stop page execution safely
+
+    #st.success("You are logged in.")
+     
     st.session_state.param_rows = []
     from streamlit_autorefresh import st_autorefresh
     import time             # Python's time module

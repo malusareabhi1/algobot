@@ -54,7 +54,7 @@ def is_kite_connected(kite):
             return False
 #----------------------------------------------------------------------------------------------
 
-def get_iv_rank(kite, option, lookback_days=30):
+def get_iv_rank(kite, option, lookback_days=252):
         """
         Calculate IV and IV Rank for a selected NIFTY option using Zerodha.
         """

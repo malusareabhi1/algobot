@@ -52,6 +52,32 @@ def is_kite_connected(kite):
             return True
         except:
             return False
+#-------------------------------------------------------------------------------------------------
+import math
+
+def compute_iv(ltp, spot, strike, time_to_expiry, is_call=True):
+    try:
+        # Avoid invalid values
+        if ltp <= 0 or time_to_expiry <= 0:
+            return 0
+
+        # Approximation formula
+        intrinsic = max(0, spot - strike) if is_call else max(0, strike - spot)
+        extrinsic = max(ltp - intrinsic, 0.01)
+
+        # Very stable approximate IV formula
+        iv = math.sqrt(2 * math.pi) * (extrinsic / (spot * math.sqrt(time_to_expiry)))
+
+        # Bound the IV inside 0–1
+        if iv < 0:
+            iv = 0
+        if iv > 1:
+            iv = 1
+
+        return iv
+
+    except Exception:
+        return 0
 
 #----------------------------------------IV-----------------------------------------------------
 
@@ -2212,7 +2238,7 @@ with st.sidebar:
 
     MENU = st.radio(
         "Navigate",
-        ["Home", "Strategies","My Account", "Zerodha Broker API","Groww Broker API", "Dashboard","Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","Live Trade2","LIVE TRADE 3","Test1","Logout"],
+        ["Home", "Strategies","My Account", "Zerodha Broker API","Groww Broker API", "Dashboard","Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","Live Trade2","LIVE TRADE 3","Test1","Live  IV/RANK","Logout"],
         index=0,
     )
 
@@ -6330,7 +6356,9 @@ elif MENU =="LIVE TRADE 3":
 
     
         
-        iv_info = get_iv_rank(kite, nearest_itm, lookback_days=30)
+        iv_info = get_iv_rank0(kite, nearest_itm, lookback_days=30)
+        iv = compute_iv(ltp=nearest_itm['ltp'],spot=nearest_itm['strike'],strike=selected_strike, time_to_expiry=days_to_exp / 365,is_call=True)
+        st.write("New Way Iv ",iv)  
          # Fix missing values
         if iv_info["iv"] is None:
            iv_info["iv"] = 0
@@ -6578,7 +6606,7 @@ elif MENU =="LIVE TRADE 3":
 #--------------------------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
-
+elif MENU=="Paper Trade":
 
     
    

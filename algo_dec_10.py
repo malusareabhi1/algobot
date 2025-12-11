@@ -6005,6 +6005,11 @@ elif MENU =="LIVE TRADE 3":
             st.warning("⚠ No signal yet (conditions not met).")
         else:
             st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
+            df_sig1 = pd.DataFrame([signal])
+                
+                # Display as table
+            st.table(df_sig1) 
+             
             entry_time = signal['entry_time']
             #st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS
             signal_time=entry_time.strftime("%H:%M:%S")

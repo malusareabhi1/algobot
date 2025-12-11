@@ -5105,6 +5105,11 @@ elif MENU =="Live Trade":
     from streamlit_autorefresh import st_autorefresh
     import time             # Python's time module
     from datetime import time  # datetime.time (conflict!)
+    if not is_kite_connected(kite):
+        st.warning("Please login first to access your account details.")
+        st.stop()     # Stop page execution safely
+
+    st.success("You are logged in.") 
     # Initialize Kite in session_state
     if "kite" not in st.session_state:
         st.session_state.kite = None

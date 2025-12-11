@@ -149,8 +149,9 @@ option = {
     "expiry": "Timestamp('2025-12-16 00:00:00')",   # your Pandas Timestamp
     "ltp": 138.65
 }
+
 option = {
-    "tradingsymbol": "NIFTY25D1625850CE"
+    "tradingsymbol": "NIFTY25D1625850CE",
     "strike": 25850,
     "instrument_token": 12343810,
     "option_type": "CALL",
@@ -162,6 +163,7 @@ option = {
     "name": "NIFTY",
     "ltp": 157
 }
+
 
 spot = 25820.40   # live NIFTY spot
 

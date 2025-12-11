@@ -6040,17 +6040,7 @@ elif MENU == "Test1":
         return df["iv"]
     
     # ---------- compute IV Rank ----------
-    def compute_iv_rank(iv_history, current_iv):
-        if iv_history.empty or np.isnan(current_iv):
-            return np.nan
-    
-        iv_low = iv_history.min()
-        iv_high = iv_history.max()
-        if iv_high == iv_low:
-            return 0.0
-    
-        iv_rank = (current_iv - iv_low) / (iv_high - iv_low) * 100.0
-        return max(0.0, min(100.0, iv_rank))  # clamp 0–100
+   
     
    
         

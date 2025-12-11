@@ -6609,7 +6609,7 @@ elif MENU =="LIVE TRADE 3":
 
 elif MENU=="Live IV/RANK":
     st.title("Live IV/RANK")
-     def get_option_instrument_details(tradingsymbol):
+    def get_option_instrument_details(tradingsymbol):
          df = load_kite_instruments()
          row = df[df["tradingsymbol"] == tradingsymbol]
      
@@ -6631,20 +6631,20 @@ elif MENU=="Live IV/RANK":
              "name": row["name"]
          }
      
-     def enrich_with_ltp(kite, option_data):
+    def enrich_with_ltp(kite, option_data):
          symbol = f"NFO:{option_data['tradingsymbol']}"
          ltp_data = kite.ltp(symbol)
          option_data["ltp"] = ltp_data[symbol]["last_price"]
          return option_data
          
-     def get_live_option_details(kite, tradingsymbol):
+    def get_live_option_details(kite, tradingsymbol):
          base = get_option_instrument_details(tradingsymbol)
          if base is None:
              return None
          return enrich_with_ltp(kite, base)
      
      
-     def days_to_expiry(expiry_timestamp):
+    def days_to_expiry(expiry_timestamp):
          """Robust expiry calculator handling messy formats like Timestamp('2025-12-16')."""
      
          if expiry_timestamp is None:
@@ -6681,10 +6681,10 @@ elif MENU=="Live IV/RANK":
          days = diff.total_seconds() / 86400
      
          return max(days, 0)
-     from math import log, sqrt, exp
-     from scipy.stats import norm
+    from math import log, sqrt, exp
+    from scipy.stats import norm
      
-     def black_scholes_call_iv(spot, strike, time_to_expiry, ltp, r=0.0, tol=1e-5, max_iter=100):
+    def black_scholes_call_iv(spot, strike, time_to_expiry, ltp, r=0.0, tol=1e-5, max_iter=100):
          """
          Safe IV solver for CALL option using Newton-Raphson.
          Returns None if no valid IV found.
@@ -6717,7 +6717,7 @@ elif MENU=="Live IV/RANK":
                  return None
      
          return None
-     def compute_iv_rank(current_iv, iv_min=0.10, iv_max=0.35):
+    def compute_iv_rank(current_iv, iv_min=0.10, iv_max=0.35):
          """
          Very simple IV rank model:
          rank = (current_iv - min) / (max - min)
@@ -6730,7 +6730,7 @@ elif MENU=="Live IV/RANK":
      
          rank = (current_iv - iv_min) / (iv_max - iv_min)
          return max(0, min(rank, 1))
-     def compute_option_iv_details(option_dict, spot_price):
+    def compute_option_iv_details(option_dict, spot_price):
          """
          option_dict example:
          {
@@ -6786,19 +6786,19 @@ elif MENU=="Live IV/RANK":
              "iv_rank": iv_rank
          }
          
-     tradingsymbol = "NIFTY25D1625850CE"
+    tradingsymbol = "NIFTY25D1625850CE"
      
-     option = get_live_option_details(kite, tradingsymbol)
+    option = get_live_option_details(kite, tradingsymbol)
      
-     st.write(option)
+    st.write(option)
      
      
      
-     spot = 25888.40   # live NIFTY spot
+    spot = 25888.40   # live NIFTY spot
      
-     result = compute_option_iv_details(option, spot)
+    result = compute_option_iv_details(option, spot)
      
-     st.write(result)
+    st.write(result)
           
 
     

@@ -2,20 +2,33 @@ from datetime import datetime
 import pandas as pd
 
 def days_to_expiry(expiry_timestamp):
-    """Robust expiry calculator handling str, datetime, Timestamp."""
+    """Robust expiry calculator handling messy formats like Timestamp('2025-12-16')."""
 
     if expiry_timestamp is None:
         return 0
 
-    # Convert string to pandas Timestamp
+    # Convert strings safely
     if isinstance(expiry_timestamp, str):
-        expiry_timestamp = pd.to_datetime(expiry_timestamp)
 
-    # Convert numpy datetime64 to Timestamp
+        # Case: "Timestamp('2025-12-16 00:00:00')"
+        if expiry_timestamp.startswith("Timestamp("):
+            # Remove Timestamp( and )
+            expiry_timestamp = expiry_timestamp.replace("Timestamp(", "").replace(")", "")
+            # Remove extra single quotes:  '2025-12-16 00:00:00'
+            expiry_timestamp = expiry_timestamp.strip("'").strip('"')
+
+        # Now convert clean string to datetime
+        try:
+            expiry_timestamp = pd.to_datetime(expiry_timestamp)
+        except Exception:
+            # Fallback: return 0 days
+            return 0
+
+    # If still not a pandas Timestamp → convert it
     if not hasattr(expiry_timestamp, "tzinfo"):
         expiry_timestamp = pd.to_datetime(expiry_timestamp)
 
-    # Handle timezone or non-timezone datetime
+    # Timezone aware vs naive handling
     if expiry_timestamp.tzinfo is None:
         now = datetime.now()
     else:
@@ -25,7 +38,6 @@ def days_to_expiry(expiry_timestamp):
     days = diff.total_seconds() / 86400
 
     return max(days, 0)
-
 from math import log, sqrt, exp
 from scipy.stats import norm
 

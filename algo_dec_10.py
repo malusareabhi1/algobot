@@ -52,6 +52,79 @@ def is_kite_connected(kite):
             return True
         except:
             return False
+
+#----------------------------------------IV-----------------------------------------------------
+
+from py_vollib_vectorized import vectorized_implied_volatility_black
+
+RISK_FREE_RATE = 0.07      # adjust if you want
+MIN_TIME_TO_EXPIRY = 1/365 # 1 day minimum to avoid zero T
+
+def get_live_iv_nifty_option(kite, option_token: int, index_symbol="NSE:NIFTY 50"):
+    """
+    Return live implied volatility (annualized, in %) for a single NIFTY option.
+    Uses Black model on futures/spot with robust exception handling.
+    - option_token: instrument_token of the option
+    """
+    try:
+        # 1) Get live quotes
+        q_opt = kite.ltp(option_token)[str(option_token)]
+        q_idx = kite.ltp(index_symbol)[index_symbol]
+
+        opt_ltp = float(q_opt["last_price"])
+        spot    = float(q_idx["last_price"])
+
+        # sanity: below intrinsic -> IV undefined
+        # you can choose to return None or a floor value
+        # assume European index options
+        instrument = kite.instrument_by_token(option_token)  # your helper
+        strike = float(instrument["strike"])
+        oi_flag = instrument["instrument_type"]  # 'CE' or 'PE'
+
+        if oi_flag == "CE":
+            intrinsic = max(spot - strike, 0.0)
+            flag = "c"
+        else:
+            intrinsic = max(strike - spot, 0.0)
+            flag = "p"
+
+        if opt_ltp <= intrinsic + 0.01:
+            return None   # almost no time value, IV not meaningful
+
+        # 2) Time to expiry (year fraction)
+        expiry = pd.to_datetime(instrument["expiry"]).date()
+        today  = datetime.now().date()
+        days_to_expiry = max((expiry - today).days, 1)
+        t = max(days_to_expiry / 365.0, MIN_TIME_TO_EXPIRY)
+
+        # 3) Use Black model implied vol (index options) [web:47][web:70]
+        price   = pd.Series([opt_ltp])
+        F       = pd.Series([spot])      # using spot as forward approx
+        K       = pd.Series([strike])
+        t_ser   = pd.Series([t])
+        r       = pd.Series([RISK_FREE_RATE])
+
+        iv = vectorized_implied_volatility_black(
+            price=price,
+            F=F,
+            K=K,
+            r=r,
+            t=t_ser,
+            flag=flag,
+            return_as="numpy"
+        )[0]
+
+        # guard against NaN or crazy values
+        if not math.isfinite(iv) or iv <= 0 or iv > 5:   # >500% -> likely bad tick
+            return None
+
+        return round(iv * 100, 2)   # convert to %
+
+    except Exception as e:
+        # log the error in your app logger if needed
+        # print("IV calc error:", e)
+        return None
+
 #----------------------------------IV , RANK------------------------------------------------------------
 
 def safe_float(x, default=None):
@@ -6250,10 +6323,10 @@ elif MENU =="LIVE TRADE 3":
         
     #st.write("IV:", iv_percent)    
          
-            
+        #get_live_iv_nifty_option(kite, option_token: int, index_symbol="NSE:NIFTY 50"):        
+        st.write(nearest_itm)  
 
-
-#--------------------------------------------------------------------------------
+#----------------------------------IV----------------------------------------------
 
     
         

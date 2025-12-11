@@ -55,7 +55,7 @@ def is_kite_connected(kite):
 
 #----------------------------------------IV-----------------------------------------------------
 
-from py_vollib_vectorized import vectorized_implied_volatility_black
+#from py_vollib_vectorized import vectorized_implied_volatility_black
 
 RISK_FREE_RATE = 0.07      # adjust if you want
 MIN_TIME_TO_EXPIRY = 1/365 # 1 day minimum to avoid zero T

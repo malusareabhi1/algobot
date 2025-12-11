@@ -6280,7 +6280,7 @@ elif MENU =="LIVE TRADE 3":
              order_id = st.session_state["last_order_id"]
              order = kite.order_history(order_id)[-1]
              st.write("### 🔄 Live Order Update")
-             st.write(order)
+             #st.write(order)
 
 
 #------------------------------------ORDERS--------------------------------------------

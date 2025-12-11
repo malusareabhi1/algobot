@@ -6788,7 +6788,7 @@ elif MENU=="Live IV/RANK":
              strike=strike,
              time_to_expiry=time_to_expiry,
              ltp=ltp,
-             r=0.075
+             r=0.085
          )
      
          # Compute IV Rank

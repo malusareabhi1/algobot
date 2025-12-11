@@ -52,6 +52,11 @@ def is_kite_connected(kite):
             return True
         except:
             return False
+             
+
+@st.cache_data
+def load_kite_instruments():
+    return pd.read_csv("instruments.csv")
 #-------------------------------------------------------------------------------------------------
 import math
 

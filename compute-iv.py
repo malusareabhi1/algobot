@@ -150,16 +150,16 @@ option = {
     "ltp": 138.65
 }
 option ={
-"tradingsymbol":"NIFTY25D1625850CE"
-"strike":25850
-"instrument_token":12343810
-"option_type":"CALL"
-"expiry":"Timestamp('2025-12-16 00:00:00')"
-"lot_size":75
-"tick_size":0.05
-"segment":"NFO-OPT"
-"exchange":"NFO"
-"name":"NIFTY"
+"tradingsymbol": "NIFTY25D1625850CE"
+"strike":25850,
+"instrument_token":12343810,
+"option_type":"CALL",
+"expiry":"Timestamp('2025-12-16 00:00:00')",
+"lot_size":75,
+"tick_size":0.05,
+"segment":"NFO-OPT",
+"exchange":"NFO",
+"name":"NIFTY",
 "ltp":157
 }
 

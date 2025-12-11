@@ -6235,7 +6235,7 @@ elif MENU =="LIVE TRADE 3":
         else:
              st.write("No parameters added yet.")
     
-         qty=qty*lot_qty
+        qty=qty*lot_qty
     # Check 1: Only run if current time is within trading window
         if start_time <= now <= end_time:
             

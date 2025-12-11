@@ -6219,13 +6219,13 @@ elif MENU =="LIVE TRADE 3":
 
 #-------------------------------------lot ty------------------------------------------------
      # Default lot size
-        qty = 1
+        qty = 1*75
      
      # Apply rule
         if iv_result == "Fail" or iv_rank_result == "Fail":
               lot_qty = 2
         if iv_result == "Pass" and iv_rank_result == "pass" and vix_result=="pass" and pcr_result=="pass":
-         lot_qty = 6    
+              lot_qty = 6    
 
         add_param_row("LOT QTY", lot_qty, "2 or 6", "OK")
      #-----------------------------------------Display PARA-------------------------------------------
@@ -6235,7 +6235,7 @@ elif MENU =="LIVE TRADE 3":
         else:
              st.write("No parameters added yet.")
     
-    
+         qty=qty*lot_qty
     # Check 1: Only run if current time is within trading window
         if start_time <= now <= end_time:
             

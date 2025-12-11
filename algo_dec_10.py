@@ -5636,7 +5636,11 @@ elif MENU == "My Account":
         st.title("My Account")
         st.set_page_config(page_title="Zerodha Dashboard", layout="wide")
         #st.title("📊 Zerodha Orders & Holdings Dashboard")
-        
+        if not is_kite_connected(kite):
+             st.warning("Please login first to access your account details.")
+             st.stop()     # Stop page execution safely
+
+        st.success("You are logged in.")
         # ---------------------------
         # Session State
         # ---------------------------

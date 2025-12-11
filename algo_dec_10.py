@@ -6198,40 +6198,40 @@ elif MENU =="LIVE TRADE 3":
         ist = pytz.timezone("Asia/Kolkata")
     
     # Convert signal_time to IST
-       signal_time_ist = signal_time.astimezone(ist)
-       import datetime as dt
+        signal_time_ist = signal_time.astimezone(ist)
+        import datetime as dt
 
-       start = dt.time(9, 30)
-       end   = dt.time(14, 30)
+        start = dt.time(9, 30)
+        end   = dt.time(14, 30)
     
-       sig_t = signal_time_ist.time()
+        sig_t = signal_time_ist.time()
     
-       result = "Pass" if start <= sig_t <= end else "Fail"
+        result = "Pass" if start <= sig_t <= end else "Fail"
     
-       add_param_row("Signal Time", str(signal_time_ist.time()),"09:30 - 14:30",result)
+        add_param_row("Signal Time", str(signal_time_ist.time()),"09:30 - 14:30",result)
      #------------------------------------ADD PCR------------------------------------------ 
-       pcr_value = get_nifty_pcr(kite)
-       result = "Pass" if 0.80 <= pcr_value <= 1.30 else "Fail"
-       pcr_result= result
-       add_param_row("PCR", round(pcr_value, 2), "0.80 - 1.30", result)
+        pcr_value = get_nifty_pcr(kite)
+        result = "Pass" if 0.80 <= pcr_value <= 1.30 else "Fail"
+        pcr_result= result
+        add_param_row("PCR", round(pcr_value, 2), "0.80 - 1.30", result)
 
 #-------------------------------------lot ty------------------------------------------------
      # Default lot size
-    qty = 1
+        qty = 1
      
      # Apply rule
-    if iv_result == "Fail" or iv_rank_result == "Fail":
-         lot_qty = 2
-    if iv_result == "Pass" and iv_rank_result == "pass" and vix_result=="pass" and pcr_result=="pass":
+        if iv_result == "Fail" or iv_rank_result == "Fail":
+              lot_qty = 2
+        if iv_result == "Pass" and iv_rank_result == "pass" and vix_result=="pass" and pcr_result=="pass":
          lot_qty = 6    
 
-    add_param_row("LOT QTY", lot_qty, "2 or 6", "OK")
+        add_param_row("LOT QTY", lot_qty, "2 or 6", "OK")
      #-----------------------------------------Display PARA-------------------------------------------
-    if st.session_state.param_rows:
-        df = pd.DataFrame(st.session_state.param_rows)
-        st.table(df)
-    else:
-        st.write("No parameters added yet.")
+        if st.session_state.param_rows:
+             df = pd.DataFrame(st.session_state.param_rows)
+             st.table(df)
+        else:
+             st.write("No parameters added yet.")
     
     
     # Check 1: Only run if current time is within trading window

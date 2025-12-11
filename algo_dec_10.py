@@ -6629,6 +6629,11 @@ elif MENU =="LIVE TRADE 3":
 
 elif MENU=="Live IV/RANK":
     st.title("Live IV/RANK")
+    if not is_kite_connected(kite):
+        st.warning("Please login first to access your account details.")
+        st.stop()     # Stop page execution safely
+
+    #st.success("You are logged in.") 
     def get_option_instrument_details(tradingsymbol):
          df = load_kite_instruments()
          row = df[df["tradingsymbol"] == tradingsymbol]

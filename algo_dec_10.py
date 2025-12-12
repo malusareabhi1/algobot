@@ -6899,7 +6899,8 @@ elif MENU=="Live IV/RANK":
          # Compute time to expiry (in years)
     days_to_exp = days_to_expiry(expiry)
     time_to_expiry = days_to_exp / 365 
-    iv = implied_vol_call(S=spot_price, K=strike, T=time_to_expiry, r=0.07, C_mk=ltp) 
+    r=0.07
+    iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
     st.write("IV  FOr (26000):CE")
     st.write("IV (decimal):", iv)
     st.write("IV (%):", iv * 100)

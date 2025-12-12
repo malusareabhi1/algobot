@@ -6371,7 +6371,7 @@ elif MENU =="LIVE TRADE 3":
             #st.write("New Way Iv ",iv)  
             # Fix missing values
             if iv_info["iv"] is None:
-            iv_info["iv"] = 0
+                 iv_info["iv"] = 0
      
             if iv_info["iv_rank"] is None:
                 iv_info["iv_rank"] = 0
@@ -6391,84 +6391,84 @@ elif MENU =="LIVE TRADE 3":
 
     
 #-------------------------------------------------------------------------
-        if(iv_info["iv"]=='None'):
+            if(iv_info["iv"]=='None'):
              # Safely extract values
-             iv_value = iv_info.get("iv") or 0
-             iv_rank_value = iv_info.get("iv_rank") or 0
+                  iv_value = iv_info.get("iv") or 0
+                  iv_rank_value = iv_info.get("iv_rank") or 0
              
-             st.write("After None Current IV:", iv_value, "%")
-             st.write("After None IV Rank:", iv_rank_value, "%")
+                  st.write("After None Current IV:", iv_value, "%")
+                  st.write("After None IV Rank:", iv_rank_value, "%")
     
         
 
 #--------------------------------VIX------------------------------------------------
          #vix_now =fetch_vix_from_fyers()
          
-        vix_now = fetch_india_vix_kite(kite)
+            vix_now = fetch_india_vix_kite(kite)
          #st.write("India VIX: kite", vix_now)
          #st.write("India VIX:", vix_now)
  #-----------------------Add PARA----------------------------------------------
     # VIX
-        result = "Pass" if vix_now < 15 else "Fail"
-        vix_result  = result     
-        add_param_row("VIX", round(vix_now, 2), "< 15", result)
+            result = "Pass" if vix_now < 15 else "Fail"
+            vix_result  = result     
+            add_param_row("VIX", round(vix_now, 2), "< 15", result)
 
  #------------------------------------------------------------------------------   
     # Apply IV + VIX Filter
     # -------------------------
         #allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_now)
     # Safely extract values
-        iv_value = iv_info.get("iv") or 0
-        iv_rank_value = iv_info.get("iv_rank") or 0
-        allowed, position_size = combined_filter(iv_value, iv_rank_value, vix_now)
-        st.write("Allowed to Trade?", allowed)
-        st.write("Position Size:", position_size)
+            iv_value = iv_info.get("iv") or 0
+            iv_rank_value = iv_info.get("iv_rank") or 0
+            allowed, position_size = combined_filter(iv_value, iv_rank_value, vix_now)
+            st.write("Allowed to Trade?", allowed)
+            st.write("Position Size:", position_size)
     #-----------------------------------------------------------------------------------------
     
     #---------------------------------tIME-----------------------------------------------
-        import pytz
+           import pytz
             
     # IST timezone
-        ist = pytz.timezone("Asia/Kolkata")
-        now_dt = datetime.now(ist)     # full datetime object
-        now = now_dt.time()            # extract time only for comparisons
+           ist = pytz.timezone("Asia/Kolkata")
+           now_dt = datetime.now(ist)     # full datetime object
+           now = now_dt.time()            # extract time only for comparisons
 
-        tz = pytz.timezone("Asia/Kolkata")
-        now = datetime.now(tz)
+           tz = pytz.timezone("Asia/Kolkata")
+           now = datetime.now(tz)
      #----------------------------------FUND-----------------------------------------------------
-        st.divider()
+           st.divider()
 
-        funds = get_fund_status(kite)
+           funds = get_fund_status(kite)
 
-        st.subheader("💰 Zerodha Fund Status")
+           st.subheader("💰 Zerodha Fund Status")
     
-        if "error" in funds:
-               st.error(funds["error"])
-        else:
-             #st.write(f"**Net Balance:** ₹{funds['net']}")
-             st.write(f"**Cash:** ₹{funds['cash']}")
-             #st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
-             #st.write(f"**Collateral:** ₹{funds['collateral']}")
-             #st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
-             #cash_balance = 73500
-             lots = get_lot_size(funds['cash'])
-             st.write("Lot Size:", lots)
-             qty=75*lots
-             st.divider()
+           if "error" in funds:
+                st.error(funds["error"])
+           else:
+                  #st.write(f"**Net Balance:** ₹{funds['net']}")
+                  st.write(f"**Cash:** ₹{funds['cash']}")
+                  #st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
+                  #st.write(f"**Collateral:** ₹{funds['collateral']}")
+                  #st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
+                  #cash_balance = 73500
+                  lots = get_lot_size(funds['cash'])
+                  st.write("Lot Size:", lots)
+                  qty=75*lots
+                  st.divider()
 
    
     
     #------------------------------------PLACING ORDERS--------------------------------------------
-        #st.write(f"Placing order for:", trending_symbol)
-        if(position_size=='none'):
-             position_size=1;
+             #st.write(f"Placing order for:", trending_symbol)
+           if(position_size=='none'):
+                  position_size=1;
         #st.write(f"Quantity: {qty}, LTP: {ltp}")
         #st.write(f"Quantity  order for:", qty)        
         #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
         # Condition 1: Current time >= signal candle time
         # Trading window
-        start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
-        end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+           start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
+           end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
     #st.write("start_time", start_time)
     #st.write("end_time", end_time)
     #st.write("Now Time", now)
@@ -6478,54 +6478,54 @@ elif MENU =="LIVE TRADE 3":
     #-------------------------------------------------------------------------------
 
         # Convert to Python datetime (with timezone if needed)
-        signal_time = pd.to_datetime(signal_time).to_pydatetime()
+           signal_time = pd.to_datetime(signal_time).to_pydatetime()
    
     # Optional: ensure same timezone as now
     #import pytz
-        tz = pytz.timezone("Asia/Kolkata")
-        signal_time = signal_time.replace(tzinfo=tz)
+           tz = pytz.timezone("Asia/Kolkata")
+           signal_time = signal_time.replace(tzinfo=tz)
     #    st.write("signal_time",signal_time)
     #st.write("Now Time", now)
     #--------------------------------------------------------------------------------
      #-----------------------Add PARA----------------------------------------------
     # Define IST timezone
-        ist = pytz.timezone("Asia/Kolkata")
+           ist = pytz.timezone("Asia/Kolkata")
     
     # Convert signal_time to IST
-        signal_time_ist = signal_time.astimezone(ist)
-        import datetime as dt
+           signal_time_ist = signal_time.astimezone(ist)
+           import datetime as dt
 
-        start = dt.time(9, 30)
-        end   = dt.time(14, 30)
+           start = dt.time(9, 30)
+           end   = dt.time(14, 30)
     
-        sig_t = signal_time_ist.time()
+           sig_t = signal_time_ist.time()
     
-        result = "Pass" if start <= sig_t <= end else "Fail"
+           result = "Pass" if start <= sig_t <= end else "Fail"
     
-        add_param_row("Signal Time", str(signal_time_ist.time()),"09:30 - 14:30",result)
+           add_param_row("Signal Time", str(signal_time_ist.time()),"09:30 - 14:30",result)
      #------------------------------------ADD PCR------------------------------------------ 
-        pcr_value = get_nifty_pcr(kite)
-        result = "Pass" if 0.80 <= pcr_value <= 1.30 else "Fail"
-        pcr_result= result
-        add_param_row("PCR", round(pcr_value, 2), "0.80 - 1.30", result)
+           pcr_value = get_nifty_pcr(kite)
+           result = "Pass" if 0.80 <= pcr_value <= 1.30 else "Fail"
+           pcr_result= result
+           add_param_row("PCR", round(pcr_value, 2), "0.80 - 1.30", result)
 
 #-------------------------------------lot ty------------------------------------------------
      # Default lot size
-        qty = 1*75
+           qty = 1*75
      
      # Apply rule
-        if iv_result == "Fail" or iv_rank_result == "Fail":
-              lot_qty = 2
-        if iv_result == "Pass" and iv_rank_result == "pass" and vix_result=="pass" and pcr_result=="pass":
-              lot_qty = 6    
+           if iv_result == "Fail" or iv_rank_result == "Fail":
+                   lot_qty = 2
+           if iv_result == "Pass" and iv_rank_result == "pass" and vix_result=="pass" and pcr_result=="pass":
+                   lot_qty = 6    
 
-        add_param_row("LOT QTY", lot_qty, "2 or 6", "OK")
+           add_param_row("LOT QTY", lot_qty, "2 or 6", "OK")
      #-----------------------------------------Display PARA-------------------------------------------
-        if st.session_state.param_rows:
-             df = pd.DataFrame(st.session_state.param_rows)
-             st.table(df)
-        else:
-             st.write("No parameters added yet.")
+           if st.session_state.param_rows:
+                  df = pd.DataFrame(st.session_state.param_rows)
+                  st.table(df)
+           else:
+                  st.write("No parameters added yet.")
     
         qty=qty*lot_qty
     # Check 1: Only run if current time is within trading window

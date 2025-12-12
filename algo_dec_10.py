@@ -62,6 +62,11 @@ def load_kite_instruments():
 def is_valid_signal_time(signal_dt):
     """Return True only if signal date is today and time is within trading window."""
     import pytz
+     # Trading window (GLOBAL CONSTANTS)
+    START_TIME = time(9, 30)   # 9:30 AM
+    END_TIME   = time(14, 30)  # 2:30 PM
+     
+   # IST = pytz.timezone("Asia/Kolkata")
     IST = pytz.timezone("Asia/Kolkata") 
 
     if signal_dt.tzinfo is None:

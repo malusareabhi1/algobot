@@ -6551,41 +6551,43 @@ elif MENU =="LIVE TRADE 3":
                   st.write("No parameters added yet.")
     
             qty=qty*lot_qty
+            
+                # Check 1: Only run if current time is within trading window
             if is_valid_signal_time(entry_time):
-                    st.warning("Signal time  match today's date . Order  placed.") 
+                    st.warning("Signal time  match today's date .") 
+                 if start_time <= now <= end_time:
+                 
+                 # Check 2: Signal time reached
+                    if now >= signal_time:
+                      
+                      # Check 3: Order placed only once
+                          if not st.session_state.order_executed:
+                              try:
+                                  order_id = kite.place_order(
+                                          tradingsymbol=trending_symbol,
+                                          exchange=kite.EXCHANGE_NFO,
+                                          transaction_type=kite.TRANSACTION_TYPE_BUY,
+                                          quantity=qty,
+                                          order_type=kite.ORDER_TYPE_MARKET,
+                                          variety=kite.VARIETY_REGULAR,
+                                          product=kite.PRODUCT_MIS
+                                      )
+                      
+                                  st.session_state.order_executed = True   # Mark executed
+                                  st.success(f"Order Placed Successfully! Order ID: {order_id}")
+                                  st.session_state["last_order_id"] = order_id
+                      
+                              except Exception as e:
+                                  st.error(f"Order Failed: {e}")
+                      
+                          else:
+                               st.info("Order already executed for this signal.")
+                 
+                 else:
+                       st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
             else:
                    st.warning("Signal time does not match today's date or is outside trading hours. Order not placed.")     
-    # Check 1: Only run if current time is within trading window
-            if start_time <= now <= end_time:
-            
-            # Check 2: Signal time reached
-               if now >= signal_time:
-                 
-                 # Check 3: Order placed only once
-                     if not st.session_state.order_executed:
-                         try:
-                             order_id = kite.place_order(
-                                     tradingsymbol=trending_symbol,
-                                     exchange=kite.EXCHANGE_NFO,
-                                     transaction_type=kite.TRANSACTION_TYPE_BUY,
-                                     quantity=qty,
-                                     order_type=kite.ORDER_TYPE_MARKET,
-                                     variety=kite.VARIETY_REGULAR,
-                                     product=kite.PRODUCT_MIS
-                                 )
-                 
-                             st.session_state.order_executed = True   # Mark executed
-                             st.success(f"Order Placed Successfully! Order ID: {order_id}")
-                             st.session_state["last_order_id"] = order_id
-                 
-                         except Exception as e:
-                             st.error(f"Order Failed: {e}")
-                 
-                     else:
-                          st.info("Order already executed for this signal.")
-            
-            else:
-                  st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
+          
 #--------------------------------ORDERS------------------------------------------------
             st.divider()
          #st.autorefresh(interval=5000)  # refresh every 5 seconds

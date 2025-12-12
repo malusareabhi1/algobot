@@ -6366,28 +6366,28 @@ elif MENU =="LIVE TRADE 3":
 
     
         
-        iv_info = get_iv_rank0(kite, nearest_itm, lookback_days=250)
+            iv_info = get_iv_rank0(kite, nearest_itm, lookback_days=250)
        
-        #st.write("New Way Iv ",iv)  
-         # Fix missing values
-        if iv_info["iv"] is None:
-           iv_info["iv"] = 0
+            #st.write("New Way Iv ",iv)  
+            # Fix missing values
+            if iv_info["iv"] is None:
+            iv_info["iv"] = 0
      
-        if iv_info["iv_rank"] is None:
-           iv_info["iv_rank"] = 0
+            if iv_info["iv_rank"] is None:
+                iv_info["iv_rank"] = 0
 
          ##st.write("Current IV:", iv_info["iv"], "%")
          #st.write("IV Rank:", iv_info["iv_rank"], "%")
 #-----------------------Add PARA----------------------------------------------
     # IV
-        result = "Pass" if 0.10 <= iv_info["iv"] <= 0.35 else "Fail"
-        iv_result = result    
-        add_param_row("IV", round(iv_info["iv"], 2), "0.10 - 0.35", result)
+            result = "Pass" if 0.10 <= iv_info["iv"] <= 0.35 else "Fail"
+            iv_result = result    
+            add_param_row("IV", round(iv_info["iv"], 2), "0.10 - 0.35", result)
 
     # IV Rank
-        result = "Pass" if 0.20 <= iv_info["iv_rank"] <= 0.70 else "Fail"
-        iv_rank_result  = result    
-        add_param_row("IV Rank", round(iv_info["iv_rank"], 2), "0.20 - 0.70", result)
+            result = "Pass" if 0.20 <= iv_info["iv_rank"] <= 0.70 else "Fail"
+            iv_rank_result  = result    
+            add_param_row("IV Rank", round(iv_info["iv_rank"], 2), "0.20 - 0.70", result)
 
     
 #-------------------------------------------------------------------------

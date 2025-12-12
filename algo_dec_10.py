@@ -6355,12 +6355,12 @@ elif MENU =="LIVE TRADE 3":
 
         #spot_price = get_ltp(kite, "NSE:NIFTY 50")["ltp"]
         
-    #iv_percent = compute_option_iv(nearest_itm, spot)
+         #iv_percent = compute_option_iv(nearest_itm, spot)
         
-    #st.write("IV:", iv_percent)    
+         #st.write("IV:", iv_percent)    
          
-        #get_live_iv_nifty_option(kite, option_token: int, index_symbol="NSE:NIFTY 50"):        
-        st.write(nearest_itm)  
+         #get_live_iv_nifty_option(kite, option_token: int, index_symbol="NSE:NIFTY 50"):        
+            st.write(nearest_itm)  
 
 #----------------------------------IV----------------------------------------------
 

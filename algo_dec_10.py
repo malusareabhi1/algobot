@@ -6887,7 +6887,16 @@ elif MENU=="Live IV/RANK":
     st.write("IV  FOr (26000):CE")
     st.write("IV (decimal):", iv)
     st.write("IV (%):", iv * 100)
+     
     spot_price=26046.55 
+    ltp = option_dict.get("ltp")
+    strike = option_dict.get("strike")
+    expiry = option_dict.get("expiry")
+    is_call = option_dict.get("option_type") == "CALL"
+     
+         # Compute time to expiry (in years)
+    days_to_exp = days_to_expiry(expiry)
+    time_to_expiry = days_to_exp / 365 
     iv = implied_vol_call(S=spot_price, K=strike, T=time_to_expiry, r=0.07, C_mk=ltp) 
     st.write("IV  FOr (26000):CE")
     st.write("IV (decimal):", iv)

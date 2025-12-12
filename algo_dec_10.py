@@ -6388,7 +6388,7 @@ elif MENU =="LIVE TRADE 3":
          #st.write("IV:", iv_percent)    
          
          #get_live_iv_nifty_option(kite, option_token: int, index_symbol="NSE:NIFTY 50"):        
-            st.write(nearest_itm)  
+            #st.write(nearest_itm)  
 
 #----------------------------------IV----------------------------------------------
 
@@ -6449,8 +6449,8 @@ elif MENU =="LIVE TRADE 3":
             iv_value = iv_info.get("iv") or 0
             iv_rank_value = iv_info.get("iv_rank") or 0
             allowed, position_size = combined_filter(iv_value, iv_rank_value, vix_now)
-            st.write("Allowed to Trade?", allowed)
-            st.write("Position Size:", position_size)
+            #st.write("Allowed to Trade?", allowed)
+            #st.write("Position Size:", position_size)
     #-----------------------------------------------------------------------------------------
     
     #---------------------------------tIME-----------------------------------------------
@@ -6468,19 +6468,19 @@ elif MENU =="LIVE TRADE 3":
 
             funds = get_fund_status(kite)
 
-            st.subheader("💰 Zerodha Fund Status")
+            #st.subheader("💰 Zerodha Fund Status")
     
             if "error" in funds:
                 st.error(funds["error"])
             else:
                   #st.write(f"**Net Balance:** ₹{funds['net']}")
-                  st.write(f"**Cash:** ₹{funds['cash']}")
+                  #st.write(f"**Cash:** ₹{funds['cash']}")
                   #st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
                   #st.write(f"**Collateral:** ₹{funds['collateral']}")
                   #st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
                   #cash_balance = 73500
                   lots = get_lot_size(funds['cash'])
-                  st.write("Lot Size:", lots)
+                  #st.write("Lot Size:", lots)
                   qty=75*lots
                   st.divider()
 

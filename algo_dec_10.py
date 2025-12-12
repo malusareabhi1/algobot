@@ -6882,7 +6882,8 @@ elif MENU=="Live IV/RANK":
     T    = 0.010958904109589
     C_mk = 112.60
     r    = 0.07   # 7% risk-free
-     
+
+    st.write("spot_price, strike, time_to_expiry, r, ltp",S0, K, T, r, C_mk)  
     iv = implied_vol_call(S0, K, T, r, C_mk)
     st.write("IV  FOr (26000):CE")
     st.write("IV (decimal):", iv)

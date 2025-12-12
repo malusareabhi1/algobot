@@ -57,7 +57,27 @@ def is_kite_connected(kite):
 @st.cache_data
 def load_kite_instruments():
     return pd.read_csv("instruments.csv")
-#-------------------------------------------------------------------------------------------------
+
+#--------------------------------------------SIGNAL TIME-----------------------------------------------------
+def is_valid_signal_time(signal_dt):
+    """Return True only if signal date is today and time is within trading window."""
+
+    if signal_dt.tzinfo is None:
+        signal_dt = IST.localize(signal_dt)
+
+    now = datetime.now(IST).replace(second=0, microsecond=0)
+
+    # 1. Check same date
+    if signal_dt.date() != now.date():
+        return False
+
+    # 2. Check time window
+    if not (START_TIME <= signal_dt.time() <= END_TIME):
+        return False
+
+    return True
+
+#------------------------------------------IV-------------------------------------------------------
 import math
 
 def compute_iv(ltp, spot, strike, time_to_expiry, is_call=True):
@@ -6529,6 +6549,10 @@ elif MENU =="LIVE TRADE 3":
                   st.write("No parameters added yet.")
     
             qty=qty*lot_qty
+            if is_valid_signal_time(entry_time):
+                    st.warning("Signal time  match today's date . Order  placed.") 
+            else:
+                   st.warning("Signal time does not match today's date or is outside trading hours. Order not placed.")     
     # Check 1: Only run if current time is within trading window
             if start_time <= now <= end_time:
             

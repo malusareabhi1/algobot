@@ -6888,7 +6888,7 @@ elif MENU=="Live IV/RANK":
     st.write("IV (decimal):", iv)
     st.write("IV (%):", iv * 100)
 
-    option = get_live_option_details(kite, NIFTY25D1626000CE)
+    option = get_live_option_details(kite, tradingsymbol=NIFTY25D1626000CE)
     spot_price=26046.55 
     ltp = option_dict.get("ltp")
     strike = option_dict.get("strike")

@@ -6900,6 +6900,7 @@ elif MENU=="Live IV/RANK":
     days_to_exp = days_to_expiry(expiry)
     time_to_expiry = days_to_exp / 365 
     r=0.07
+    st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
     iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
     st.write("IV  FOr (26000):CE")
     st.write("IV (decimal):", iv)

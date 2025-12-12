@@ -6292,6 +6292,7 @@ elif MENU =="LIVE TRADE 3":
             st.table(df_sig1) 
              
             entry_time = signal['entry_time']
+            st.write("entry_time",entry_time) 
             #st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS
             signal_time=entry_time.strftime("%H:%M:%S")
             #st.write("Signal Time only:-", signal_time)  # HH:MM:SS

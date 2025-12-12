@@ -6848,7 +6848,46 @@ elif MENU=="Live IV/RANK":
     result = compute_option_iv_details(option, spot)
      
     st.write(result)
-          
+ #-------------------------------------------------------------------
+
+     import math
+
+     # Black-Scholes call price
+     def bs_call_price(S, K, T, r, sigma):
+         if sigma <= 0:
+             return 0.0
+         d1 = (math.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * math.sqrt(T))
+         d2 = d1 - sigma * math.sqrt(T)
+         Nd1 = 0.5 * (1.0 + math.erf(d1 / math.sqrt(2.0)))
+         Nd2 = 0.5 * (1.0 + math.erf(d2 / math.sqrt(2.0)))
+         return S * Nd1 - K * math.exp(-r * T) * Nd2
+     
+     # Implied volatility via simple bisection
+     def implied_vol_call(S, K, T, r, C_mkt, tol=1e-6, max_iter=100):
+         low, high = 1e-6, 5.0      # 0.0001% to 500% vol range
+         for _ in range(max_iter):
+             mid = 0.5 * (low + high)
+             price = bs_call_price(S, K, T, r, mid)
+             if abs(price - C_mkt) < tol:
+                 return mid
+             if price > C_mkt:
+                 high = mid
+             else:
+                 low = mid
+         return mid  # best guess if not converged
+     
+     # Your inputs
+     S0   = 26046.0
+     K    = 26000.0
+     T    = 0.010958904109589
+     C_mk = 112.60
+     r    = 0.07   # 7% risk-free
+     
+     iv = implied_vol_call(S0, K, T, r, C_mk)
+     st.write("IV  FOr (26000):CE")
+     st.write("IV (decimal):", iv)
+     st.write("IV (%):", iv * 100)
+       
 
     
    

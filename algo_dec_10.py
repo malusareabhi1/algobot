@@ -6554,10 +6554,10 @@ elif MENU =="LIVE TRADE 3":
                          except Exception as e:
                              st.error(f"Order Failed: {e}")
                  
-             else:
-                 st.info("Order already executed for this signal.")
+                     else:
+                          st.info("Order already executed for this signal.")
             
-           else:
+            else:
                   st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
 #--------------------------------ORDERS------------------------------------------------
            st.divider()

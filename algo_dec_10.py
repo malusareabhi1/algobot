@@ -6426,25 +6426,25 @@ elif MENU =="LIVE TRADE 3":
     #-----------------------------------------------------------------------------------------
     
     #---------------------------------tIME-----------------------------------------------
-           import pytz
+            import pytz
             
     # IST timezone
-           ist = pytz.timezone("Asia/Kolkata")
-           now_dt = datetime.now(ist)     # full datetime object
-           now = now_dt.time()            # extract time only for comparisons
+            ist = pytz.timezone("Asia/Kolkata")
+            now_dt = datetime.now(ist)     # full datetime object
+            now = now_dt.time()            # extract time only for comparisons
 
-           tz = pytz.timezone("Asia/Kolkata")
-           now = datetime.now(tz)
+            tz = pytz.timezone("Asia/Kolkata")
+            now = datetime.now(tz)
      #----------------------------------FUND-----------------------------------------------------
-           st.divider()
+            st.divider()
 
-           funds = get_fund_status(kite)
+            funds = get_fund_status(kite)
 
-           st.subheader("💰 Zerodha Fund Status")
+            st.subheader("💰 Zerodha Fund Status")
     
-           if "error" in funds:
+            if "error" in funds:
                 st.error(funds["error"])
-           else:
+            else:
                   #st.write(f"**Net Balance:** ₹{funds['net']}")
                   st.write(f"**Cash:** ₹{funds['cash']}")
                   #st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
@@ -6460,7 +6460,7 @@ elif MENU =="LIVE TRADE 3":
     
     #------------------------------------PLACING ORDERS--------------------------------------------
              #st.write(f"Placing order for:", trending_symbol)
-           if(position_size=='none'):
+            if(position_size=='none'):
                   position_size=1;
         #st.write(f"Quantity: {qty}, LTP: {ltp}")
         #st.write(f"Quantity  order for:", qty)        

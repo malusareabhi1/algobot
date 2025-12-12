@@ -6888,7 +6888,7 @@ elif MENU=="Live IV/RANK":
     st.write("IV (decimal):", iv)
     st.write("IV (%):", iv * 100)
 
-    iv = implied_vol_call(spot_price, strike, time_to_expiry, r=0.07, ltp) 
+    iv = implied_vol_call(spot_price, strike, time_to_expiry, ltp, r=0.07) 
     st.write("IV  FOr (26000):CE")
     st.write("IV (decimal):", iv)
     st.write("IV (%):", iv * 100)

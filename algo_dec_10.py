@@ -6892,7 +6892,7 @@ elif MENU=="Live IV/RANK":
 
     tradingsymbol = st.text_input(
          "Trading Symbol",
-         value="NIFTY25D1626000CE"
+         value=""
      )
      
     pattern = r"^NIFTY\d{2}[A-Z]\d{2}\d{5}(CE|PE)$"

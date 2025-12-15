@@ -57,7 +57,83 @@ def is_kite_connected(kite):
 @st.cache_data
 def load_kite_instruments():
     return pd.read_csv("instruments.csv")
+ #-------------------------------------------------------NEW IV CLACL--------------------------------------- 
 
+
+def get_option_instrument_details(tradingsymbol):
+         df = load_kite_instruments()
+         row = df[df["tradingsymbol"] == tradingsymbol]
+     
+         if row.empty:
+             return None
+     
+         row = row.iloc[0]
+     
+         return {
+             "tradingsymbol": tradingsymbol,
+             "strike": row["strike"],
+             "instrument_token": int(row["instrument_token"]),
+             "option_type": "CALL" if row["instrument_type"] == "CE" else "PUT",
+             "expiry": str(row["expiry"]),
+             "lot_size": int(row["lot_size"]),
+             "tick_size": float(row["tick_size"]),
+             "segment": row["segment"],
+             "exchange": row["exchange"],
+             "name": row["name"]
+         }
+     
+def enrich_with_ltp(kite, option_data):
+         symbol = f"NFO:{option_data['tradingsymbol']}"
+         ltp_data = kite.ltp(symbol)
+         option_data["ltp"] = ltp_data[symbol]["last_price"]
+         return option_data
+         
+def get_live_option_details(kite, tradingsymbol):
+         base = get_option_instrument_details(tradingsymbol)
+         if base is None:
+             return None
+         return enrich_with_ltp(kite, base)
+     
+     
+def days_to_expiry(expiry_timestamp):
+         """Robust expiry calculator handling messy formats like Timestamp('2025-12-16')."""
+     
+         if expiry_timestamp is None:
+             return 0
+     
+         # Convert strings safely
+         if isinstance(expiry_timestamp, str):
+     
+             # Case: "Timestamp('2025-12-16 00:00:00')"
+             if expiry_timestamp.startswith("Timestamp("):
+                 # Remove Timestamp( and )
+                 expiry_timestamp = expiry_timestamp.replace("Timestamp(", "").replace(")", "")
+                 # Remove extra single quotes:  '2025-12-16 00:00:00'
+                 expiry_timestamp = expiry_timestamp.strip("'").strip('"')
+     
+             # Now convert clean string to datetime
+             try:
+                 expiry_timestamp = pd.to_datetime(expiry_timestamp)
+             except Exception:
+                 # Fallback: return 0 days
+                 return 0
+     
+         # If still not a pandas Timestamp → convert it
+         if not hasattr(expiry_timestamp, "tzinfo"):
+             expiry_timestamp = pd.to_datetime(expiry_timestamp)
+     
+         # Timezone aware vs naive handling
+         if expiry_timestamp.tzinfo is None:
+             now = datetime.now()
+         else:
+             now = datetime.now(expiry_timestamp.tzinfo)
+     
+         diff = expiry_timestamp - now
+         days = diff.total_seconds() / 86400
+     
+         return max(days, 0)
+
+#--------------------------------------------------------NEW IV Calc-----------------------------------------
 #--------------------------------------------SIGNAL TIME-----------------------------------------------------
 def is_valid_signal_time(signal_dt):
     """Return True only if signal date is today and time is within trading window."""
@@ -6379,6 +6455,27 @@ elif MENU =="LIVE TRADE 3":
             except Exception as e:
                 st.error(f"Failed to fetch option: {e}")
 
+    
+#######################---------------------IV-NEW !-------------------------------------------------
+             
+            option_dict = get_live_option_details(kite, tradingsymbol)
+            spot_price=26046.00 
+            ltp = option_dict.get("ltp")
+            strike = option_dict.get("strike")
+            expiry = option_dict.get("expiry")
+            is_call = option_dict.get("option_type") == "CALL"
+          
+              # Compute time to expiry (in years)
+            days_to_exp = days_to_expiry(expiry)
+            time_to_expiry = days_to_exp / 365 
+            r=0.07
+            st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
+            iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
+            st.write("IV  FOr (26000):CE")
+            st.write("IV (decimal):", iv)
+            st.write("IV (%):", iv * 100)       
+             
+
 #-----------------------------------IV Compute---------------------------------------------
 
         #spot_price = get_ltp(kite, "NSE:NIFTY 50")["ltp"]
@@ -6658,78 +6755,7 @@ elif MENU=="Live IV/RANK":
         st.stop()     # Stop page execution safely
 
     #st.success("You are logged in.") 
-    def get_option_instrument_details(tradingsymbol):
-         df = load_kite_instruments()
-         row = df[df["tradingsymbol"] == tradingsymbol]
-     
-         if row.empty:
-             return None
-     
-         row = row.iloc[0]
-     
-         return {
-             "tradingsymbol": tradingsymbol,
-             "strike": row["strike"],
-             "instrument_token": int(row["instrument_token"]),
-             "option_type": "CALL" if row["instrument_type"] == "CE" else "PUT",
-             "expiry": str(row["expiry"]),
-             "lot_size": int(row["lot_size"]),
-             "tick_size": float(row["tick_size"]),
-             "segment": row["segment"],
-             "exchange": row["exchange"],
-             "name": row["name"]
-         }
-     
-    def enrich_with_ltp(kite, option_data):
-         symbol = f"NFO:{option_data['tradingsymbol']}"
-         ltp_data = kite.ltp(symbol)
-         option_data["ltp"] = ltp_data[symbol]["last_price"]
-         return option_data
-         
-    def get_live_option_details(kite, tradingsymbol):
-         base = get_option_instrument_details(tradingsymbol)
-         if base is None:
-             return None
-         return enrich_with_ltp(kite, base)
-     
-     
-    def days_to_expiry(expiry_timestamp):
-         """Robust expiry calculator handling messy formats like Timestamp('2025-12-16')."""
-     
-         if expiry_timestamp is None:
-             return 0
-     
-         # Convert strings safely
-         if isinstance(expiry_timestamp, str):
-     
-             # Case: "Timestamp('2025-12-16 00:00:00')"
-             if expiry_timestamp.startswith("Timestamp("):
-                 # Remove Timestamp( and )
-                 expiry_timestamp = expiry_timestamp.replace("Timestamp(", "").replace(")", "")
-                 # Remove extra single quotes:  '2025-12-16 00:00:00'
-                 expiry_timestamp = expiry_timestamp.strip("'").strip('"')
-     
-             # Now convert clean string to datetime
-             try:
-                 expiry_timestamp = pd.to_datetime(expiry_timestamp)
-             except Exception:
-                 # Fallback: return 0 days
-                 return 0
-     
-         # If still not a pandas Timestamp → convert it
-         if not hasattr(expiry_timestamp, "tzinfo"):
-             expiry_timestamp = pd.to_datetime(expiry_timestamp)
-     
-         # Timezone aware vs naive handling
-         if expiry_timestamp.tzinfo is None:
-             now = datetime.now()
-         else:
-             now = datetime.now(expiry_timestamp.tzinfo)
-     
-         diff = expiry_timestamp - now
-         days = diff.total_seconds() / 86400
-     
-         return max(days, 0)
+    c
     from math import log, sqrt, exp
     from scipy.stats import norm
      

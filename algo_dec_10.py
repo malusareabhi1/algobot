@@ -14,7 +14,7 @@ import streamlit as st
 import requests
 import yfinance as yf
 from streamlit_autorefresh import st_autorefresh
-
+import re
 # Auto-refresh every 30 seconds
 # Market hours condition
 #import pytz

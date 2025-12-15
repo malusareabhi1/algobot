@@ -805,7 +805,7 @@ def compute_current_iv_3(kite, selected_option):
 
 # ------------------------------------------------------------
 
-def days_to_expiry(expiry):
+def days_to_expiry0s(expiry):
     """
     Compute days to expiry safely.
     expiry: datetime, pd.Timestamp, or datetime.date

@@ -59,7 +59,18 @@ def load_kite_instruments():
     return pd.read_csv("instruments.csv")
  #-------------------------------------------------------NEW IV CLACL--------------------------------------- 
 
-
+def implied_vol_call(S, K, T, r, C_mkt, tol=1e-6, max_iter=100):
+         low, high = 1e-6, 5.0      # 0.0001% to 500% vol range
+         for _ in range(max_iter):
+             mid = 0.5 * (low + high)
+             price = bs_call_price(S, K, T, r, mid)
+             if abs(price - C_mkt) < tol:
+                 return mid
+             if price > C_mkt:
+                 high = mid
+             else:
+                 low = mid
+         return mid  # best guess if not converged
 def get_option_instrument_details(tradingsymbol):
          df = load_kite_instruments()
          row = df[df["tradingsymbol"] == tradingsymbol]

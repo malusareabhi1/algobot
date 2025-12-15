@@ -7083,10 +7083,10 @@ elif MENU=="Live IV/RANK":
              print("IV Rank Error:", e)
              return {"iv": None, "iv_rank": None}
      
-  iv_data = get_iv_and_iv_rank(kite, "NIFTY25D1626000PE")
+    iv_data = get_iv_and_iv_rank(kite, "NIFTY25D1626000PE")
      
-  st.write("IV:", iv_data["iv"])
-  st.write("IV Rank:", iv_data["iv_rank"])
+    st.write("IV:", iv_data["iv"])
+    st.write("IV Rank:", iv_data["iv_rank"])
 
 
 

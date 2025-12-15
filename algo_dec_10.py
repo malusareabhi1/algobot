@@ -6895,9 +6895,9 @@ elif MENU=="Live IV/RANK":
          value="NIFTY25D1626000CE"
      )
      
-     pattern = r"^NIFTY\d{2}[A-Z]\d{2}\d{5}(CE|PE)$"
+    pattern = r"^NIFTY\d{2}[A-Z]\d{2}\d{5}(CE|PE)$"
      
-     if tradingsymbol:
+    if tradingsymbol:
          if re.match(pattern, tradingsymbol):
              st.success("✅ Valid NIFTY Option Symbol")
          else:

@@ -6194,7 +6194,7 @@ elif MENU =="LIVE TRADE 3":
     now = datetime.now(ist).time()
     
     # Market hours condition
-    start = time(9, 30)   # 9:30 AM
+    start = time(9, 15)   # 9:30 AM
     end = time(15, 25)    # 3:25 PM
     
     # Refresh only between 9:30–3:25

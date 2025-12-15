@@ -6890,7 +6890,7 @@ elif MENU=="Live IV/RANK":
     st.write("IV (%):", iv * 100)
     st.title("📊 NIFTY Option Input")
 
-     tradingsymbol = st.text_input(
+    tradingsymbol = st.text_input(
          "Trading Symbol",
          value="NIFTY25D1626000CE"
      )

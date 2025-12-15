@@ -6493,9 +6493,12 @@ elif MENU =="LIVE TRADE 3":
             r=0.07
             st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
             iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
-            st.write("IV  FOr (26000):CE")
+            st.write("IV  FOr (Option):CE")
             st.write("IV (decimal):", iv)
-            st.write("IV (%):", iv * 100)       
+            st.write("IV (%):", iv * 100)    
+            result = "Pass" if 0.10 <= iv <= 0.35 else "Fail"
+            iv_result = result    
+            add_param_row("IV", round(iv, 2), "0.10 - 0.35", result)
              
 
 #-----------------------------------IV Compute---------------------------------------------
@@ -6529,7 +6532,7 @@ elif MENU =="LIVE TRADE 3":
     # IV
             result = "Pass" if 0.10 <= iv_info["iv"] <= 0.35 else "Fail"
             iv_result = result    
-            add_param_row("IV", round(iv_info["iv"], 2), "0.10 - 0.35", result)
+            #add_param_row("IV", round(iv_info["iv"], 2), "0.10 - 0.35", result)
 
     # IV Rank
             result = "Pass" if 0.20 <= iv_info["iv_rank"] <= 0.70 else "Fail"
@@ -6964,7 +6967,7 @@ elif MENU=="Live IV/RANK":
     r=0.07
     st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
     iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
-    st.write("IV  FOr (26000):CE")
+    st.write("IV  FOr Option:CE")
     st.write("IV (decimal):", iv)
     st.write("IV (%):", iv * 100)      
 

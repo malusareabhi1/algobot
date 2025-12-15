@@ -6780,7 +6780,7 @@ elif MENU=="Live IV/RANK":
         st.stop()     # Stop page execution safely
 
     #st.success("You are logged in.") 
-    c
+    
     from math import log, sqrt, exp
     from scipy.stats import norm
      

@@ -34,7 +34,7 @@ else:
 # ------------------------------------------------------------
 # Page Config & Global Theming
 # -------------------------------------------------------------------
-#------------------------Parameters--------------------------------
+#------------------------Parameters-----------------------------------------------------------------------------
 st.set_page_config(
     page_title="TALK AlgoLabs Trading Platform",
     page_icon="📈",
@@ -57,6 +57,124 @@ def is_kite_connected(kite):
 @st.cache_data
 def load_kite_instruments():
     return pd.read_csv("instruments.csv")
+
+#------------------------------------------------New RANK IV----------------------------------------------------------
+def get_iv_and_iv_rank(
+    kite,
+    tradingsymbol,
+    lookback_days=252,
+    risk_free_rate=0.06
+):
+    """
+    Returns:
+    {
+        'iv': current_iv,
+        'iv_rank': iv_rank
+    }
+    """
+
+    try:
+        # 1️⃣ Get live option details
+        option = get_live_option_details(kite, tradingsymbol)
+        if option is None:
+            return {"iv": None, "iv_rank": None}
+
+        # 2️⃣ Spot price
+        spot = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
+
+        # 3️⃣ Time to expiry (years)
+        days = days_to_expiry(option["expiry"])
+        if days <= 0:
+            return {"iv": None, "iv_rank": None}
+
+        T = days / 365.0
+
+        # 4️⃣ Current IV (LIVE)
+        if option["option_type"] == "CALL":
+            current_iv = implied_vol_call(
+                S=spot,
+                K=option["strike"],
+                T=T,
+                r=risk_free_rate,
+                C_mkt=option["ltp"]
+            )
+        else:
+            # PUT IV via parity (or implement put IV separately)
+            current_iv = implied_vol_call(
+                S=spot,
+                K=option["strike"],
+                T=T,
+                r=risk_free_rate,
+                C_mkt=option["ltp"]
+            )
+
+        if current_iv is None:
+            return {"iv": None, "iv_rank": None}
+
+        # 5️⃣ Fetch historical option prices
+        from_date = (datetime.now() - timedelta(days=lookback_days * 2)).date()
+        to_date = datetime.now().date()
+
+        hist = kite.historical_data(
+            instrument_token=option["instrument_token"],
+            from_date=from_date,
+            to_date=to_date,
+            interval="day"
+        )
+
+        if not hist or len(hist) < 30:
+            return {"iv": round(current_iv * 100, 2), "iv_rank": None}
+
+        iv_series = []
+
+        for candle in hist:
+            close_price = candle["close"]
+            candle_date = candle["date"]
+
+            dte = days_to_expiry(candle_date)
+            if dte <= 0:
+                continue
+
+            T_hist = dte / 365.0
+
+            iv = implied_vol_call(
+                S=spot,              # acceptable approximation
+                K=option["strike"],
+                T=T_hist,
+                r=risk_free_rate,
+                C_mkt=close_price
+            )
+
+            if iv and 0 < iv < 5:
+                iv_series.append(iv)
+
+        if len(iv_series) < 10:
+            return {"iv": round(current_iv * 100, 2), "iv_rank": None}
+
+        iv_low = min(iv_series)
+        iv_high = max(iv_series)
+
+        iv_rank = (
+            (current_iv - iv_low) / (iv_high - iv_low) * 100
+            if iv_high != iv_low else 0
+        )
+
+        return {
+            "iv": round(current_iv * 100, 2),
+            "iv_rank": round(iv_rank, 2)
+        }
+
+    except Exception as e:
+        print("IV Rank Error:", e)
+        return {"iv": None, "iv_rank": None}
+
+iv_data = get_iv_and_iv_rank(kite, "NIFTY25D1626000PE")
+
+st.write("IV:", iv_data["iv"])
+st.write("IV Rank:", iv_data["iv_rank"])
+
+
+
  #-------------------------------------------------------NEW IV CLACL--------------------------------------- 
 import math
 

@@ -58,6 +58,17 @@ def is_kite_connected(kite):
 def load_kite_instruments():
     return pd.read_csv("instruments.csv")
  #-------------------------------------------------------NEW IV CLACL--------------------------------------- 
+import math
+
+     # Black-Scholes call price
+def bs_call_price(S, K, T, r, sigma):
+         if sigma <= 0:
+             return 0.0
+         d1 = (math.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * math.sqrt(T))
+         d2 = d1 - sigma * math.sqrt(T)
+         Nd1 = 0.5 * (1.0 + math.erf(d1 / math.sqrt(2.0)))
+         Nd2 = 0.5 * (1.0 + math.erf(d2 / math.sqrt(2.0)))
+         return S * Nd1 - K * math.exp(-r * T) * Nd2
 
 def implied_vol_call(S, K, T, r, C_mkt, tol=1e-6, max_iter=100):
          low, high = 1e-6, 5.0      # 0.0001% to 500% vol range

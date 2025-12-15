@@ -6888,8 +6888,21 @@ elif MENU=="Live IV/RANK":
     st.write("IV  FOr (26000):CE")
     st.write("IV (decimal):", iv)
     st.write("IV (%):", iv * 100)
+    st.title("📊 NIFTY Option Input")
 
-    tradingsymbol="NIFTY25D1626000CE" 
+     tradingsymbol = st.text_input(
+         "Trading Symbol",
+         value="NIFTY25D1626000CE"
+     )
+     
+     pattern = r"^NIFTY\d{2}[A-Z]\d{2}\d{5}(CE|PE)$"
+     
+     if tradingsymbol:
+         if re.match(pattern, tradingsymbol):
+             st.success("✅ Valid NIFTY Option Symbol")
+         else:
+             st.error("❌ Invalid format (Example: NIFTY25D1626000CE)") 
+    #tradingsymbol="NIFTY25D1626000CE" 
     option_dict = get_live_option_details(kite, tradingsymbol)
     spot_price=26046.00 
     ltp = option_dict.get("ltp")

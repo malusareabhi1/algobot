@@ -33,7 +33,83 @@ else:
 #st.sidebar.image("shree.jpg",width=15)  # Correct parameter
 # ------------------------------------------------------------
 # Page Config & Global Theming
-# -------------------------------------------------------------------
+# -----------------------------------Exit Logic----------------------------------------------------------------
+
+
+def manage_exit(kite, tradingsymbol, qty):
+
+    if not st.session_state.trade_active:
+        return
+
+    # Live LTP
+    ltp = kite.ltp(f"NFO:{tradingsymbol}")[f"NFO:{tradingsymbol}"]["last_price"]
+
+    entry = st.session_state.entry_price
+    now = datetime.now()
+
+    # Update highest price for trailing SL
+    st.session_state.highest_price = max(
+        st.session_state.highest_price, ltp
+    )
+
+    # ---------- EXIT CALCULATIONS ----------
+    trailing_sl = round(st.session_state.highest_price * 0.90, 2)
+    partial_target = round(entry * 1.10, 2)
+    time_exit_at = st.session_state.entry_time + timedelta(minutes=16)
+
+    st.info(
+        f"LTP: {ltp} | SL: {trailing_sl} | Partial TP: {partial_target}"
+    )
+
+    # ---------- PARTIAL EXIT (50%) ----------
+    if not st.session_state.partial_exit_done and ltp >= partial_target:
+        try:
+            kite.place_order(
+                tradingsymbol=tradingsymbol,
+                exchange=kite.EXCHANGE_NFO,
+                transaction_type=kite.TRANSACTION_TYPE_SELL,
+                quantity=qty // 2,
+                order_type=kite.ORDER_TYPE_MARKET,
+                product=kite.PRODUCT_MIS,
+                variety=kite.VARIETY_REGULAR
+            )
+            st.session_state.partial_exit_done = True
+            st.success("✅ 50% Profit Booked @ +10%")
+
+        except Exception as e:
+            st.error(f"Partial Exit Failed: {e}")
+
+    # ---------- TRAILING STOPLOSS ----------
+    if ltp <= trailing_sl:
+        exit_reason = "TRAILING SL HIT"
+
+    # ---------- TIME EXIT ----------
+    elif now >= time_exit_at:
+        exit_reason = "TIME EXIT (16 min)"
+
+    else:
+        exit_reason = None
+
+    # ---------- FINAL EXIT ----------
+    if exit_reason and not st.session_state.final_exit_done:
+        try:
+            kite.place_order(
+                tradingsymbol=tradingsymbol,
+                exchange=kite.EXCHANGE_NFO,
+                transaction_type=kite.TRANSACTION_TYPE_SELL,
+                quantity=qty if not st.session_state.partial_exit_done else qty // 2,
+                order_type=kite.ORDER_TYPE_MARKET,
+                product=kite.PRODUCT_MIS,
+                variety=kite.VARIETY_REGULAR
+            )
+
+            st.session_state.final_exit_done = True
+            st.session_state.trade_active = False
+            st.success(f"🚪 Trade Exited: {exit_reason}")
+
+        except Exception as e:
+            st.error(f"Final Exit Failed: {e}")
+
 #------------------------Parameters-----------------------------------------------------------------------------
 st.set_page_config(
     page_title="TALK AlgoLabs Trading Platform",
@@ -6731,9 +6807,45 @@ elif MENU =="LIVE TRADE 3":
 #------------------------------------ORDERS--------------------------------------------
             show_kite_orders(kite)
 
-#--------------------------------------------------------------------------------
+#---------------------------------Exit Logic-----------------------------------------------
 
-#--------------------------------------------------------------------------------
+            if "trade_active" not in st.session_state:
+                st.session_state.trade_active = False
+          
+            if "entry_price" not in st.session_state:
+                st.session_state.entry_price = None
+          
+            if "highest_price" not in st.session_state:
+                st.session_state.highest_price = None
+          
+            if "entry_time" not in st.session_state:
+                st.session_state.entry_time = None
+          
+            if "partial_exit_done" not in st.session_state:
+                st.session_state.partial_exit_done = False
+          
+            if "final_exit_done" not in st.session_state:
+                st.session_state.final_exit_done = False
+               #-------------------------------
+            st.session_state.trade_active = True
+            st.session_state.entry_price = entry_price   # from trade average price
+            st.session_state.highest_price = entry_price
+            st.session_state.entry_time = datetime.now()
+            st.session_state.partial_exit_done = False
+            st.session_state.final_exit_done = False
+              #-------------------------------
+
+
+
+#--------------------------------EXIT------------------------------------------------
+            # ---------------- EXIT MANAGEMENT ----------------
+            if st.session_state.trade_active:
+                   manage_exit(
+                       kite=kite,
+                       tradingsymbol=st.session_state.tradingsymbol,
+                       qty=st.session_state.qty
+                   )
+
 
 #--------------------------------------------------------------------------------
 

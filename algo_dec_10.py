@@ -6937,6 +6937,14 @@ elif MENU =="LIVE TRADE 3":
             show_kite_orders(kite)
 
 #---------------------------------Exit Logic-----------------------------------------------
+            if "trade_active" not in st.session_state:
+                   st.session_state.trade_active = False
+                   st.session_state.entry_price = 0.0
+                   st.session_state.entry_time = None
+                   st.session_state.highest_price = 0.0
+                   st.session_state.partial_exit_done = False
+                   st.session_state.final_exit_done = False
+ 
 
             if "trade_active" not in st.session_state:
                 st.session_state.trade_active = False

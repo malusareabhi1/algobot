@@ -16,7 +16,8 @@ import yfinance as yf
 from streamlit_autorefresh import st_autorefresh
 import re
 import math 
-
+from math import log, sqrt, exp
+from scipy.stats import norm
 # Auto-refresh every 30 seconds
 # Market hours condition
 #import pytz

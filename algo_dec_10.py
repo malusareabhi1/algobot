@@ -6619,8 +6619,10 @@ elif MENU =="LIVE TRADE 3":
             result = "Pass" if 0.20 <= iv_info["iv_rank"] <= 0.70 else "Fail"
             iv_rank_result  = result    
             add_param_row("IV Rank", round(iv_info["iv_rank"], 2), "0.20 - 0.70", result)
-
-    
+#--------------------------------------------------Getting New IV-----------& adding to para----------------------------
+            #result = compute_option_iv_details(option, spot)
+     
+            #st.write(result)  
 #-------------------------------------------------------------------------
             if(iv_info["iv"]=='None'):
              # Safely extract values
@@ -7013,7 +7015,8 @@ elif MENU=="Live IV/RANK":
     st.write(option)
      
      
-     
+    spot = option["strike"]
+    st.write("Spot",spot) 
     spot = 25900.00  # live NIFTY spot
      
     result = compute_option_iv_details(option, spot)

@@ -6749,8 +6749,8 @@ elif MENU =="LIVE TRADE 3":
                    lot_qty = 2
             if iv_result == "Pass" and iv_rank_result == "Fail" and vix_result=="pass" and pcr_result=="pass":
                    lot_qty = 6    
-            if vix_result=="Fail":
-                   lot_qty=0 
+            if vix_now < 10 :
+                   lot_qty = 0 
             add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK")
      #-----------------------------------------Display PARA-------------------------------------------
             if st.session_state.param_rows:

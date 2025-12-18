@@ -34,6 +34,40 @@ else:
 # ------------------------------------------------------------
 # Page Config & Global Theming
 #---------------------------------------------------------------------------------------------------------------
+def black_scholes_call_iv(spot, strike, time_to_expiry, ltp, r=0.0, tol=1e-5, max_iter=100):
+         """
+         Safe IV solver for CALL option using Newton-Raphson.
+         Returns None if no valid IV found.
+         """
+     
+         if ltp <= 0 or spot <= 0 or time_to_expiry <= 0:
+             return None
+     
+         sigma = 0.20  # initial guess
+     
+         for _ in range(max_iter):
+             d1 = (log(spot/strike) + (r + 0.5*sigma*sigma)*time_to_expiry) / (sigma*sqrt(time_to_expiry))
+             d2 = d1 - sigma*sqrt(time_to_expiry)
+     
+             theoretical = spot*norm.cdf(d1) - strike*exp(-r*time_to_expiry)*norm.cdf(d2)
+     
+             vega = spot * norm.pdf(d1) * sqrt(time_to_expiry)
+     
+             if vega < 1e-8:    # too flat, cannot converge
+                 return None
+     
+             diff = theoretical - ltp
+     
+             if abs(diff) < tol:
+                 return sigma
+     
+             sigma = sigma - diff/vega
+     
+             if sigma <= 0:
+                 return None
+     
+         return None
+     #-------------------------------------------------------------------------------------
 def compute_option_iv_details(option_dict, spot_price):
          """
          option_dict example:
@@ -6973,39 +7007,7 @@ elif MENU=="Live IV/RANK":
     from math import log, sqrt, exp
     from scipy.stats import norm
      
-    def black_scholes_call_iv(spot, strike, time_to_expiry, ltp, r=0.0, tol=1e-5, max_iter=100):
-         """
-         Safe IV solver for CALL option using Newton-Raphson.
-         Returns None if no valid IV found.
-         """
-     
-         if ltp <= 0 or spot <= 0 or time_to_expiry <= 0:
-             return None
-     
-         sigma = 0.20  # initial guess
-     
-         for _ in range(max_iter):
-             d1 = (log(spot/strike) + (r + 0.5*sigma*sigma)*time_to_expiry) / (sigma*sqrt(time_to_expiry))
-             d2 = d1 - sigma*sqrt(time_to_expiry)
-     
-             theoretical = spot*norm.cdf(d1) - strike*exp(-r*time_to_expiry)*norm.cdf(d2)
-     
-             vega = spot * norm.pdf(d1) * sqrt(time_to_expiry)
-     
-             if vega < 1e-8:    # too flat, cannot converge
-                 return None
-     
-             diff = theoretical - ltp
-     
-             if abs(diff) < tol:
-                 return sigma
-     
-             sigma = sigma - diff/vega
-     
-             if sigma <= 0:
-                 return None
-     
-         return None
+    
     def compute_iv_rank(current_iv, iv_min=0.10, iv_max=0.35):
          """
          Very simple IV rank model:

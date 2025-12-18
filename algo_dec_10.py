@@ -7017,10 +7017,10 @@ elif MENU=="Live IV/RANK":
      
     spot = option["strike"]
     st.write("Spot",spot) 
-    spot = 25900.00  # live NIFTY spot
+    #spot = 25900.00  # live NIFTY spot
      
     result = compute_option_iv_details(option, spot)
-     
+    st.write("IV",result["iv"]) 
     st.write(result)
  #-------------------------------------------------------------------
 

@@ -6770,7 +6770,7 @@ elif MENU =="LIVE TRADE 3":
                     if now >= signal_time:
                       
                       # Check 3: Order placed only once
-                         if lot_qty>0 
+                         if lot_qty>0: 
                                if not st.session_state.order_executed:
                                    try:
                                        order_id = kite.place_order(

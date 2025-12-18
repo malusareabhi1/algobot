@@ -33,9 +33,65 @@ else:
 #st.sidebar.image("shree.jpg",width=15)  # Correct parameter
 # ------------------------------------------------------------
 # Page Config & Global Theming
+#---------------------------------------------------------------------------------------------------------------
+def compute_option_iv_details(option_dict, spot_price):
+         """
+         option_dict example:
+         {
+             "tradingsymbol":"NIFTY25D1625850CE",
+             "strike":25850,
+             "instrument_token":12343810,
+             "option_type":"CALL",
+             "expiry": Timestamp('2025-12-16 00:00:00'),
+             "lot_size":75,
+             "tick_size":0.05,
+             "segment":"NFO-OPT",
+             "exchange":"NFO",
+             "name":"NIFTY",
+             "ltp":138.65
+         }
+         """
+     
+         ltp = option_dict.get("ltp")
+         strike = option_dict.get("strike")
+         expiry = option_dict.get("expiry")
+         is_call = option_dict.get("option_type") == "CALL"
+     
+         # Compute time to expiry (in years)
+         days_to_exp = days_to_expiry(expiry)
+         time_to_expiry = days_to_exp / 365
+     
+         # Compute IV
+         iv = black_scholes_call_iv(
+             spot=spot_price,
+             strike=strike,
+             time_to_expiry=time_to_expiry,
+             ltp=ltp,
+             r=0.088
+         )
+     
+         # Compute IV Rank
+         iv_rank = compute_iv_rank(iv)
+     
+         # If IV fails, return zeros (based on your requirement)
+         if iv is None:
+             iv = 0
+         if iv_rank is None:
+             iv_rank = 0
+     
+         return {
+             "ltp": ltp,
+             "spot": spot_price,
+             "strike": strike,
+             "days_to_expiry": days_to_exp,
+             "time_to_expiry_years": time_to_expiry,
+             "is_call": is_call,
+             "iv": iv,
+             "iv_rank": iv_rank
+         }
 # -----------------------------------Exit Logic----------------------------------------------------------------
 
-
+#------------------------------------------------------------------------------------------------------------
 def manage_exit(kite, tradingsymbol, qty):
 
     if not st.session_state.trade_active:
@@ -6963,61 +7019,7 @@ elif MENU=="Live IV/RANK":
      
          rank = (current_iv - iv_min) / (iv_max - iv_min)
          return max(0, min(rank, 1))
-    def compute_option_iv_details(option_dict, spot_price):
-         """
-         option_dict example:
-         {
-             "tradingsymbol":"NIFTY25D1625850CE",
-             "strike":25850,
-             "instrument_token":12343810,
-             "option_type":"CALL",
-             "expiry": Timestamp('2025-12-16 00:00:00'),
-             "lot_size":75,
-             "tick_size":0.05,
-             "segment":"NFO-OPT",
-             "exchange":"NFO",
-             "name":"NIFTY",
-             "ltp":138.65
-         }
-         """
-     
-         ltp = option_dict.get("ltp")
-         strike = option_dict.get("strike")
-         expiry = option_dict.get("expiry")
-         is_call = option_dict.get("option_type") == "CALL"
-     
-         # Compute time to expiry (in years)
-         days_to_exp = days_to_expiry(expiry)
-         time_to_expiry = days_to_exp / 365
-     
-         # Compute IV
-         iv = black_scholes_call_iv(
-             spot=spot_price,
-             strike=strike,
-             time_to_expiry=time_to_expiry,
-             ltp=ltp,
-             r=0.088
-         )
-     
-         # Compute IV Rank
-         iv_rank = compute_iv_rank(iv)
-     
-         # If IV fails, return zeros (based on your requirement)
-         if iv is None:
-             iv = 0
-         if iv_rank is None:
-             iv_rank = 0
-     
-         return {
-             "ltp": ltp,
-             "spot": spot_price,
-             "strike": strike,
-             "days_to_expiry": days_to_exp,
-             "time_to_expiry_years": time_to_expiry,
-             "is_call": is_call,
-             "iv": iv,
-             "iv_rank": iv_rank
-         }
+    
          
     tradingsymbol = "NIFTY25D2325900PE"
      

@@ -35,10 +35,11 @@ df = load_data("^NSEI")
 # SIGNAL DETECTOR (ONE CANDLE ONLY)
 # --------------------------------------------------
 def detect_signal_at_candle(df, qty):
-    latest = df.iloc[-1]
+    latest = df.tail(1)   # keep as DataFrame
 
-    dt = pd.to_datetime(latest['Datetime'])   # ✅ FIX
-    spot = latest['Close_^NSEI']
+    # ✅ Extract SCALAR datetime
+    dt = latest['Datetime'].iloc[0]
+    spot = latest['Close_^NSEI'].iloc[0]
 
     prev_day = (dt - pd.Timedelta(days=1)).date()
 
@@ -56,9 +57,9 @@ def detect_signal_at_candle(df, qty):
     base_low = min(base_open, base_close)
     base_high = max(base_open, base_close)
 
-    H = latest['High_^NSEI']
-    L = latest['Low_^NSEI']
-    C = latest['Close_^NSEI']
+    H = latest['High_^NSEI'].iloc[0]
+    L = latest['Low_^NSEI'].iloc[0]
+    C = latest['Close_^NSEI'].iloc[0]
 
     swing_low = df.tail(10)['Low_^NSEI'].min()
     swing_high = df.tail(10)['High_^NSEI'].max()
@@ -66,24 +67,22 @@ def detect_signal_at_candle(df, qty):
     # CONDITION 1 – CALL
     if (L < base_high and H > base_low) and C > base_high:
         return {
-            "EntryTime": dt,
-            "Type": "CALL",
+            "Time": dt,
+            "Signal": "CALL",
             "Entry": H,
             "StopLoss": swing_low,
             "Qty": qty,
-            "Status": "Active",
             "Spot": spot
         }
 
     # CONDITION 4 – PUT
     if (L < base_high and H > base_low) and C < base_low:
         return {
-            "EntryTime": dt,
-            "Type": "PUT",
+            "Time": dt,
+            "Signal": "PUT",
             "Entry": L,
             "StopLoss": swing_high,
             "Qty": qty,
-            "Status": "Active",
             "Spot": spot
         }
 

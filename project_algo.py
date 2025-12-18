@@ -34,12 +34,12 @@ with st.sidebar:
     selected = option_menu(
     menu_title="ALGO BOT  ",
     options=[
-        "Dashboard", "Get Stock Data", "Doctor Strategy","Doctor1.0 Strategy","Doctor2.0 Strategy","Doctor3.0 Strategy", "Swing Trade Strategy", "Swing SMA44 Strategy","SMA44+200MA Strategy","Golden Cross","Pullback to EMA20","New Nifty Strategy",
+        "Dashboard", "Get Stock Data", "Doctor Strategy","Doctor1.0 Strategy","Doctor2.0 Strategy","Doctor3.0 Strategy", "Swing Trade Strategy", "Swing SMA44 Strategy","SMA44+200MA Strategy","Trend–Pullback–Breakout Swing","Golden Cross","Pullback to EMA20","New Nifty Strategy",
         "Intraday Stock Finder","ORB Strategy","ORB Screener", "Trade Log", "Account Info", "Candle Chart", "Strategy Detail","Strategy2.0 Detail", "Project Detail", "KITE API", "API","Alpha Vantage API","Live Algo Trading","Paper Trade","Volatility Scanner","TradingView","Telegram Demo","NIFTY PCR","3PM STRATEGY","3PM OPTION","NIFTY OI,PCR,D "
     ],
     icons=[
         "bar-chart", "search", "cpu", "cpu","cpu", "cpu","cpu","cpu","cpu","cpu", "arrow-repeat",
-        "search", "clipboard-data", "wallet2", "graph-up","graph-up", "info-circle", "search","file-earmark","file-earmark", "code-slash", "code-slash","code-slash", "code-slash","journal-text","search", "bar-chart", "bar-chart","file-earmark", "bar-chart","file-earmark","file-earmark","file-earmark"
+        "search", "clipboard-data", "wallet2", "graph-up","graph-up","graph-up", "info-circle", "search","file-earmark","file-earmark", "code-slash", "code-slash","code-slash", "code-slash","journal-text","search", "bar-chart", "bar-chart","file-earmark", "bar-chart","file-earmark","file-earmark","file-earmark"
     ],
     menu_icon="cast",
     default_index=0,
@@ -818,9 +818,70 @@ elif selected == "Pullback to EMA20":
         else:
             st.info("🔎 No signals found.")
 
+#--------------------------------------------------------------------------------------------------------------------------
+elif selected == "Trend–Pullback–Breakout Swing":
+    import streamlit as st
+    import yfinance as yf
+    import pandas as pd
+    import pandas_ta as ta
+    
+    st.set_page_config("Swing Scanner", layout="wide")
+    st.title("📈 Swing Trading Scanner")
+    
+    STOCKS = [
+        "SBIN.NS","PNB.NS","BANKBARODA.NS",
+        "NTPC.NS","POWERGRID.NS","COALINDIA.NS",
+        "ONGC.NS","GAIL.NS","IRFC.NS","RVNL.NS","LT.NS"
+    ]
+    
+    results = []
+    
+    for symbol in STOCKS:
+        df = yf.download(symbol, period="1y", interval="1d", progress=False)
+        if len(df) < 200:
+            continue
+    
+        df["EMA20"] = ta.ema(df["Close"], 20)
+        df["EMA50"] = ta.ema(df["Close"], 50)
+        df["EMA200"] = ta.ema(df["Close"], 200)
+        df["RSI"] = ta.rsi(df["Close"], 14)
+        df["ATR"] = ta.atr(df["High"], df["Low"], df["Close"], 14)
+        df["AVG_VOL"] = df["Volume"].rolling(20).mean()
+    
+        latest = df.iloc[-1]
+        prev = df.iloc[-2]
+    
+        trend = latest.EMA50 > latest.EMA200 and latest.Close > latest.EMA50
+        pullback = latest.Close > latest.EMA20 and prev.Close < prev.EMA20
+        breakout = latest.Close > prev.High
+        volume = latest.Volume > 1.5 * latest.AVG_VOL
+        rsi_ok = 40 < latest.RSI < 65
+    
+        if all([trend, pullback, breakout, volume, rsi_ok]):
+            entry = latest.Close
+            sl = entry - 1.5 * latest.ATR
+            target = entry + 2 * (entry - sl)
+    
+            results.append({
+                "Stock": symbol.replace(".NS",""),
+                "Entry": round(entry,2),
+                "Stoploss": round(sl,2),
+                "Target": round(target,2),
+                "RSI": round(latest.RSI,2),
+                "Trend": "Bullish"
+            })
+    
+    df_result = pd.DataFrame(results)
+    
+    st.subheader("✅ Swing Buy Candidates")
+    st.dataframe(df_result, use_container_width=True)
+    
+    if df_result.empty:
+        st.warning("No swing setups today")
 
 
 
+#--------------------------------------------------------------------------------------------------------------------------
 
 
 elif selected == "Golden Cross":

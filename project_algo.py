@@ -824,65 +824,71 @@ elif selected == "Trend–Pullback–Breakout Swing":
     import yfinance as yf
     import pandas as pd
     import pandas_ta as ta
+    import numpy as np
     
-    st.set_page_config("Swing Scanner", layout="wide")
-    st.title("📈 Swing Trading Scanner")
+    st.set_page_config("Swing Trading Dashboard", layout="wide")
     
-    STOCKS = [
-        "SBIN.NS","PNB.NS","BANKBARODA.NS",
-        "NTPC.NS","POWERGRID.NS","COALINDIA.NS",
-        "ONGC.NS","GAIL.NS","IRFC.NS","RVNL.NS","LT.NS"
-    ]
+    st.title("📈 Swing Trading Strategy – Stocks")
     
-    results = []
+    # ---------------- INPUT ----------------
+    symbol = st.text_input("Stock Symbol (NSE)", "RELIANCE.NS")
+    capital = st.number_input("Capital (₹)", value=500000)
+    risk_percent = st.slider("Risk per Trade (%)", 0.5, 2.0, 1.0)
     
-    for symbol in STOCKS:
-        df = yf.download(symbol, period="1y", interval="1d", progress=False)
-        if len(df) < 200:
-            continue
+    # ---------------- DATA ----------------
+    df = yf.download(symbol, period="1y", interval="1d")
     
-        df["EMA20"] = ta.ema(df["Close"], 20)
-        df["EMA50"] = ta.ema(df["Close"], 50)
-        df["EMA200"] = ta.ema(df["Close"], 200)
-        df["RSI"] = ta.rsi(df["Close"], 14)
-        df["ATR"] = ta.atr(df["High"], df["Low"], df["Close"], 14)
-        df["AVG_VOL"] = df["Volume"].rolling(20).mean()
+    if df.empty:
+        st.error("Invalid Symbol")
+        st.stop()
     
-        latest = df.iloc[-1]
-        prev = df.iloc[-2]
+    # ---------------- INDICATORS ----------------
+    df["EMA20"] = ta.ema(df["Close"], 20)
+    df["EMA50"] = ta.ema(df["Close"], 50)
+    df["EMA200"] = ta.ema(df["Close"], 200)
+    df["RSI"] = ta.rsi(df["Close"], 14)
+    df["ATR"] = ta.atr(df["High"], df["Low"], df["Close"], 14)
+    df["AVG_VOL"] = df["Volume"].rolling(20).mean()
     
-        #trend = latest.EMA50 > latest.EMA200 and latest.Close > latest.EMA50
-        #trend = (latest["EMA50"].iloc[0] > latest["EMA200"].iloc[0]and latest["Close"].iloc[0] > latest["EMA50"].iloc[0])
-        trend = (    latest["EMA50"] > latest["EMA200"]    and latest["Close"] > latest["EMA50"])
-
-
-        pullback = latest.Close > latest.EMA20 and prev.Close < prev.EMA20
-        breakout = latest.Close > prev.High
-        volume = latest.Volume > 1.5 * latest.AVG_VOL
-        rsi_ok = 40 < latest.RSI < 65
+    latest = df.iloc[-1]
+    prev = df.iloc[-2]
     
-        if all([trend, pullback, breakout, volume, rsi_ok]):
-            entry = latest.Close
-            sl = entry - 1.5 * latest.ATR
-            target = entry + 2 * (entry - sl)
+    # ---------------- SIGNAL ----------------
+    trend = latest.EMA50 > latest.EMA200 and latest.Close > latest.EMA50
+    pullback = latest.Close > latest.EMA20 and prev.Close < prev.EMA20
+    momentum = latest.Close > prev.High
+    volume_ok = latest.Volume > 1.5 * latest.AVG_VOL
+    rsi_ok = 40 < latest.RSI < 65
     
-            results.append({
-                "Stock": symbol.replace(".NS",""),
-                "Entry": round(entry,2),
-                "Stoploss": round(sl,2),
-                "Target": round(target,2),
-                "RSI": round(latest.RSI,2),
-                "Trend": "Bullish"
-            })
+    buy_signal = all([trend, pullback, momentum, volume_ok, rsi_ok])
     
-    df_result = pd.DataFrame(results)
+    # ---------------- RISK ----------------
+    entry = latest.Close
+    sl = entry - (1.5 * latest.ATR)
+    risk_per_share = entry - sl
+    risk_amount = capital * (risk_percent / 100)
+    qty = int(risk_amount / risk_per_share)
+    target = entry + (2 * risk_per_share)
     
-    st.subheader("✅ Swing Buy Candidates")
-    st.dataframe(df_result, use_container_width=True)
+    # ---------------- DASHBOARD ----------------
+    c1, c2, c3 = st.columns(3)
     
-    if df_result.empty:
-        st.warning("No swing setups today")
-
+    c1.metric("Entry Price", round(entry, 2))
+    c2.metric("Stoploss", round(sl, 2))
+    c3.metric("Target", round(target, 2))
+    
+    st.metric("Quantity", qty)
+    st.metric("RSI", round(latest.RSI, 2))
+    st.metric("ATR", round(latest.ATR, 2))
+    
+    if buy_signal:
+        st.success("✅ BUY SIGNAL FOUND")
+    else:
+        st.warning("❌ No Trade Today")
+    
+    # ---------------- CHART ----------------
+    st.subheader("📊 Price Chart")
+    st.line_chart(df[["Close", "EMA20", "EMA50", "EMA200"]].dropna())
 
 
 #--------------------------------------------------------------------------------------------------------------------------

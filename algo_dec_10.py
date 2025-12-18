@@ -6970,6 +6970,7 @@ elif MENU =="LIVE TRADE 3":
             st.session_state.entry_time = datetime.now()
             st.session_state.partial_exit_done = False
             st.session_state.final_exit_done = False
+            st.session_state.tradingsymbol = trending_symbol
               #-------------------------------
 
 

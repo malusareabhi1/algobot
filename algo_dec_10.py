@@ -37,7 +37,7 @@ else:
 # ------------------------------------------------------------
 # Page Config & Global Theming
 #---------------------------------------------------------------------------------------------------------------
- def compute_iv_rank(current_iv, iv_min=0.10, iv_max=0.35):
+def compute_iv_rank(current_iv, iv_min=0.10, iv_max=0.35):
          """
          Very simple IV rank model:
          rank = (current_iv - min) / (max - min)

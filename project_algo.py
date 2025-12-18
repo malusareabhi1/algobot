@@ -1897,26 +1897,26 @@ def fetch_oi_data(symbol):
 
 
 # --- Streamlit UI ---
-symbol = st.selectbox("Select Index", ["NIFTY", "BANKNIFTY"])
-if st.button("Fetch Live Data"):
-    with st.spinner("Fetching live data from NSE..."):
-        result = fetch_oi_data(symbol)
-        time.sleep(1)
-        st.success("Data fetched successfully ✅")
-
-        df = pd.DataFrame([result])
-        st.table(df)
-
-        # Optional: Display summary text
-        st.subheader("📊 Summary")
-        st.markdown(f"""
-        - **Symbol:** {symbol}  
-        - **Total Call OI:** {result['Call OI']:,}  
-        - **Total Put OI:** {result['Put OI']:,}  
-        - **PCR:** {result['PCR']}  
-        - **Market Direction:** {result['Direction']}  
-        """)
+    symbol = st.selectbox("Select Index", ["NIFTY", "BANKNIFTY"])
+    if st.button("Fetch Live Data"):
+        with st.spinner("Fetching live data from NSE..."):
+            result = fetch_oi_data(symbol)
+            time.sleep(1)
+            st.success("Data fetched successfully ✅")
     
+            df = pd.DataFrame([result])
+            st.table(df)
+    
+            # Optional: Display summary text
+            st.subheader("📊 Summary")
+            st.markdown(f"""
+            - **Symbol:** {symbol}  
+            - **Total Call OI:** {result['Call OI']:,}  
+            - **Total Put OI:** {result['Put OI']:,}  
+            - **PCR:** {result['PCR']}  
+            - **Market Direction:** {result['Direction']}  
+            """)
+        
 
 elif selected == "Swing SMA44 Strategy":
     def scan_bhanushali_strategy(stock):

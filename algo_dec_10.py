@@ -183,6 +183,7 @@ def get_option_instrument_details(tradingsymbol):
          }
      
 def enrich_with_ltp(kite, option_data):
+         st.write("Optiion Data",option_data) 
          symbol = f"NFO:{option_data['tradingsymbol']}"
          ltp_data = kite.ltp(symbol)
          option_data["ltp"] = ltp_data[symbol]["last_price"]

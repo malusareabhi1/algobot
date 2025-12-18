@@ -6965,8 +6965,8 @@ elif MENU =="LIVE TRADE 3":
                 st.session_state.final_exit_done = False
                #-------------------------------
             st.session_state.trade_active = True
-            st.session_state.entry_price = entry_price   # from trade average price
-            st.session_state.highest_price = entry_price
+            st.session_state.entry_price = ltp   # from trade average price
+            st.session_state.highest_price = ltp
             st.session_state.entry_time = datetime.now()
             st.session_state.partial_exit_done = False
             st.session_state.final_exit_done = False

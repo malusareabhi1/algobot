@@ -6623,6 +6623,17 @@ elif MENU =="LIVE TRADE 3":
             #result = compute_option_iv_details(option, spot)
      
             #st.write(result)  
+            option = get_live_option_details(kite, tradingsymbol)
+     
+            st.write(option)
+     
+     
+            spot = option["strike"]
+            st.write("Spot",spot) 
+            #spot = 25900.00  # live NIFTY spot
+     
+            result = compute_option_iv_details(option, spot)
+            st.write("IV",result["iv"]) 
 #-------------------------------------------------------------------------
             if(iv_info["iv"]=='None'):
              # Safely extract values

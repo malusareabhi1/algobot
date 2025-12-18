@@ -36,10 +36,11 @@ df = load_data("^NSEI")
 # --------------------------------------------------
 def detect_signal_at_candle(df, qty):
     latest = df.iloc[-1]
-    spot = latest['Close_^NSEI']
-    dt = latest['Datetime']
 
-    prev_day = dt.date() - pd.Timedelta(days=1)
+    dt = pd.to_datetime(latest['Datetime'])   # ✅ FIX
+    spot = latest['Close_^NSEI']
+
+    prev_day = (dt - pd.Timedelta(days=1)).date()
 
     candle_3pm = df[
         (df['Datetime'].dt.date == prev_day) &
@@ -55,12 +56,14 @@ def detect_signal_at_candle(df, qty):
     base_low = min(base_open, base_close)
     base_high = max(base_open, base_close)
 
-    H, L, C = latest['High_^NSEI'], latest['Low_^NSEI'], latest['Close_^NSEI']
+    H = latest['High_^NSEI']
+    L = latest['Low_^NSEI']
+    C = latest['Close_^NSEI']
 
     swing_low = df.tail(10)['Low_^NSEI'].min()
     swing_high = df.tail(10)['High_^NSEI'].max()
 
-    # CONDITION 1 – BASE ZONE BREAKOUT (CALL)
+    # CONDITION 1 – CALL
     if (L < base_high and H > base_low) and C > base_high:
         return {
             "EntryTime": dt,
@@ -72,7 +75,7 @@ def detect_signal_at_candle(df, qty):
             "Spot": spot
         }
 
-    # CONDITION 4 – BASE ZONE BREAKDOWN (PUT)
+    # CONDITION 4 – PUT
     if (L < base_high and H > base_low) and C < base_low:
         return {
             "EntryTime": dt,

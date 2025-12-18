@@ -6749,8 +6749,9 @@ elif MENU =="LIVE TRADE 3":
                    lot_qty = 2
             if iv_result == "Pass" and iv_rank_result == "Fail" and vix_result=="pass" and pcr_result=="pass":
                    lot_qty = 6    
-
-            add_param_row("LOT QTY", lot_qty, "2 or 6", "OK")
+            if vix_result=="Fail":
+                   lot_qty=0 
+            add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK")
      #-----------------------------------------Display PARA-------------------------------------------
             if st.session_state.param_rows:
                   df = pd.DataFrame(st.session_state.param_rows)
@@ -6769,27 +6770,29 @@ elif MENU =="LIVE TRADE 3":
                     if now >= signal_time:
                       
                       # Check 3: Order placed only once
-                          if not st.session_state.order_executed:
-                              try:
-                                  order_id = kite.place_order(
-                                          tradingsymbol=trending_symbol,
-                                          exchange=kite.EXCHANGE_NFO,
-                                          transaction_type=kite.TRANSACTION_TYPE_BUY,
-                                          quantity=qty,
-                                          order_type=kite.ORDER_TYPE_MARKET,
-                                          variety=kite.VARIETY_REGULAR,
-                                          product=kite.PRODUCT_MIS
-                                      )
-                      
-                                  st.session_state.order_executed = True   # Mark executed
-                                  st.success(f"Order Placed Successfully! Order ID: {order_id}")
-                                  st.session_state["last_order_id"] = order_id
-                      
-                              except Exception as e:
-                                  st.error(f"Order Failed: {e}")
-                      
-                          else:
-                               st.info("Order already executed for this signal.")
+                         if lot_qty>0 
+                               if not st.session_state.order_executed:
+                                   try:
+                                       order_id = kite.place_order(
+                                               tradingsymbol=trending_symbol,
+                                               exchange=kite.EXCHANGE_NFO,
+                                               transaction_type=kite.TRANSACTION_TYPE_BUY,
+                                               quantity=qty,
+                                               order_type=kite.ORDER_TYPE_MARKET,
+                                               variety=kite.VARIETY_REGULAR,
+                                               product=kite.PRODUCT_MIS
+                                           )
+                           
+                                       st.session_state.order_executed = True   # Mark executed
+                                       st.success(f"Order Placed Successfully! Order ID: {order_id}")
+                                       st.session_state["last_order_id"] = order_id
+                           
+                                   except Exception as e:
+                                       st.error(f"Order Failed: {e}")
+                         else:
+                               st.info("Trade Not Allowed Qty=0.")  
+                    else:
+                         st.info("Order already executed for this signal.")
                  
                  else:
                        st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")

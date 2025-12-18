@@ -6732,15 +6732,18 @@ elif MENU =="LIVE TRADE 3":
             #st.write(result)  
             option = get_live_option_details(kite, trending_symbol)
      
-            st.write(option)
+            #st.write(option)
      
      
             spot = option["strike"]
-            st.write("Spot",spot) 
+            #st.write("Spot",spot) 
             #spot = 25900.00  # live NIFTY spot
      
             result = compute_option_iv_details(option, spot)
-            st.write("IV",result["iv"]) 
+            st.write("IV new",result["iv"]) 
+            new_iv_result= result["iv"]
+            result = "Pass" if 0.10 <= new_iv_result <= 0.35 else "Fail" 
+            add_param_row("IV ", round(new_iv_result, 2), "0.10 - 0.35", result) 
 #-------------------------------------------------------------------------
             if(iv_info["iv"]=='None'):
              # Safely extract values

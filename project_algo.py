@@ -851,7 +851,9 @@ elif selected == "Trend–Pullback–Breakout Swing":
         latest = df.iloc[-1]
         prev = df.iloc[-2]
     
-        trend = latest.EMA50 > latest.EMA200 and latest.Close > latest.EMA50
+        #trend = latest.EMA50 > latest.EMA200 and latest.Close > latest.EMA50
+        trend = (latest["EMA50"].iloc[0] > latest["EMA200"].iloc[0]and latest["Close"].iloc[0] > latest["EMA50"].iloc[0])
+
         pullback = latest.Close > latest.EMA20 and prev.Close < prev.EMA20
         breakout = latest.Close > prev.High
         volume = latest.Volume > 1.5 * latest.AVG_VOL

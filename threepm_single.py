@@ -30,7 +30,7 @@ def load_data(symbol, days=15):
     return df.dropna()
 
 df = load_data("^NSEI")
-
+st.write(df)
 # --------------------------------------------------
 # SIGNAL DETECTOR (ONE CANDLE ONLY)
 # --------------------------------------------------

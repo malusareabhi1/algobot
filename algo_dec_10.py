@@ -37,6 +37,20 @@ else:
 # ------------------------------------------------------------
 # Page Config & Global Theming
 #---------------------------------------------------------------------------------------------------------------
+ def compute_iv_rank(current_iv, iv_min=0.10, iv_max=0.35):
+         """
+         Very simple IV rank model:
+         rank = (current_iv - min) / (max - min)
+         """
+         if current_iv is None:
+             return None
+     
+         if iv_max == iv_min:
+             return None
+     
+         rank = (current_iv - iv_min) / (iv_max - iv_min)
+         return max(0, min(rank, 1))
+         
 def black_scholes_call_iv(spot, strike, time_to_expiry, ltp, r=0.0, tol=1e-5, max_iter=100):
          """
          Safe IV solver for CALL option using Newton-Raphson.
@@ -7011,20 +7025,7 @@ elif MENU=="Live IV/RANK":
     from scipy.stats import norm
      
     
-    def compute_iv_rank(current_iv, iv_min=0.10, iv_max=0.35):
-         """
-         Very simple IV rank model:
-         rank = (current_iv - min) / (max - min)
-         """
-         if current_iv is None:
-             return None
-     
-         if iv_max == iv_min:
-             return None
-     
-         rank = (current_iv - iv_min) / (iv_max - iv_min)
-         return max(0, min(rank, 1))
-    
+   
          
     tradingsymbol = "NIFTY25D2325900PE"
      

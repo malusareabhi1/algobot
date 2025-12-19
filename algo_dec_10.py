@@ -6660,7 +6660,7 @@ elif MENU =="LIVE TRADE 3":
                 # Display as table
                 st.table(nearest_itm1)
                 trending_symbol=nearest_itm['tradingsymbol']
-                st.write("tradingsymbol-",trending_symbol)
+                #st.write("tradingsymbol-",trending_symbol)
         
             except Exception as e:
                 st.error(f"Failed to fetch option: {e}")
@@ -6679,7 +6679,7 @@ elif MENU =="LIVE TRADE 3":
             days_to_exp = days_to_expiry(expiry)
             time_to_expiry = days_to_exp / 365 
             r=0.07
-            st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
+            #st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
             iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
             #st.write("IV  FOr (Option):CE")
             #st.write("IV (decimal):", iv)

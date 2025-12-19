@@ -6605,7 +6605,7 @@ elif MENU =="LIVE TRADE 3":
             st.table(df_sig1) 
              
             entry_time = signal['entry_time']
-            st.write("entry_time",entry_time) 
+            #st.write("entry_time",entry_time) 
             #st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS
             signal_time=entry_time.strftime("%H:%M:%S")
             #st.write("Signal Time only:-", signal_time)  # HH:MM:SS
@@ -6647,9 +6647,9 @@ elif MENU =="LIVE TRADE 3":
         if signal is not None:
             #signal_time = df["Datetime"].iloc[-1].time()   # last candle time
             option_type = signal["option_type"]     # CALL / PUT
-            st.write("Option type ",option_type)
+            #st.write("Option type ",option_type)
             spot = signal["spot_price"]
-            st.write("Option spot ",spot)
+            #st.write("Option spot ",spot)
             try:
                 nearest_itm = find_nearest_itm_option(kite, spot, option_type)
                 

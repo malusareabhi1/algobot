@@ -4151,7 +4151,7 @@ elif selected == "Get Stock Data":
     "THERMAX.NS", "UNIONBANK.NS", "UJJIVANSFB.NS", "VINATIORGA.NS", "WHIRLPOOL.NS", "YESBANK.NS"
     ]
 
-     nifty_50_stocks = [
+    nifty_50_stocks = [
         '360ONE.NS',
         '3MINDIA.NS',
         'ABB.NS',

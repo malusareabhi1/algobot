@@ -6790,7 +6790,7 @@ elif MENU =="LIVE TRADE 3":
             tz = pytz.timezone("Asia/Kolkata")
             now = datetime.now(tz)
      #----------------------------------FUND-----------------------------------------------------
-            st.divider()
+            #st.divider()
 
             funds = get_fund_status(kite)
 
@@ -6808,7 +6808,7 @@ elif MENU =="LIVE TRADE 3":
                   lots = get_lot_size(funds['cash'])
                   #st.write("Lot Size:", lots)
                   qty=75*lots
-                  st.divider()
+                  #st.divider()
 
    
     

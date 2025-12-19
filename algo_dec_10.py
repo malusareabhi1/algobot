@@ -6681,9 +6681,9 @@ elif MENU =="LIVE TRADE 3":
             r=0.07
             st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
             iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
-            st.write("IV  FOr (Option):CE")
-            st.write("IV (decimal):", iv)
-            st.write("IV (%):", iv * 100)    
+            #st.write("IV  FOr (Option):CE")
+            #st.write("IV (decimal):", iv)
+            #st.write("IV (%):", iv * 100)    
             result = "Pass" if 0.10 <= iv <= 0.35 else "Fail"
             iv_result = result    
             #add_param_row("IV", round(iv, 2), "0.10 - 0.35", result)
@@ -6740,7 +6740,7 @@ elif MENU =="LIVE TRADE 3":
             #spot = 25900.00  # live NIFTY spot
      
             result = compute_option_iv_details(option, spot)
-            st.write("IV new",result["iv"]) 
+            #st.write("IV new",result["iv"]) 
             new_iv_result= result["iv"]
             result = "Pass" if 0.10 <= new_iv_result <= 0.35 else "Fail" 
             add_param_row("IV ", round(new_iv_result, 2), "0.10 - 0.35", result) 

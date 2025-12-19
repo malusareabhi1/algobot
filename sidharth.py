@@ -1,19 +1,21 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import os
 
-# ----------------- Strategy functions -----------------
+# =====================================================
+# 44 MA + 200 MA Swing Strategy (Scanner Version)
+# =====================================================
+
 
 def compute_ma_signals(df, risk_rr=3.0):
     """
-    Simple Siddharth-style 44 MA + 200 MA swing strategy on daily data.
-
-    Columns required in df:
-        Date / Datetime, Open, High, Low, Close
+    Apply Siddharth-style 44 MA + 200 MA swing logic on OHLC data
+    Returns dataframe and trades dataframe
     """
     df = df.copy()
 
-    # Normalise column names (change here if your CSV is different)
+    # Normalize column names
     rename_map = {}
     for col in df.columns:
         lc = col.lower()
@@ -27,151 +29,170 @@ def compute_ma_signals(df, risk_rr=3.0):
             rename_map[col] = "Low"
         elif lc.startswith("close"):
             rename_map[col] = "Close"
+
     df = df.rename(columns=rename_map)
 
-    # Ensure datetime
     if "Date" not in df.columns:
-        raise ValueError("CSV must contain a Date/Datetime column")
+        raise ValueError("Date column missing")
+
     df["Date"] = pd.to_datetime(df["Date"])
     df = df.sort_values("Date").reset_index(drop=True)
 
-    # Moving averages
+    # Moving Averages
     df["MA44"] = df["Close"].rolling(44).mean()
     df["MA200"] = df["Close"].rolling(200).mean()
 
-    # Trend filter: uptrend only (price & 44MA above 200MA, 44MA rising)
+    # Trend filter
     df["trend_up"] = (
         (df["Close"] > df["MA200"]) &
         (df["MA44"] > df["MA200"]) &
         (df["MA44"] > df["MA44"].shift(1))
     )
 
-    signals = []
+    trades = []
     in_trade = False
-    entry_price = sl = target = None
-    entry_date = None
 
     for i in range(1, len(df)):
-        row_prev = df.iloc[i-1]
         row = df.iloc[i]
+        prev = df.iloc[i - 1]
 
-        # Skip if MA not available yet
         if np.isnan(row["MA44"]) or np.isnan(row["MA200"]):
             continue
 
-        # If in trade, check exit
         if in_trade:
-            # SL hit
-            if row["Low"] <= sl:
-                exit_price = sl
-                exit_reason = "SL hit"
-                in_trade = False
-            # Target hit
-            elif row["High"] >= target:
-                exit_price = target
-                exit_reason = "Target hit"
-                in_trade = False
-            else:
-                # continue holding
-                continue
-
-            signals[-1].update({
-                "exit_date": row["Date"],
-                "exit_price": exit_price,
-                "exit_reason": exit_reason,
-                "pnl": (exit_price - entry_price)
-            })
             continue
 
-        # Not in trade: look for long setup
-        # 1) Trend must be up
         if not row["trend_up"]:
             continue
 
-        # 2) Previous candle low touches/near 44MA (pullback to MA)
-        #    and current candle breaks previous high
-        touch_prev = row_prev["Low"] <= row_prev["MA44"] <= row_prev["High"]
-        breakout = row["High"] > row_prev["High"] and row["Close"] > row_prev["High"]
+        # Pullback + breakout condition
+        touch_44 = prev["Low"] <= prev["MA44"] <= prev["High"]
+        breakout = row["High"] > prev["High"] and row["Close"] > prev["High"]
 
-        if touch_prev and breakout:
-            entry_price = row["High"]
-            sl = row_prev["Low"]  # SL below swing low (support candle)
-            risk = entry_price - sl
+        if touch_44 and breakout:
+            entry = row["High"]
+            sl = prev["Low"]
+            risk = entry - sl
+
             if risk <= 0:
                 continue
-            target = entry_price + risk * risk_rr
 
-            in_trade = True
-            entry_date = row["Date"]
+            target = entry + risk * risk_rr
 
-            signals.append({
-                "entry_date": entry_date,
-                "entry_price": entry_price,
+            trades.append({
+                "entry_date": row["Date"],
+                "entry_price": entry,
                 "sl": sl,
                 "target": target,
                 "risk": risk,
-                "RR": risk_rr,
-                "exit_date": None,
-                "exit_price": None,
-                "exit_reason": None,
-                "pnl": None
+                "RR": risk_rr
             })
 
-    return df, pd.DataFrame(signals)
+            in_trade = True
+
+    return df, pd.DataFrame(trades)
 
 
-# ----------------- Streamlit app -----------------
+# =====================================================
+# Check if latest candle gives signal
+# =====================================================
 
-st.title("Siddharth‑style 44 MA Swing Strategy (Demo)")
+def is_latest_signal(df):
+    df, trades = compute_ma_signals(df)
 
-st.write(
-    "Upload daily OHLC data (CSV) and this app will apply a simple "
-    "44‑MA + 200‑MA swing strategy and show generated trades."
+    if trades.empty:
+        return False, None
+
+    last_trade = trades.iloc[-1]
+    last_date = df.iloc[-1]["Date"]
+
+    if last_trade["entry_date"].date() == last_date.date():
+        return True, last_trade
+
+    return False, None
+
+
+# =====================================================
+# Streamlit App
+# =====================================================
+
+st.set_page_config(layout="wide")
+st.title("📈 44 MA + 200 MA Swing Scanner (Multi-Stock)")
+
+st.markdown(
+    """
+    **What this app does**
+    - Reads multiple stock CSV files
+    - Applies 44 MA pullback + breakout strategy
+    - Lists ONLY stocks where condition is TRUE on latest candle
+    """
 )
 
-uploaded_file = st.file_uploader("Upload daily data CSV", type=["csv"])
-risk_rr = st.number_input("Target Reward‑to‑Risk (R:R)", value=3.0, min_value=1.0, step=0.5)
+st.subheader("1️⃣ Upload Stock List CSV")
 
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+stock_list_file = st.file_uploader(
+    "CSV must contain: Symbol, FilePath",
+    type=["csv"]
+)
 
-    try:
-        full_df, trades_df = compute_ma_signals(df, risk_rr=risk_rr)
-    except Exception as e:
-        st.error(f"Error: {e}")
+risk_rr = st.number_input(
+    "Reward : Risk",
+    value=3.0,
+    min_value=1.0,
+    step=0.5
+)
+
+if stock_list_file:
+    stock_list = pd.read_csv(stock_list_file)
+
+    required_cols = {"Symbol", "FilePath"}
+    if not required_cols.issubset(stock_list.columns):
+        st.error("CSV must contain Symbol and FilePath columns")
     else:
-        st.subheader("Data preview")
-        st.dataframe(full_df.head(), use_container_width=True)
+        if st.button("🔍 Scan Stocks"):
+            results = []
 
-        if trades_df.empty:
-            st.warning("No trades found with current rules / data length.")
-        else:
-            # Sort trades by entry date
-            trades_df = trades_df.sort_values("entry_date").reset_index(drop=True)
+            with st.spinner("Scanning stocks..."):
+                for _, row in stock_list.iterrows():
+                    symbol = row["Symbol"]
+                    path = row["FilePath"]
 
-            st.subheader("Generated Swing Trades")
-            st.dataframe(trades_df, use_container_width=True)
+                    if not os.path.exists(path):
+                        continue
 
-            # Basic stats
-            closed = trades_df.dropna(subset=["exit_price"])
-            if not closed.empty:
-                closed["pnl_pct"] = (closed["pnl"] / closed["entry_price"]) * 100
-                total_trades = len(closed)
-                wins = (closed["pnl"] > 0).sum()
-                winrate = wins / total_trades * 100
-                avg_pnl_pct = closed["pnl_pct"].mean()
+                    try:
+                        df = pd.read_csv(path)
+                        signal, trade = is_latest_signal(df)
 
-                st.markdown(
-                    f"- Total closed trades: **{total_trades}**\n"
-                    f"- Win rate: **{winrate:.1f}%**\n"
-                    f"- Avg P&L % per trade: **{avg_pnl_pct:.2f}%**"
+                        if signal:
+                            results.append({
+                                "Symbol": symbol,
+                                "Entry Date": trade["entry_date"],
+                                "Entry": round(trade["entry_price"], 2),
+                                "Stop Loss": round(trade["sl"], 2),
+                                "Target": round(trade["target"], 2),
+                                "RR": trade["RR"]
+                            })
+
+                    except Exception as e:
+                        st.warning(f"{symbol}: {e}")
+
+            result_df = pd.DataFrame(results)
+
+            st.subheader("📊 Stocks with ACTIVE BUY Signal")
+
+            if result_df.empty:
+                st.warning("No stock satisfies the strategy today")
+            else:
+                st.dataframe(result_df, use_container_width=True)
+
+                csv = result_df.to_csv(index=False).encode("utf-8")
+                st.download_button(
+                    "⬇️ Download Signals",
+                    csv,
+                    "44MA_signals.csv",
+                    "text/csv"
                 )
 
-            # Download trades
-            csv = trades_df.to_csv(index=False).encode("utf-8")
-            st.download_button(
-                "Download trades CSV",
-                data=csv,
-                file_name="44MA_swing_trades.csv",
-                mime="text/csv",
-            )
+st.markdown("---")
+st.markdown("Built for swing trading education & scanning purposes")

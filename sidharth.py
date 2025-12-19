@@ -96,7 +96,7 @@ if uploaded_file:
                     try:
                         df = yf.download(
                             symbol,
-                            period="2y",
+                            period="6mo",
                             interval="1d",
                             progress=False
                         )

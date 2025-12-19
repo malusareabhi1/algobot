@@ -10,6 +10,12 @@ from datetime import datetime
 
 def compute_signal(df, risk_rr=3.0):
     df = df.copy()
+
+    # Ensure we have the right columns
+    expected = {"Date", "Open", "High", "Low", "Close"}
+    if not expected.issubset(df.columns):
+        return None
+
     df = df.sort_values("Date").reset_index(drop=True)
 
     df["MA44"] = df["Close"].rolling(44).mean()
@@ -27,7 +33,7 @@ def compute_signal(df, risk_rr=3.0):
     today = df.iloc[-1]
     prev = df.iloc[-2]
 
-    if not today["trend_up"]:
+    if not bool(today["trend_up"]):
         return None
 
     touch_44 = prev["Low"] <= prev["MA44"] <= prev["High"]
@@ -36,10 +42,9 @@ def compute_signal(df, risk_rr=3.0):
     if not (touch_44 and breakout):
         return None
 
-    entry = today["High"]
-    sl = prev["Low"]
+    entry = float(today["High"])
+    sl = float(prev["Low"])
     risk = entry - sl
-
     if risk <= 0:
         return None
 
@@ -50,7 +55,7 @@ def compute_signal(df, risk_rr=3.0):
         "Entry": round(entry, 2),
         "Stop Loss": round(sl, 2),
         "Target": round(target, 2),
-        "RR": risk_rr
+        "RR": risk_rr,
     }
 
 # =====================================================

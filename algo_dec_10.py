@@ -6674,7 +6674,23 @@ elif MENU =="LIVE TRADE 3":
             strike = option_dict.get("strike")
             expiry = option_dict.get("expiry")
             is_call = option_dict.get("option_type") == "CALL"
-          
+          #------------------------------------------PAPER TRADE-------------------------------------------------
+            quantity = 75  # 1 lot NIFTY (change if needed)
+
+            trade = {
+                 "entry_time": pd.Timestamp.now(),
+                 "symbol": trending_symbol,
+                 "option_type": is_call,
+                 "entry_price": ltp,
+                 "quantity": quantity,
+                 "status": "OPEN"
+            }
+     
+            st.session_state.paper_trades.append(trade)
+     
+            st.success(f"Paper trade entered @ {entry_price}")
+
+          #---------------------------------------PAPER TRADE----------------------------------------------------   
               # Compute time to expiry (in years)
             days_to_exp = days_to_expiry(expiry)
             time_to_expiry = days_to_exp / 365 

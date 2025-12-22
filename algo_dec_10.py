@@ -6653,6 +6653,10 @@ elif MENU =="LIVE TRADE 3":
         else:
             st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
             df_sig1 = pd.DataFrame([signal])
+            signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
+            signal["signal_time"] = signal_time
+  
+ 
                 
                 # Display as table
             st.table(df_sig1) 

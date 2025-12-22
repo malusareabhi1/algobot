@@ -6811,15 +6811,7 @@ elif MENU =="LIVE TRADE 3":
           
                   entry_price = kite.ltp(option_symbol)[option_symbol]["last_price"]
           
-                  trade = {
-                      "signal_time": signal_time,
-                      "entry_time": pd.Timestamp.now(),
-                      "symbol": trending_symbol,
-                      "option_type": option_type,
-                      "entry_price": entry_price,
-                      "quantity": 75,
-                      "status": "OPEN"
-                  }
+                  
                   trade = {
                         "signal_time": signal_time,
                         "entry_time": pd.Timestamp.now(),

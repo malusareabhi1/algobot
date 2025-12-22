@@ -32,6 +32,9 @@ if start <= now <= end:
      st_autorefresh(interval=60000, key="refresh")  # 1 minute refresh
 else:
     st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
+
+if "paper_trades" not in st.session_state:
+    st.session_state["paper_trades"] = []
 #st_autorefresh(interval=30000, key="live_data_refresh")
 #st.sidebar.image("shree.jpg",width=15)  # Correct parameter
 # ------------------------------------------------------------

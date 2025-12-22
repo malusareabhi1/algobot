@@ -6691,7 +6691,7 @@ elif MENU =="LIVE TRADE 3":
      
             st.session_state.paper_trades.append(trade)
      
-            st.success(f"Paper trade entered @ {entry_price}")
+            st.success(f"Paper trade entered @ {ltp}")
 
           #---------------------------------------PAPER TRADE----------------------------------------------------   
               # Compute time to expiry (in years)

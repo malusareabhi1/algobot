@@ -53,7 +53,12 @@ def manage_exit_papertrade(kite, trade):
     now = datetime.now()
 
     # Update highest price (trailing SL base)
+    #trade["highest_price"] = max(trade["highest_price"], ltp)
+    if "highest_price" not in trade:
+         trade["highest_price"] = trade["entry_price"]
+     
     trade["highest_price"] = max(trade["highest_price"], ltp)
+ 
 
     # ---------- EXIT CALCULATIONS ----------
     trailing_sl = round(trade["highest_price"] * 0.90, 2)

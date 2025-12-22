@@ -6733,9 +6733,9 @@ elif MENU =="LIVE TRADE 3":
             is_call = option_dict.get("option_type") == "CALL"
           #------------------------------------------PAPER TRADE-------------------------------------------------
             quantity = 75  # 1 lot NIFTY (change if needed)
-            signal_time = signal["signal_time"]
+            signal_time = signal["entry_time"]
 
-            if trade_already_taken(signal_time, trending_symbol):
+            if trade_already_taken(entry_time, trending_symbol):
                    st.info("Trade already taken for this signal. Skipping entry.")
             else:
                    trade = {

@@ -40,6 +40,13 @@ if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
 #-----------------------------------------Exit paper Trade----------------------------------------------------
 
+def normalize_trade(trade):
+    trade.setdefault("highest_price", trade["entry_price"])
+    trade.setdefault("partial_exit_done", False)
+    trade.setdefault("final_exit_done", False)
+    trade.setdefault("remaining_qty", trade["quantity"])
+    trade.setdefault("status", "OPEN")
+
 
 def manage_exit_papertrade(kite, trade):
 
@@ -6840,7 +6847,9 @@ elif MENU =="LIVE TRADE 3":
 
             monitor_paper_trades(kite)
             for trade in st.session_state.paper_trades:
+              normalize_trade(trade)
               manage_exit_papertrade(kite, trade)
+
  
    
           #---------------------------------------PAPER TRADE----------------------------------------------------   

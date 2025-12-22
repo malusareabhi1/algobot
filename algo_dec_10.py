@@ -41,7 +41,7 @@ if "paper_trades" not in st.session_state:
 def trade_already_taken(signal_time, symbol):
     for trade in st.session_state.paper_trades:
         if (
-            trade["signal_time"] == signal_time
+            trade["entry_time"] == signal_time
             and trade["symbol"] == symbol
             and trade["status"] == "OPEN"
         ):
@@ -6735,7 +6735,7 @@ elif MENU =="LIVE TRADE 3":
             quantity = 75  # 1 lot NIFTY (change if needed)
             signal_time = signal["entry_time"]
 
-            if trade_already_taken(entry_time, trending_symbol):
+            if trade_already_taken(signal_time, trending_symbol):
                    st.info("Trade already taken for this signal. Skipping entry.")
             else:
                    trade = {

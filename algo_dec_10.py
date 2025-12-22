@@ -6478,6 +6478,12 @@ elif MENU == "Setting":
 
 
 elif MENU =="LIVE TRADE 3":
+    with st.sidebar:
+         if st.button("🧹 Clear Paper Trades"):
+             st.session_state.paper_trades = []
+             st.success("All paper trades cleared")
+             st.rerun()
+ 
     st.title("🔴 LIVE TRADE 3")
     #st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")
     if not is_kite_connected(kite):

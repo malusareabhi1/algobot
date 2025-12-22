@@ -38,6 +38,57 @@ if "paper_trades" not in st.session_state:
 
 if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
+#-----------------------------------------Exit paper Trade----------------------------------------------------
+
+
+def manage_exit_papertrade(kite, trade):
+
+    if trade["status"] != "OPEN":
+        return
+
+    symbol = f"NFO:{trade['symbol']}"
+    ltp = kite.ltp(symbol)[symbol]["last_price"]
+
+    entry = trade["entry_price"]
+    now = datetime.now()
+
+    # Update highest price (trailing SL base)
+    trade["highest_price"] = max(trade["highest_price"], ltp)
+
+    # ---------- EXIT CALCULATIONS ----------
+    trailing_sl = round(trade["highest_price"] * 0.90, 2)
+    partial_target = round(entry * 1.10, 2)
+    time_exit_at = trade["entry_time"] + timedelta(minutes=16)
+
+    trade["ltp"] = ltp
+    trade["trailing_sl"] = trailing_sl
+
+    # ---------- PARTIAL EXIT (50%) ----------
+    if (not trade["partial_exit_done"]) and ltp >= partial_target:
+        trade["partial_exit_done"] = True
+        trade["remaining_qty"] = trade["quantity"] // 2
+        tradeIT;
+        trade["partial_exit_price"] = ltp
+        trade["partial_exit_time"] = now
+        trade["exit_reason"] = "50% BOOKED @ +10%"
+
+    # ---------- FINAL EXIT CONDITIONS ----------
+    exit_reason = None
+
+    if ltp <= trailing_sl:
+        exit_reason = "TRAILING SL HIT"
+
+    elif now >= time_exit_at:
+        exit_reason = "TIME EXIT (16 MIN)"
+
+    # ---------- FINAL EXIT ----------
+    if exit_reason and not trade["final_exit_done"]:
+        trade["final_exit_done"] = True
+        trade["status"] = "CLOSED"
+        trade["exit_reason"] = exit_reason
+        trade["exit_price"] = ltp
+        trade["exit_time"] = now
+        trade["remaining_qty"] = 0
 
 
 #--------------------------------------Check Trade Time-------------------------------------------------------
@@ -6778,6 +6829,9 @@ elif MENU =="LIVE TRADE 3":
                   st.success(f"Paper trade entered @ {entry_price}")
 
             monitor_paper_trades(kite)
+            for trade in st.session_state.paper_trades:
+              manage_exit_papertrade(kite, trade)
+ 
    
           #---------------------------------------PAPER TRADE----------------------------------------------------   
               # Compute time to expiry (in years)

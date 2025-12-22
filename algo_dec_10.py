@@ -58,7 +58,9 @@ def manage_exit_papertrade(kite, trade):
 
     entry = trade["entry_price"]
     now = datetime.now()
-    st.write("Now=",now) 
+    from zoneinfo import ZoneInfo
+    now = datetime.now(ZoneInfo("Asia/Kolkata")) 
+    st.write("Time Now=",now) 
 
     # Update highest price (trailing SL base)
     #trade["highest_price"] = max(trade["highest_price"], ltp)

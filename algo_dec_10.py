@@ -6851,7 +6851,7 @@ elif MENU =="LIVE TRADE 3":
               normalize_trade(trade)
               manage_exit_papertrade(kite, trade)
 
-             st.write("Moniter")
+            st.write("Moniter")
              
 
  

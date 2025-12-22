@@ -36,6 +36,10 @@ else:
 if "paper_trades" not in st.session_state:
     st.session_state["paper_trades"] = []
 
+if "last_executed_signal_time" not in st.session_state:
+    st.session_state.last_executed_signal_time = None
+
+
 #--------------------------------------Check Trade Time-------------------------------------------------------
 
 def trade_already_taken(signal_time, symbol):
@@ -6738,25 +6742,41 @@ elif MENU =="LIVE TRADE 3":
             expiry = option_dict.get("expiry")
             is_call = option_dict.get("option_type") == "CALL"
           #------------------------------------------PAPER TRADE-------------------------------------------------
-            quantity = 75  # 1 lot NIFTY (change if needed)
-            signal_time = signal["entry_time"]
+            if signal is not None:
 
-            if trade_already_taken(signal_time, trending_symbol):
-                   st.info("Trade already taken for this signal. Skipping entry.")
-            else:
-                   trade = {
-                       "signal_time": signal_time,
-                       "entry_time": pd.Timestamp.now(),
-                       "symbol": trending_symbol,
-                       "option_type": option_type,
-                       "entry_price": ltp,
-                       "quantity": quantity,
-                       "status": "OPEN"
-                   }
-               
-            st.session_state.paper_trades.append(trade)
-           
-            st.success(f"Paper trade entered @ {ltp}")
+              signal_time = signal["signal_time"]
+          
+              # 🔒 ENTRY LOCK — THIS PREVENTS RE-ENTRY ON REFRESH
+              if st.session_state.last_executed_signal_time == signal_time:
+                  pass  # already traded this signal
+          
+              else:
+                  option_type = signal["option_type"]
+                  spot = signal["spot_price"]
+          
+                  nearest_itm = find_nearest_itm_option(kite, spot, option_type)
+                  trending_symbol = nearest_itm["tradingsymbol"]
+                  option_symbol = f"NFO:{trending_symbol}"
+          
+                  entry_price = kite.ltp(option_symbol)[option_symbol]["last_price"]
+          
+                  trade = {
+                      "signal_time": signal_time,
+                      "entry_time": pd.Timestamp.now(),
+                      "symbol": trending_symbol,
+                      "option_type": option_type,
+                      "entry_price": entry_price,
+                      "quantity": 75,
+                      "status": "OPEN"
+                  }
+          
+                  st.session_state.paper_trades.append(trade)
+          
+                  # 🔐 LOCK THE SIGNAL
+                  st.session_state.last_executed_signal_time = signal_time
+          
+                  st.success(f"Paper trade entered @ {entry_price}")
+
             monitor_paper_trades(kite)
    
           #---------------------------------------PAPER TRADE----------------------------------------------------   

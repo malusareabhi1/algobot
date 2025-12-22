@@ -58,6 +58,7 @@ def manage_exit_papertrade(kite, trade):
 
     entry = trade["entry_price"]
     now = datetime.now()
+    st.write("Now=",now) 
 
     # Update highest price (trailing SL base)
     #trade["highest_price"] = max(trade["highest_price"], ltp)
@@ -6849,6 +6850,9 @@ elif MENU =="LIVE TRADE 3":
             for trade in st.session_state.paper_trades:
               normalize_trade(trade)
               manage_exit_papertrade(kite, trade)
+
+             st.write("Moniter")
+             
 
  
    

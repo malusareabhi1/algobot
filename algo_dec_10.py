@@ -35,6 +35,43 @@ else:
 
 if "paper_trades" not in st.session_state:
     st.session_state["paper_trades"] = []
+#--------------------------------------------------------------------------------
+def monitor_paper_trades(kite):
+    if not st.session_state.paper_trades:
+        return
+
+    rows = []
+
+    for trade in st.session_state.paper_trades:
+        if trade["status"] != "OPEN":
+            continue
+
+        symbol = f"NFO:{trade['symbol']}"
+        ltp = kite.ltp(symbol)[symbol]["last_price"]
+
+        pnl = round(
+            (ltp - trade["entry_price"]) * trade["quantity"], 2
+        )
+
+        rows.append({
+            "Entry Time": trade["entry_time"],
+            "Symbol": trade["symbol"],
+            "Type": trade["option_type"],
+            "Entry Price": trade["entry_price"],
+            "LTP": ltp,
+            "Qty": trade["quantity"],
+            "P&L (₹)": pnl,
+            "Status": trade["status"]
+        })
+
+    if rows:
+        df = pd.DataFrame(rows)
+
+        st.subheader("📊 Paper Trade Monitor")
+        st.dataframe(df, use_container_width=True)
+
+        st.metric("Total P&L", f"₹ {df['P&L (₹)'].sum():,.2f}")
+
 #st_autorefresh(interval=30000, key="live_data_refresh")
 #st.sidebar.image("shree.jpg",width=15)  # Correct parameter
 # ------------------------------------------------------------
@@ -6692,7 +6729,8 @@ elif MENU =="LIVE TRADE 3":
             st.session_state.paper_trades.append(trade)
      
             st.success(f"Paper trade entered @ {ltp}")
-
+            monitor_paper_trades(kite)
+   
           #---------------------------------------PAPER TRADE----------------------------------------------------   
               # Compute time to expiry (in years)
             days_to_exp = days_to_expiry(expiry)

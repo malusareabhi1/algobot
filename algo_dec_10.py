@@ -35,7 +35,20 @@ else:
 
 if "paper_trades" not in st.session_state:
     st.session_state["paper_trades"] = []
-#--------------------------------------------------------------------------------
+
+#--------------------------------------Check Trade Time-------------------------------------------------------
+
+def trade_already_taken(signal_time, symbol):
+    for trade in st.session_state.paper_trades:
+        if (
+            trade["signal_time"] == signal_time
+            and trade["symbol"] == symbol
+            and trade["status"] == "OPEN"
+        ):
+            return True
+    return False
+
+#----------------------------Moniter Paper tRade----------------------------------------------------
 def monitor_paper_trades(kite):
     if not st.session_state.paper_trades:
         return
@@ -6716,18 +6729,23 @@ elif MENU =="LIVE TRADE 3":
             is_call = option_dict.get("option_type") == "CALL"
           #------------------------------------------PAPER TRADE-------------------------------------------------
             quantity = 75  # 1 lot NIFTY (change if needed)
+            signal_time = signal["signal_time"]
 
-            trade = {
-                 "entry_time": pd.Timestamp.now(),
-                 "symbol": trending_symbol,
-                 "option_type": is_call,
-                 "entry_price": ltp,
-                 "quantity": quantity,
-                 "status": "OPEN"
-            }
-     
+            if trade_already_taken(signal_time, trending_symbol):
+                   st.info("Trade already taken for this signal. Skipping entry.")
+            else:
+                   trade = {
+                       "signal_time": signal_time,
+                       "entry_time": pd.Timestamp.now(),
+                       "symbol": trending_symbol,
+                       "option_type": option_type,
+                       "entry_price": entry_price,
+                       "quantity": quantity,
+                       "status": "OPEN"
+                   }
+               
             st.session_state.paper_trades.append(trade)
-     
+           
             st.success(f"Paper trade entered @ {ltp}")
             monitor_paper_trades(kite)
    

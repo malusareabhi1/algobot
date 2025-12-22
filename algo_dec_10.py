@@ -6743,7 +6743,7 @@ elif MENU =="LIVE TRADE 3":
                        "entry_time": pd.Timestamp.now(),
                        "symbol": trending_symbol,
                        "option_type": option_type,
-                       "entry_price": entry_price,
+                       "entry_price": ltp,
                        "quantity": quantity,
                        "status": "OPEN"
                    }

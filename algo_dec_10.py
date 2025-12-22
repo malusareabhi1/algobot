@@ -6820,6 +6820,19 @@ elif MENU =="LIVE TRADE 3":
                       "quantity": 75,
                       "status": "OPEN"
                   }
+                  trade = {
+                        "signal_time": signal_time,
+                        "entry_time": pd.Timestamp.now(),
+                        "symbol": trending_symbol,
+                        "option_type": option_type,
+                        "entry_price": entry_price,
+                        "quantity": 75,
+                        "remaining_qty": 75,
+                        "highest_price": entry_price,
+                        "partial_exit_done": False,
+                        "final_exit_done": False,
+                        "status": "OPEN"
+                    }
           
                   st.session_state.paper_trades.append(trade)
           

@@ -74,7 +74,7 @@ def manage_exit_papertrade(kite, trade):
     trailing_sl = round(trade["highest_price"] * 0.90, 2)
     partial_target = round(entry * 1.10, 2)
     #time_exit_at = trade["entry_time"] + timedelta(minutes=16)
-     
+    IST = ZoneInfo("Asia/Kolkata") 
     # 🔒 FORCE entry_time to Python datetime (IST)
     entry_time = trade["entry_time"]
 

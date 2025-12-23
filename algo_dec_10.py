@@ -393,6 +393,22 @@ def bs_call_price(S, K, T, r, sigma):
 
 def implied_vol_call(S, K, T, r, C_mkt, tol=1e-6, max_iter=100):
          low, high = 1e-6, 5.0      # 0.0001% to 500% vol range
+          # ---- HARD GUARDS ----
+         if S <= 0 or K <= 0:
+             return None
+
+         if T <= 0:
+             return None   # expiry reached
+     
+         if mid <= 0:
+             return None   # no valid option price
+     
+         try:
+             price = bs_call_price(S, K, T, r, mid)
+             return price
+         except ZeroDivisionError:
+             return None
+ 
          for _ in range(max_iter):
              mid = 0.5 * (low + high)
              price = bs_call_price(S, K, T, r, mid)

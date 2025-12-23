@@ -73,8 +73,21 @@ def manage_exit_papertrade(kite, trade):
     # ---------- EXIT CALCULATIONS ----------
     trailing_sl = round(trade["highest_price"] * 0.90, 2)
     partial_target = round(entry * 1.10, 2)
-    time_exit_at = trade["entry_time"] + timedelta(minutes=16)
+    #time_exit_at = trade["entry_time"] + timedelta(minutes=16)
+     
+    # 🔒 FORCE entry_time to Python datetime (IST)
+    entry_time = trade["entry_time"]
 
+    if isinstance(entry_time, pd.Timestamp):
+         entry_time = entry_time.to_pydatetime()
+
+    if entry_time.tzinfo is None:
+         entry_time = entry_time.replace(tzinfo=IST)
+
+    trade["entry_time"] = entry_time  # overwrite safely 
+     
+    time_exit_at = entry_time + timedelta(minutes=16)
+     
     trade["ltp"] = ltp
     trade["trailing_sl"] = trailing_sl
 

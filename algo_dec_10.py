@@ -5772,7 +5772,7 @@ elif MENU =="Live Trade":
 #####################################################################################################################
 
 elif MENU=="Paper Trade":
-     with st.sidebar:
+    with st.sidebar:
          if st.button("🧹 Clear Paper Trades"):
              st.session_state.paper_trades = []
              st.success("All paper trades cleared")

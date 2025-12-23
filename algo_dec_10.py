@@ -6897,7 +6897,9 @@ elif MENU =="LIVE TRADE 3":
             #st.write("IV  FOr (Option):CE")
             #st.write("IV (decimal):", iv)
             #st.write("IV (%):", iv * 100)    
-            result = "Pass" if 0.10 <= iv <= 0.35 else "Fail"
+            result = "Pass" if (iv is not None and 0.10 <= iv <= 0.35) else "Fail"
+ 
+            #result = "Pass" if 0.10 <= iv <= 0.35 else "Fail"
             iv_result = result    
             #add_param_row("IV", round(iv, 2), "0.10 - 0.35", result)
              

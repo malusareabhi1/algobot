@@ -5772,310 +5772,632 @@ elif MENU =="Live Trade":
 #####################################################################################################################
 
 elif MENU=="Paper Trade":
-    # Put this inside your Streamlit app file (e.g. ui_dash.py)
-    # Required packages: streamlit, kiteconnect, streamlit-autorefresh
-    # pip install kiteconnect streamlit-autorefresh
-    
-    import streamlit as st
-    from kiteconnect import KiteConnect
+     with st.sidebar:
+         if st.button("🧹 Clear Paper Trades"):
+             st.session_state.paper_trades = []
+             st.success("All paper trades cleared")
+             st.rerun()
+ 
+    st.title("🔴 LIVE Paper  TRADE")
+    #st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")
+    if not is_kite_connected(kite):
+        st.warning("Please login first to access LIVE trade.")
+        st.stop()     # Stop page execution safely
+
+    #st.success("You are logged in.")
+     
+    st.session_state.param_rows = []
     from streamlit_autorefresh import st_autorefresh
-    import time
-    import uuid
-    
-    # --- Initialize session state defaults ---
-    if "api_status" not in st.session_state:
-        st.session_state.api_status = {"Zerodha": False, "Fyers": False, "AliceBlue": False}
-    if "connected_broker" not in st.session_state:
-        st.session_state.connected_broker = None
+    import time             # Python's time module
+    from datetime import time  # datetime.time (conflict!)
+    # Initialize Kite in session_state
     if "kite" not in st.session_state:
         st.session_state.kite = None
-    if "paper_orders" not in st.session_state:
-        st.session_state.paper_orders = []
-    if "paper_positions" not in st.session_state:
-        st.session_state.paper_positions = {}
-    if "use_paper" not in st.session_state:
-        st.session_state.use_paper = True  # default to paper mode
+    else:
+        kite = st.session_state.get("kite")
+    # --- SESSION STATE INIT ---
+    if "order_executed" not in st.session_state:
+        st.session_state.order_executed = False
+        
     
-    # Utility: safe getter for session kite
-    def get_kite():
-        return st.session_state.get("kite", None)
-    
-    # --- Helper: fetch Zerodha data safely ---
-    def fetch_zerodha_data():
-        kite = get_kite()
-        if kite is None:
-            return {
-                "error": "No kite client in session. Connect Zerodha and provide access token.",
-                "funds": None,
-                "holdings": None,
-                "positions": None,
-                "orders": None,
-            }
-        out = {"error": None, "funds": None, "holdings": None, "positions": None, "orders": None}
+    if "signal_time" not in st.session_state:
+        st.session_state.signal_time = None
+    # Add after data processing:
+    def is_kite_connected(kite):
         try:
-            # margins() might vary across kite versions — return raw output if structure unexpected
-            try:
-                out["funds"] = kite.margins()  # often returns dict; show raw so user can inspect
-            except Exception as e:
-                out["funds"] = {"error": f"Unable to fetch margins: {e}"}
+            kite.profile()
+            return True
+        except:
+            return False
+
+    if is_kite_connected(kite):
+        st.success("Kite connection active")
+    else:
+        st.error("Kite session expired. Please login again.")
+
+    st.set_page_config(layout="wide")
+    # Place at the very top of your script (or just before plotting)
+    #st_autorefresh(interval=60000, limit=None, key="refresh")
+    # Current time in IST
+    #----------------------------------------------------------------------
+    #if is_kite_connected(kite):
+    funds = get_fund_status(kite)
+    cash = (funds['cash'])
+    #iv_value = 0.26
+    result = "Pass" if 75000 <= cash <= 25000 else "Fail"
+    add_param_row("CASH", cash, "25K - 100K", result)
+
+
+    #---------------------------------------------------------------------
+    ist = pytz.timezone("Asia/Kolkata")
+    now = datetime.now(ist).time()
     
-            try:
-                holdings = kite.holdings()
-                out["holdings"] = holdings
-            except Exception as e:
-                out["holdings"] = {"error": f"Unable to fetch holdings: {e}"}
+    # Market hours condition
+    start = time(9, 15)   # 9:30 AM
+    end = time(15, 25)    # 3:25 PM
     
-            try:
-                positions = kite.positions()
-                # positions may contain 'net' and 'day' subkeys depending on version
-                out["positions"] = positions
-            except Exception as e:
-                out["positions"] = {"error": f"Unable to fetch positions: {e}"}
+    # Refresh only between 9:30–3:25
+    if start <= now <= end:
+        #st_autorefresh(interval=60000, key="refresh")  # 1 minute refresh
+        st_autorefresh(interval=60000, key="refresh_live3")
+    else:
+        st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
+
+    st.title("Nifty 15-min Chart")
     
-            try:
-                orders = kite.orders()
-                out["orders"] = orders
-            except Exception as e:
-                out["orders"] = {"error": f"Unable to fetch orders: {e}"}
-        except Exception as e:
-            out["error"] = f"Unexpected error while fetching: {e}"
-        return out
+    # Select date input (default today)
+    selected_date = st.date_input("Select date", value=datetime.today())
     
-    # --- Helper: local paper-trade order placement (simulated) ---
-    def place_paper_order(symbol, qty, side="BUY", order_type="MARKET", price=None, product="MIS"):
-        # Create a simulated order id and append to paper_orders
-        oid = str(uuid.uuid4())[:8]
-        ts = int(time.time())
-        order = {
-            "order_id": oid,
-            "symbol": symbol,
-            "qty": qty,
-            "side": side,
-            "order_type": order_type,
-            "price": price,
-            "product": product,
-            "status": "COMPLETE" if order_type == "MARKET" else "OPEN",
-            "filled_qty": qty if order_type == "MARKET" else 0,
-            "avg_price": price if price else "market",
-            "timestamp": ts,
-        }
-        st.session_state.paper_orders.append(order)
+    # Calculate date range to download (7 days before selected_date to day after selected_date)
+    start_date = selected_date - timedelta(days=7)
+    end_date = selected_date + timedelta(days=1)
     
-        # update positions (very simple: net qty)
-        pos = st.session_state.paper_positions.get(symbol, {"qty": 0, "avg_price": 0.0})
-        if side == "BUY":
-            new_qty = pos["qty"] + qty
-            # naive avg price calc (if avg_price is numeric)
-            try:
-                prev_tot = pos["avg_price"] * pos["qty"]
-                new_avg = (prev_tot + (price or 0) * qty) / new_qty if new_qty != 0 else 0
-            except Exception:
-                new_avg = price or 0
-            st.session_state.paper_positions[symbol] = {"qty": new_qty, "avg_price": new_avg}
-        else:  # SELL
-            new_qty = pos["qty"] - qty
-            st.session_state.paper_positions[symbol] = {"qty": new_qty, "avg_price": pos.get("avg_price", 0)}
+    # Download data for ^NSEI from start_date to end_date
+    df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="15m")
     
-        return order
-    
-    # --- UI: Sidebar menu with Logout ---
-    menu = st.sidebar.selectbox("Menu", ["Home", "Zerodha Broker API", "Dashboard", "Paper Trade", "Logout"])
-    
-    # If logout chosen, clear relevant session state
-    if menu == "Logout":
-        # remove sensitive session keys
-        for k in ["kite", "connected_broker", "api_status"]:
-            if k in st.session_state:
-                del st.session_state[k]
-        # clear paper-trade state optionally
-        st.session_state.paper_orders = []
-        st.session_state.paper_positions = {}
-        st.success("Logged out and session cleared.")
+    if df.empty:
+        st.warning("No data downloaded for the selected range.")
         st.stop()
+    df.reset_index(inplace=True)
     
-    # --- Zerodha Broker API page ---
-    if menu == "Zerodha Broker API":
-        st.title("Broker Integrations")
-        st.write("Connect your broker to enable paper/live trading. For production store tokens securely.")
+    if 'Datetime_' in df.columns:
+        df.rename(columns={'Datetime_': 'Datetime'}, inplace=True)
+    elif 'Date' in df.columns:
+        df.rename(columns={'Date': 'Datetime'}, inplace=True)
+    # Add any other detected name if needed
     
-        brokers = ["Zerodha", "Fyers", "AliceBlue"]
-        bcol1, bcol2 = st.columns(2)
-        with bcol1:
-            sel = st.selectbox("Broker", brokers, index=0)
-            if sel == "Zerodha":
-                api_key = st.text_input("API Key", key="z_key")
-                api_secret = st.text_input("API Secret (optional)", type="password", key="z_secret")
-                access_token = st.text_input(
-                    "Access Token (paste here for demo) — for production use OAuth flow",
-                    key="z_access_token",
-                )
     
-                st.checkbox("Use paper trading (simulate)", value=st.session_state.use_paper, key="use_paper_checkbox")
-                st.session_state.use_paper = st.session_state.use_paper_checkbox
+    #st.write(df.columns)
+    #st.write(df.head(10))
+    # Flatten columns if MultiIndex
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in df.columns]
     
-                st.markdown("<div class='button-teal'>", unsafe_allow_html=True)
-                if st.button("Connect Zerodha"):
-                    if not api_key:
-                        st.error("Please provide API Key.")
-                    else:
-                        try:
-                            kite = KiteConnect(api_key=api_key)
-                            # If you already have access_token you can set it directly:
-                            if access_token:
-                                kite.set_access_token(access_token)
-                            # store client
-                            st.session_state.kite = kite
-                            st.session_state.api_status["Zerodha"] = True
-                            st.session_state.connected_broker = "Zerodha"
-                            st.success("Zerodha client stored in session.")
-                        except Exception as e:
-                            st.session_state.api_status["Zerodha"] = False
-                            st.error(f"Failed to create Kite client: {e}")
-                st.markdown("</div>", unsafe_allow_html=True)
+    # Rename datetime column if needed
+    if 'Datetime' not in df.columns and 'datetime' in df.columns:
+        df.rename(columns={'datetime': 'Datetime'}, inplace=True)
+    #st.write(df.columns)
+    #st.write(df.columns)
+    # Convert to datetime & timezone aware
+    #df['Datetime'] = pd.to_datetime(df['Datetime'])
+    if df['Datetime_'].dt.tz is None:
+        df['Datetime'] = df['Datetime_'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
+    else:
+        df['Datetime'] = df['Datetime_'].dt.tz_convert('Asia/Kolkata')
     
-            elif sel == "Fyers":
-                st.text_input("Client ID", key="f_id")
-                st.text_input("Secret Key", type="password", key="f_secret")
-                if st.button("Connect Fyers"):
-                    st.session_state.api_status["Fyers"] = True
-                    st.session_state.connected_broker = "Fyers"
-                    st.success("Fyers connected (demo)")
-            elif sel == "AliceBlue":
-                st.text_input("User ID", key="a_id")
-                st.text_input("API Key", type="password", key="a_key")
-                if st.button("Connect AliceBlue"):
-                    st.session_state.api_status["AliceBlue"] = True
-                    st.session_state.connected_broker = "AliceBlue"
-                    st.success("AliceBlue connected (demo)")
+    #st.write(df.columns)
+    #st.write(df.head(10))
     
-        # Connection status on right column
-        with bcol2:
-            st.subheader("Connection Status")
-            for name, ok in st.session_state.api_status.items():
-                badge_class = "success" if ok else "danger"
-                badge_text = "Connected" if ok else "Not Connected"
-                st.markdown(f"**{name}**: <span class='badge {badge_class}'>{badge_text}</span>", unsafe_allow_html=True)
-            st.caption("For demo we store Kite object in session_state. In production use secure secrets store.")
+    # Filter for last two trading days to plot
+    unique_days = df['Datetime'].dt.date.unique()
+    if len(unique_days) < 2:
+        st.warning("Not enough data for two trading days")
+    else:
+        last_day = unique_days[-2]
+        today = unique_days[-1]
     
-    # --- Dashboard: display funds, holdings, positions, orders ---
-    if menu == "Dashboard":
-        st.title("Zerodha Dashboard")
-        st.write("Shows funds, holdings, positions and orders (live) or simulated paper-trade state.")
+        df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
     
-        # optional autorefresh (every 60 seconds)
-        try:
-            st_autorefresh(interval=60 * 1000, limit=None, key="refresh")
-        except Exception:
-            # if import or usage failed, ignore and continue
-            pass
+        # Get last day 3PM candle open and close
+        candle_3pm = df_plot[(df_plot['Datetime'].dt.date == last_day) &
+                             (df_plot['Datetime'].dt.hour == 15) &
+                             (df_plot['Datetime'].dt.minute == 0)]
     
-        data = fetch_zerodha_data()
-        if data.get("error"):
-            st.warning(data["error"])
-    
-        # show funds block
-        st.subheader("Funds / Margins")
-        if data["funds"] is None:
-            st.info("No funds fetched. Connect Zerodha or paste access token.")
+        if not candle_3pm.empty:
+            open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
+            close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
         else:
-            st.json(data["funds"])
+            open_3pm = None
+            close_3pm = None
+            st.warning("No 3:00 PM candle found for last trading day.")
     
-        # holdings
-        st.subheader("Holdings")
-        if data["holdings"] is None:
-            st.info("No holdings fetched.")
+        # Plot candlestick chart
+        fig = go.Figure(data=[go.Candlestick(
+            x=df_plot['Datetime'],
+            open=df_plot['Open_^NSEI'],
+            high=df_plot['High_^NSEI'],
+            low=df_plot['Low_^NSEI'],
+            close=df_plot['Close_^NSEI']
+        )])
+    
+        if open_3pm and close_3pm:
+            fig.add_hline(y=open_3pm, line_dash="dot", line_color="blue", annotation_text="3PM Open")
+            fig.add_hline(y=close_3pm, line_dash="dot", line_color="red", annotation_text="3PM Close")
+    
+    
+    
+    
+        # Draw horizontal lines as line segments only between 3PM last day and 3PM next day
+    
+        
+        fig.update_layout(title="Nifty 15-min candles - Last Day & Today", xaxis_rangeslider_visible=False)
+        fig.update_layout(
+        xaxis=dict(
+            rangebreaks=[
+                # Hide weekends (Saturday and Sunday)
+                dict(bounds=["sat", "mon"]),
+                # Hide hours outside of trading hours (NSE trading hours 9:15 to 15:30)
+                dict(bounds=[15.5, 9.25], pattern="hour"),
+            ]
+        )
+    )
+    
+    
+        st.plotly_chart(fig, use_container_width=True)
+        #----------------------------------------------------------------------
+        df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
+        signal = trading_signal_all_conditions(df_plot)
+
+        if signal is None:
+            st.warning("⚠ No signal yet (conditions not met).")
         else:
-            st.write(data["holdings"])
-    
-        # positions
-        st.subheader("Positions")
-        if data["positions"] is None:
-            st.info("No positions fetched.")
+            st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
+            df_sig1 = pd.DataFrame([signal])
+            signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
+            signal["signal_time"] = signal_time
+  
+ 
+                
+                # Display as table
+            st.table(df_sig1) 
+             
+            entry_time = signal['entry_time']
+            #st.write("entry_time",entry_time) 
+            #st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS
+            signal_time=entry_time.strftime("%H:%M:%S")
+            #st.write("Signal Time only:-", signal_time)  # HH:MM:SS
+            #            st.write(signal)
+#--------------------------------------------------------------------------------
+
+        def generate_signals_stepwise(df):
+            all_signals = []
+            
+            # We run strategy for each candle progressively
+            for i in range(40, len(df)):   # start after enough candles
+                sub_df = df.iloc[:i].copy()
+                sig = trading_signal_all_conditions(sub_df)
+                if sig is not None:
+                    all_signals.append((sub_df.iloc[-1]["Datetime"], sig))
+        
+            return all_signals
+#-------------------------------------Total signals-------------------------------------------
+
+        step_signals = generate_signals_stepwise(df_plot)
+        if step_signals:
+                #st.info(f"Total signals detected so far: {len(step_signals)}")
+            
+                latest_time, latest_sig = step_signals[-1]
+                
+                st.success(f"🟢 Latest Candle Signal ({latest_time}):")
+                #st.write(latest_sig)
+                # Convert to DataFrame
+                df_sig = pd.DataFrame([latest_sig])
+                
+                # Display as table
+                st.table(df_sig)
         else:
-            st.write(data["positions"])
+                st.warning("No signal triggered in any candle yet.")
+   
+
+#-----------------------------------Nearest ITM Option ---------------------------------------------
+
+        if signal is not None:
+            #signal_time = df["Datetime"].iloc[-1].time()   # last candle time
+            option_type = signal["option_type"]     # CALL / PUT
+            #st.write("Option type ",option_type)
+            spot = signal["spot_price"]
+            #st.write("Option spot ",spot)
+            try:
+                nearest_itm = find_nearest_itm_option(kite, spot, option_type)
+                
+                st.success("Nearest ITM Option Found")
+                #                st.write(nearest_itm)
+                nearest_itm1 = pd.DataFrame([nearest_itm])
+                
+                # Display as table
+                st.table(nearest_itm1)
+                trending_symbol=nearest_itm['tradingsymbol']
+                #st.write("tradingsymbol-",trending_symbol)
+        
+            except Exception as e:
+                st.error(f"Failed to fetch option: {e}")
+
     
-        # orders
-        st.subheader("Orders")
-        if data["orders"] is None:
-            st.info("No orders fetched.")
-        else:
-            st.write(data["orders"])
+#######################---------------------IV-NEW !-------------------------------------------------
+             
+            option_dict = get_live_option_details(kite, trending_symbol)
+            spot_price=26046.00 
+            ltp = option_dict.get("ltp")
+            strike = option_dict.get("strike")
+            expiry = option_dict.get("expiry")
+            is_call = option_dict.get("option_type") == "CALL"
+          #------------------------------------------PAPER TRADE-------------------------------------------------
+            if signal is not None:
+
+              signal_time = signal["signal_time"]
+          
+              # 🔒 ENTRY LOCK — THIS PREVENTS RE-ENTRY ON REFRESH
+              if st.session_state.last_executed_signal_time == signal_time:
+                  pass  # already traded this signal
+          
+              else:
+                  option_type = signal["option_type"]
+                  spot = signal["spot_price"]
+          
+                  nearest_itm = find_nearest_itm_option(kite, spot, option_type)
+                  trending_symbol = nearest_itm["tradingsymbol"]
+                  option_symbol = f"NFO:{trending_symbol}"
+          
+                  entry_price = kite.ltp(option_symbol)[option_symbol]["last_price"]
+          
+                  
+                  trade = {
+                        "signal_time": signal_time,
+                        "entry_time": pd.Timestamp.now(),
+                        "symbol": trending_symbol,
+                        "option_type": option_type,
+                        "entry_price": entry_price,
+                        "quantity": 75,
+                        "remaining_qty": 75,
+                        "highest_price": entry_price,
+                        "partial_exit_done": False,
+                        "final_exit_done": False,
+                        "status": "OPEN"
+                    }
+          
+                  st.session_state.paper_trades.append(trade)
+          
+                  # 🔐 LOCK THE SIGNAL
+                  st.session_state.last_executed_signal_time = signal_time
+          
+                  st.success(f"Paper trade entered @ {entry_price}")
+
+            monitor_paper_trades(kite)
+            for trade in st.session_state.paper_trades:
+              normalize_trade(trade)
+              manage_exit_papertrade(kite, trade)
+
+            st.write("Moniter")
+             
+
+ 
+   
+          #---------------------------------------PAPER TRADE----------------------------------------------------   
+              # Compute time to expiry (in years)
+            days_to_exp = days_to_expiry(expiry)
+            time_to_expiry = days_to_exp / 365 
+            r=0.07
+            #st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
+            iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
+            #st.write("IV  FOr (Option):CE")
+            #st.write("IV (decimal):", iv)
+            #st.write("IV (%):", iv * 100)    
+            result = "Pass" if (iv is not None and 0.10 <= iv <= 0.35) else "Fail"
+ 
+            #result = "Pass" if 0.10 <= iv <= 0.35 else "Fail"
+            iv_result = result    
+            #add_param_row("IV", round(iv, 2), "0.10 - 0.35", result)
+             
+
+#-----------------------------------IV Compute---------------------------------------------
+
+        #spot_price = get_ltp(kite, "NSE:NIFTY 50")["ltp"]
+        
+         #iv_percent = compute_option_iv(nearest_itm, spot)
+        
+         #st.write("IV:", iv_percent)    
+         
+         #get_live_iv_nifty_option(kite, option_token: int, index_symbol="NSE:NIFTY 50"):        
+            #st.write(nearest_itm)  
+
+#----------------------------------IV----------------------------------------------
+
     
-        # Also show paper-trade state if paper mode
-        st.subheader("Paper-trade state (local simulation)")
-        st.write("Use Paper Trade menu to place simulated orders.")
-        st.write("Paper Orders:")
-        st.write(st.session_state.paper_orders or "No paper orders yet.")
-        st.write("Paper Positions:")
-        st.write(st.session_state.paper_positions or "No paper positions yet.")
-    #-------------------------------------------------------------------------------------------------------------------------------------------------------
-    # --- Paper Trade UI ---
-    if MENU == "Paper Trade":
-        st.title("Paper Trade — NIFTY Options (Simulated)")
-        st.write("This is a local paper-trade simulator. No real orders are sent to broker when using paper mode.")
+        
+            iv_info = get_iv_rank0(kite, nearest_itm, lookback_days=250)
+       
+            #st.write("New Way Iv ",iv)  
+            # Fix missing values
+            if iv_info["iv"] is None:
+                 iv_info["iv"] = 0
+     
+            if iv_info["iv_rank"] is None:
+                iv_info["iv_rank"] = 0
+
+         ##st.write("Current IV:", iv_info["iv"], "%")
+         #st.write("IV Rank:", iv_info["iv_rank"], "%")
+#-----------------------Add PARA----------------------------------------------
+    # IV
+            result = "Pass" if 0.10 <= iv_info["iv"] <= 0.35 else "Fail"
+            iv_result = result    
+            #add_param_row("IV", round(iv_info["iv"], 2), "0.10 - 0.35", result)
+
+    # IV Rank
+            result = "Pass" if 0.20 <= iv_info["iv_rank"] <= 0.70 else "Fail"
+            iv_rank_result  = result    
+            add_param_row("IV Rank", round(iv_info["iv_rank"], 2), "0.20 - 0.70", result)
+#--------------------------------------------------Getting New IV-----------& adding to para----------------------------
+            #result = compute_option_iv_details(option, spot)
+     
+            #st.write(result)  
+            option = get_live_option_details(kite, trending_symbol)
+     
+            #st.write(option)
+     
+     
+            spot = option["strike"]
+            #st.write("Spot",spot) 
+            #spot = 25900.00  # live NIFTY spot
+     
+            result = compute_option_iv_details(option, spot)
+            #st.write("IV new",result["iv"]) 
+            new_iv_result= result["iv"]
+            result = "Pass" if 0.10 <= new_iv_result <= 0.35 else "Fail" 
+            add_param_row("IV ", round(new_iv_result, 2), "0.10 - 0.35", result) 
+#-------------------------------------------------------------------------
+            if(iv_info["iv"]=='None'):
+             # Safely extract values
+                  iv_value = iv_info.get("iv") or 0
+                  iv_rank_value = iv_info.get("iv_rank") or 0
+             
+                  st.write("After None Current IV:", iv_value, "%")
+                  st.write("After None IV Rank:", iv_rank_value, "%")
     
-        use_paper = st.checkbox("Use paper trading (simulate)", value=st.session_state.use_paper)
-        st.session_state.use_paper = use_paper
+        
+
+#--------------------------------VIX------------------------------------------------
+         #vix_now =fetch_vix_from_fyers()
+         
+            vix_now = fetch_india_vix_kite(kite)
+         #st.write("India VIX: kite", vix_now)
+         #st.write("India VIX:", vix_now)
+ #-----------------------Add PARA----------------------------------------------
+    # VIX
+            result = "Pass" if vix_now < 15 else "Fail"
+            vix_result  = result     
+            add_param_row("VIX", round(vix_now, 2), "< 15", result)
+
+ #------------------------------------------------------------------------------   
+    # Apply IV + VIX Filter
+    # -------------------------
+        #allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_now)
+    # Safely extract values
+            iv_value = iv_info.get("iv") or 0
+            iv_rank_value = iv_info.get("iv_rank") or 0
+            allowed, position_size = combined_filter(iv_value, iv_rank_value, vix_now)
+            #st.write("Allowed to Trade?", allowed)
+            #st.write("Position Size:", position_size)
+    #-----------------------------------------------------------------------------------------
     
-        with st.form("paper_order_form"):
-            symbol = st.text_input("Symbol (e.g. NIFTY22NOV23000CE)", value="NIFTY23NOV23000CE")
-            qty = st.number_input("Quantity", value=1, step=1)
-            side = st.selectbox("Side", ["BUY", "SELL"])
-            ord_type = st.selectbox("Order Type", ["MARKET", "LIMIT"])
-            price = st.number_input("Limit Price (if LIMIT)", value=0.0, step=0.1)
-            submitted = st.form_submit_button("Place Order (paper)")
+    #---------------------------------tIME-----------------------------------------------
+            import pytz
+            
+    # IST timezone
+            ist = pytz.timezone("Asia/Kolkata")
+            now_dt = datetime.now(ist)     # full datetime object
+            now = now_dt.time()            # extract time only for comparisons
+
+            tz = pytz.timezone("Asia/Kolkata")
+            now = datetime.now(tz)
+     #----------------------------------FUND-----------------------------------------------------
+            #st.divider()
+
+            funds = get_fund_status(kite)
+
+            #st.subheader("💰 Zerodha Fund Status")
     
-        if submitted:
-            if use_paper:
-                order = place_paper_order(symbol=symbol, qty=int(qty), side=side, order_type=ord_type, price=(price if price > 0 else None))
-                st.success(f"Paper order placed: {order['order_id']}")
-                #st.write(order)
+            if "error" in funds:
+                st.error(funds["error"])
             else:
-                kite = get_kite()
-                if kite is None:
-                    st.error("No kite client available — connect Zerodha first or use paper mode.")
-                else:
-                    # Example real order (commented out by default)
-                    try:
-                        # real_order = kite.place_order(
-                        #     variety=kite.VARIETY_REGULAR,
-                        #     exchange="NFO",  # or "NSE" depending on instrument
-                        #     tradingsymbol=symbol,
-                        #     transaction_type=side,
-                        #     quantity=int(qty),
-                        #     product="MIS",
-                        #     order_type=ord_type,
-                        #     price=price if ord_type == "LIMIT" and price>0 else None,
-                        # )
-                        # st.success(f"Live order placed: {real_order}")
-                        st.info("Live order placement is disabled in this demo. Uncomment and ensure credentials to enable.")
-                    except Exception as e:
-                        st.error(f"Failed to place live order: {e}")
-    
-        st.markdown("---")
-        st.subheader("Paper Orders Log")
-        #st.write(st.session_state.paper_orders or "No paper orders yet.")
-        paper_orders = st.session_state.get("paper_orders", [])
+                  #st.write(f"**Net Balance:** ₹{funds['net']}")
+                  #st.write(f"**Cash:** ₹{funds['cash']}")
+                  #st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
+                  #st.write(f"**Collateral:** ₹{funds['collateral']}")
+                  #st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
+                  #cash_balance = 73500
+                  lots = get_lot_size(funds['cash'])
+                  #st.write("Lot Size:", lots)
+                  qty=75*lots
+                  #st.divider()
 
-        if paper_orders:
-            df = pd.DataFrame(paper_orders)
-            st.dataframe(df, use_container_width=True)
-        else:
-            st.info("No paper orders yet.")
-        #st.table(paper_orders)
+   
     
-        st.subheader("Paper Positions")
-        #st.write(st.session_state.paper_positions or "No paper positions.")
-        paper_positions = st.session_state.get("paper_positions", [])
-
-        if paper_positions:
-            df_pos = pd.DataFrame(paper_positions)
-            st.dataframe(df_pos, use_container_width=True)
-        else:
-            st.info("No paper positions.")
-
-        #st.table(paper_positions)
+    #------------------------------------PLACING ORDERS--------------------------------------------
+             #st.write(f"Placing order for:", trending_symbol)
+            if(position_size=='none'):
+                  position_size=1;
+        #st.write(f"Quantity: {qty}, LTP: {ltp}")
+        #st.write(f"Quantity  order for:", qty)        
+        #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
+        # Condition 1: Current time >= signal candle time
+        # Trading window
+            start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
+            end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+    #st.write("start_time", start_time)
+    #st.write("end_time", end_time)
+    #st.write("Now Time", now)
+    #st.write("signal_time",signal_time)
     
+    
+    #-------------------------------------------------------------------------------
+
+        # Convert to Python datetime (with timezone if needed)
+            signal_time = pd.to_datetime(signal_time).to_pydatetime()
+   
+    # Optional: ensure same timezone as now
+    #import pytz
+            tz = pytz.timezone("Asia/Kolkata")
+            signal_time = signal_time.replace(tzinfo=tz)
+    #    st.write("signal_time",signal_time)
+    #st.write("Now Time", now)
+    #--------------------------------------------------------------------------------
+     #-----------------------Add PARA----------------------------------------------
+    # Define IST timezone
+            ist = pytz.timezone("Asia/Kolkata")
+    
+    # Convert signal_time to IST
+            signal_time_ist = signal_time.astimezone(ist)
+            import datetime as dt
+
+            start = dt.time(9, 30)
+            end   = dt.time(14, 30)
+    
+            sig_t = signal_time_ist.time()
+    
+            result = "Pass" if start <= sig_t <= end else "Fail"
+    
+            add_param_row("Signal Time", str(signal_time_ist.time()),"09:30 - 14:30",result)
+     #------------------------------------ADD PCR------------------------------------------ 
+            pcr_value = get_nifty_pcr(kite)
+            result = "Pass" if 0.80 <= pcr_value <= 1.30 else "Fail"
+            pcr_result= result
+            add_param_row("PCR", round(pcr_value, 2), "0.80 - 1.30", result)
+
+#-------------------------------------lot ty------------------------------------------------
+     # Default lot size
+            qty = 1*75
+     
+     # Apply rule
+            if iv_result == "Fail" or iv_rank_result == "Fail":
+                   lot_qty = 2
+            if iv_result == "Pass" and iv_rank_result == "Fail" and vix_result=="pass" and pcr_result=="pass":
+                   lot_qty = 6    
+            if vix_now < 10 :
+                   lot_qty = 0 
+            add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK")
+     #-----------------------------------------Display PARA-------------------------------------------
+            if st.session_state.param_rows:
+                  df = pd.DataFrame(st.session_state.param_rows)
+                  st.table(df)
+            else:
+                  st.write("No parameters added yet.")
+    
+            qty=qty*lot_qty
+            
+                # Check 1: Only run if current time is within trading window
+            if is_valid_signal_time(entry_time):
+                 st.warning("Signal time  match today's date .") 
+                 if start_time <= now <= end_time:
+                 
+                 # Check 2: Signal time reached
+                    if now >= signal_time:
+                      
+                      # Check 3: Order placed only once
+                         if lot_qty>0: 
+                               if not st.session_state.order_executed:
+                                   try:
+                                       order_id = kite.place_order(
+                                               tradingsymbol=trending_symbol,
+                                               exchange=kite.EXCHANGE_NFO,
+                                               transaction_type=kite.TRANSACTION_TYPE_BUY,
+                                               quantity=qty,
+                                               order_type=kite.ORDER_TYPE_MARKET,
+                                               variety=kite.VARIETY_REGULAR,
+                                               product=kite.PRODUCT_MIS
+                                           )
+                           
+                                       st.session_state.order_executed = True   # Mark executed
+                                       st.success(f"Order Placed Successfully! Order ID: {order_id}")
+                                       st.session_state["last_order_id"] = order_id
+                           
+                                   except Exception as e:
+                                       st.error(f"Order Failed: {e}")
+                         else:
+                               st.info("Trade Not Allowed Qty=0.")  
+                    else:
+                         st.info("Order already executed for this signal.")
+                 
+                 else:
+                       st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
+            else:
+                   st.warning("Signal time does not match today's date or is outside trading hours. Order not placed.")     
+          
+#--------------------------------ORDERS------------------------------------------------
+            st.divider()
+         #st.autorefresh(interval=5000)  # refresh every 5 seconds
+    
+            if "last_order_id" in st.session_state:
+                  order_id = st.session_state["last_order_id"]
+                  order = kite.order_history(order_id)[-1]
+                  st.write("### 🔄 Live Order Update")
+                  #st.write(order)
+
+
+#------------------------------------ORDERS--------------------------------------------
+            show_kite_orders(kite)
+
+#---------------------------------Exit Logic-----------------------------------------------
+            if "trade_active" not in st.session_state:
+                   st.session_state.trade_active = False
+                   st.session_state.entry_price = 0.0
+                   st.session_state.entry_time = None
+                   st.session_state.highest_price = 0.0
+                   st.session_state.partial_exit_done = False
+                   st.session_state.final_exit_done = False
+ 
+
+            if "trade_active" not in st.session_state:
+                st.session_state.trade_active = False
+          
+            if "entry_price" not in st.session_state:
+                st.session_state.entry_price = None
+          
+            if "highest_price" not in st.session_state:
+                st.session_state.highest_price = None
+          
+            if "entry_time" not in st.session_state:
+                st.session_state.entry_time = None
+          
+            if "partial_exit_done" not in st.session_state:
+                st.session_state.partial_exit_done = False
+          
+            if "final_exit_done" not in st.session_state:
+                st.session_state.final_exit_done = False
+               #-------------------------------
+            st.session_state.trade_active = True
+            st.session_state.entry_price = ltp   # from trade average price
+            st.session_state.highest_price = ltp
+            st.session_state.entry_time = datetime.now()
+            st.session_state.partial_exit_done = False
+            st.session_state.final_exit_done = False
+            st.session_state.qty = lot_qty
+            st.session_state.tradingsymbol = trending_symbol
+              #-------------------------------
+
+
+
+#--------------------------------EXIT------------------------------------------------
+            # ---------------- EXIT MANAGEMENT ----------------
+            if st.session_state.trade_active:
+                   manage_exit(
+                       kite=kite,
+                       tradingsymbol=st.session_state.tradingsymbol,
+                       qty=st.session_state.qty
+                   )
+
+
+#--------------------------------------------------------------------------------
+
     
     
 #-------------------------------------

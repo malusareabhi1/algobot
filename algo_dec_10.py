@@ -4447,6 +4447,7 @@ elif MENU == "Backtest":
         #trading_signal_debug(df)
         
         #signal = trading_signal_all_conditions2_improved(day_df)
+        signal = trading_signal_all_conditions(df) 
         
         #st.write(signal)
         if signal:

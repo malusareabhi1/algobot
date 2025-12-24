@@ -392,6 +392,38 @@ def bs_call_price(S, K, T, r, sigma):
          return S * Nd1 - K * math.exp(-r * T) * Nd2
 
 def implied_vol_call(S, K, T, r, C_mkt, tol=1e-6, max_iter=100):
+
+    # ---------- HARD GUARDS ----------
+    if S <= 0 or K <= 0:
+        return None
+
+    if T <= 0:
+        return None   # expired
+
+    if C_mkt is None or C_mkt <= 0:
+        return None   # invalid option price
+
+    low, high = 1e-6, 5.0  # 0.0001% to 500% vol
+
+    for _ in range(max_iter):
+        sigma = 0.5 * (low + high)
+
+        price = bs_call_price(S, K, T, r, sigma)
+        if price is None:
+            return None
+
+        if abs(price - C_mkt) < tol:
+            return sigma
+
+        if price > C_mkt:
+            high = sigma
+        else:
+            low = sigma
+
+    return sigma  # best guess
+
+
+def implied_vol_call1(S, K, T, r, C_mkt, tol=1e-6, max_iter=100):
          low, high = 1e-6, 5.0      # 0.0001% to 500% vol range
           # ---- HARD GUARDS ----
          if S <= 0 or K <= 0:

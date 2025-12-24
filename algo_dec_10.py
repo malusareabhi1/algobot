@@ -7154,7 +7154,7 @@ elif MENU =="LIVE TRADE 3":
                 df_sig = pd.DataFrame([latest_sig])
                 
                 # Display as table
-                st.table(df_sig)
+                #st.table(df_sig)
         else:
                 st.warning("No signal triggered in any candle yet.")
    

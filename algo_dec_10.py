@@ -24,7 +24,7 @@ from scipy.stats import norm
 
 # Define IST timezone FIRST
 ist = pytz.timezone("Asia/Kolkata")
-start = time(9, 30)   # 9:30 AM
+start = time(9, 15)   # 9:30 AM
 end = time(15, 25)    # 3:25 PM
 now = datetime.now(ist).time()    
 # Refresh only between 9:30–3:25

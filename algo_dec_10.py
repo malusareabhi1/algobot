@@ -7681,7 +7681,29 @@ elif MENU=="Strategy Signals":
     
         st.plotly_chart(fig, use_container_width=True)
         #----------------------------------------------------------------------
+        #----------------------------------------------------------------------
+        df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
+        signal = trading_signal_all_conditions(df_plot)
 
+        if signal is None:
+            st.warning("⚠ No signal yet (conditions not met).")
+        else:
+            st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
+            df_sig1 = pd.DataFrame([signal])
+            signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
+            signal["signal_time"] = signal_time
+  
+ 
+                
+                # Display as table
+            st.table(df_sig1) 
+             
+            entry_time = signal['entry_time']
+            #st.write("entry_time",entry_time) 
+            #st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS
+            signal_time=entry_time.strftime("%H:%M:%S")
+            #st.write("Signal Time only:-", signal_time)  # HH:MM:SS
+            st.write("Signals",signal)
    
 # ------------------------------------------------------------
 # Footer

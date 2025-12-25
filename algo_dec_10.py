@@ -150,7 +150,7 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
       
     def monitor_trade_0(sig):
         sl = sig['stoploss']
-        entry_dt = sig['entry_time']
+        #entry_dt = sig['entry_time']
         exit_deadline = entry_dt + timedelta(minutes=16)
 
         for _, candle in day1_after_915.iterrows():

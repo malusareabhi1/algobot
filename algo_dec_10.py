@@ -102,7 +102,7 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
 
         return sl
 
-    def monitor_trade(sig):
+   def monitor_trade(sig):
          sl = sig['stoploss']
          exit_deadline = sig['entry_time'] + timedelta(minutes=16)
      
@@ -116,18 +116,18 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
              if candle['Datetime'] <= sig['entry_time']:
                  continue
      
-             # Time exit
+             # Time-based exit
              if candle['Datetime'] >= exit_deadline:
                  sig['exit_price'] = candle['Close_^NSEI']
                  sig['exit_time'] = candle['Datetime']
                  sig['status'] = 'Time Exit'
                  return sig
      
-             # Trailing SL update
+             # Update trailing SL
              sl = update_trailing_sl(sig['option_type'], sl, candle['Datetime'])
              sig['stoploss'] = sl
      
-             # SL checks
+             # SL hit checks
              if sig['option_type'] == 'CALL' and pd.notna(sl) and candle['Low_^NSEI'] <= sl:
                  sig['exit_price'] = sl
                  sig['exit_time'] = candle['Datetime']
@@ -140,13 +140,14 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
                  sig['status'] = 'SL Hit'
                  return sig
      
-         # Force exit at 2:30 or last candle
+         # Force exit at 2:30 or last available candle
          last_candle = day1_after_915[day1_after_915['Datetime'] <= trade_end_time].iloc[-1]
          sig['exit_price'] = last_candle['Close_^NSEI']
          sig['exit_time'] = last_candle['Datetime']
          sig['status'] = 'Forced Exit @ 14:30'
          return sig
- 
+     
+      
     def monitor_trade_0(sig):
         sl = sig['stoploss']
         entry_dt = sig['entry_time']

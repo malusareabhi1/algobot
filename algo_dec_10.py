@@ -8118,9 +8118,9 @@ elif MENU=="Strategy Signals":
             fig.add_hline(y=close_3pm, line_dash="dot", line_color="red", annotation_text="3PM Close")
 
         if o_915 is not None and c_915 is not None:
-              fig.add_hline(y=o_915, line_dash="dash", line_color="green",
+              fig.add_hline(y=o_915, line_dash="longdash", line_color="green",
                             annotation_text="9:15 Open")
-              fig.add_hline(y=c_915, line_dash="dash", line_color="orange",
+              fig.add_hline(y=c_915, line_dash="longdash", line_color="orange",
                             annotation_text="9:15 Close")
  
     

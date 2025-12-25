@@ -8173,8 +8173,8 @@ elif MENU=="Strategy Signals":
                         'PnL_Diff'
                     ]
                     
-                    st.subheader("📊 Generated Trading Signals with SL & PnL")
-                    st.dataframe(
+                   st.subheader("📊 Generated Trading Signals with SL & PnL")
+                   st.dataframe(
                         signals_df[show_cols].round(2),
                         use_container_width=True
                     ) 

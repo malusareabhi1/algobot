@@ -8181,11 +8181,17 @@ elif MENU=="Strategy Signals":
                    signals_df[['PnL_Swing_SL', 'PnL_Fixed_SL', 'PnL_Diff']] = (
                         signals_df.apply(calculate_pnl, axis=1)
                     )
-
+                   
+              pnl_df = signals_df.apply(calculate_pnl, axis=1)
+              signals_df = pd.concat([signals_df, pnl_df], axis=1)
+          
+              st.dataframe(signals_df, use_container_width=True) 
               st.subheader("📊 Generated Trading Signals")
               st.dataframe(signals_df, use_container_width=True)
         else:
               st.info("No signal generated today")
+
+
 
    
 

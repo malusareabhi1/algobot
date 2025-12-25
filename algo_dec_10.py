@@ -8182,10 +8182,7 @@ elif MENU=="Strategy Signals":
                         signals_df.apply(calculate_pnl, axis=1)
                     )
                    
-              pnl_df = signals_df.apply(calculate_pnl, axis=1)
-              signals_df = pd.concat([signals_df, pnl_df], axis=1)
-          
-              st.dataframe(signals_df, use_container_width=True) 
+              
               st.subheader("📊 Generated Trading Signals")
               st.dataframe(signals_df, use_container_width=True)
         else:

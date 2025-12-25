@@ -8087,16 +8087,13 @@ elif MENU=="Strategy Signals":
         #----------------------------------------------------------------------
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
         #signal = trading_multi1_signal_all_conditions(df_plot)
+        signals = trading_multi1_signal_all_conditions(df)
 
-       
-
-       signals = trading_multi1_signal_all_conditions(df)
-
-       if signals:
+        if signals:
               signals_df = pd.DataFrame(signals)
               st.subheader("📊 Generated Trading Signals")
               st.dataframe(signals_df, use_container_width=True)
-       else:
+        else:
               st.info("No signal generated today")
 
    

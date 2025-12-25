@@ -159,7 +159,8 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
                 'quantity': quantity,
                 'expiry': expiry,
                 'entry_time': candle['Datetime'],
-                'spot_price': spot_price
+                'spot_price': spot_price,
+                'message': 'Condition 1: Break above Base Zone → CALL'
             }
             sig = monitor_trade(sig)
             signals.append(sig)
@@ -176,7 +177,8 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
                 'quantity': quantity,
                 'expiry': expiry,
                 'entry_time': candle['Datetime'],
-                'spot_price': spot_price
+                'spot_price': spot_price,
+                'message': 'Condition 2: Break above Base Zone → CALL'
             }
             sig = monitor_trade(sig)
             signals.append(sig)
@@ -193,7 +195,8 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
                 'quantity': quantity,
                 'expiry': expiry,
                 'entry_time': candle['Datetime'],
-                'spot_price': spot_price
+                'spot_price': spot_price,
+                'message': 'Condition 2.7: Break above Base Zone → CALL'
             }
             sig = monitor_trade(sig)
             signals.append(sig)
@@ -210,7 +213,8 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
                 'quantity': quantity,
                 'expiry': expiry,
                 'entry_time': candle['Datetime'],
-                'spot_price': spot_price
+                'spot_price': spot_price,
+                'message': 'Condition 3: Break above Base Zone → CALL'
             }
             sig = monitor_trade(sig)
             signals.append(sig)
@@ -227,7 +231,8 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
                 'quantity': quantity,
                 'expiry': expiry,
                 'entry_time': candle['Datetime'],
-                'spot_price': spot_price
+                'spot_price': spot_price,
+                'message': 'Condition 3.7: Break above Base Zone → CALL'
             }
             sig = monitor_trade(sig)
             signals.append(sig)
@@ -244,7 +249,8 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
                 'quantity': quantity,
                 'expiry': expiry,
                 'entry_time': candle['Datetime'],
-                'spot_price': spot_price
+                'spot_price': spot_price,
+                'message': 'Condition 4: Break above Base Zone → CALL'
             }
             sig = monitor_trade(sig)
             signals.append(sig)

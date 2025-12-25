@@ -75,7 +75,7 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
     L1 = candle_915.iloc[0]['Low_^NSEI']
     C1 = candle_915.iloc[0]['Close_^NSEI']
     entry_time = candle_915.iloc[0]['Datetime']
-
+    trade_end_time = entry_time.replace(hour=14, minute=30, second=0)
     expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
 
     day1_after_915 = df[(df['Date'] == day1) &
@@ -143,7 +143,11 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
     # ==================================================
 
     for _, candle in day1_after_915.iterrows():
+        if candle['Datetime'] > trade_end_time:
+             break
 
+        if candle['Datetime'] <= entry_dt:
+             continue  
         if last_exit_time and candle['Datetime'] <= last_exit_time:
             continue
 

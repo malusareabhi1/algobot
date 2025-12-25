@@ -8099,6 +8099,13 @@ elif MENU=="Strategy Signals":
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
         #signal = trading_multi1_signal_all_conditions(df_plot)
         signals = trading_multi1_signal_all_conditions(df)
+        st.subheader("9:15 AM Candle (NIFTY)")
+        st.write({
+              "Open": O1,
+              "High": H1,
+              "Low": L1,
+              "Close": C1
+          }) 
 
         if signals:
               signals_df = pd.DataFrame(signals)

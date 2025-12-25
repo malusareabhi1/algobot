@@ -5603,9 +5603,9 @@ elif MENU =="Live Trade":
      st.write("Live Trade")
      with st.sidebar:
          if st.button("🧹 Clear Paper Trades"):
-             st.session_state.paper_trades = []
-             st.success("All paper trades cleared")
-             st.rerun() 
+            st.session_state.paper_trades = []
+            st.success("All paper trades cleared")
+            st.rerun() 
               
     st.title("🔴 LIVE TRADE 3")
     #st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")

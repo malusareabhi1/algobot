@@ -8086,17 +8086,7 @@ elif MENU=="Strategy Signals":
               o_915 = h_915 = l_915 = c_915 = t_915 = None
               st.warning("No 9:15 AM candle found for today.")  
 
-        if t_915 is not None:
-              fig.add_vrect(
-                  x0=t_915,
-                  x1=t_915 + pd.Timedelta(minutes=15),
-                  fillcolor="orange",
-                  opacity=0.25,
-                  layer="below",
-                  line_width=0,
-                  annotation_text="9:15 Candle",
-                  annotation_position="top left"
-              )
+       
 
 
 
@@ -8112,7 +8102,17 @@ elif MENU=="Strategy Signals":
             low=df_plot['Low_^NSEI'],
             close=df_plot['Close_^NSEI']
         )])
-    
+        if t_915 is not None:
+              fig.add_vrect(
+                  x0=t_915,
+                  x1=t_915 + pd.Timedelta(minutes=15),
+                  fillcolor="orange",
+                  opacity=0.25,
+                  layer="below",
+                  line_width=0,
+                  annotation_text="9:15 Candle",
+                  annotation_position="top left"
+              )
         if open_3pm and close_3pm:
             fig.add_hline(y=open_3pm, line_dash="dot", line_color="blue", annotation_text="3PM Open")
             fig.add_hline(y=close_3pm, line_dash="dot", line_color="red", annotation_text="3PM Close")

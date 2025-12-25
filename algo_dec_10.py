@@ -7507,7 +7507,7 @@ elif MENU=="Live IV/RANK":
 
     #------------------------------------------------New RANK IV----------------------------------------------------------
     
-elif MENU=="Strategy Signals"
+elif MENU=="Strategy Signals":
      with st.sidebar:
          if st.button("🧹 Clear Paper Trades"):
              st.session_state.paper_trades = []

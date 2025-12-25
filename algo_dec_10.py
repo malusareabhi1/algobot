@@ -102,7 +102,7 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
 
         return sl
 
-   def monitor_trade(sig):
+    def monitor_trade(sig):
          sl = sig['stoploss']
          exit_deadline = sig['entry_time'] + timedelta(minutes=16)
      

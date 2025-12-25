@@ -145,10 +145,7 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
          sig['exit_price'] = last_candle['Close_^NSEI']
          sig['exit_time'] = last_candle['Datetime']
          sig['status'] = 'Forced Exit @ 14:30'
-         return sig
-     
-      
-    
+         return sig    
 
     # ==================================================
     # CONDITION SCANS (MULTIPLE SIGNALS)

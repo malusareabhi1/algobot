@@ -73,6 +73,14 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
     H1 = candle_915.iloc[0]['High_^NSEI']
     L1 = candle_915.iloc[0]['Low_^NSEI']
     C1 = candle_915.iloc[0]['Close_^NSEI']
+
+    st.subheader("9:15 AM Candle (NIFTY)")
+    st.write({
+              "Open": O1,
+              "High": H1,
+              "Low": L1,
+              "Close": C1
+          })  
     entry_time = candle_915.iloc[0]['Datetime']
     trade_end_time = entry_time.replace(hour=14, minute=30, second=0)
     expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
@@ -8099,13 +8107,7 @@ elif MENU=="Strategy Signals":
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
         #signal = trading_multi1_signal_all_conditions(df_plot)
         signals = trading_multi1_signal_all_conditions(df)
-        st.subheader("9:15 AM Candle (NIFTY)")
-        st.write({
-              "Open": O1,
-              "High": H1,
-              "Low": L1,
-              "Close": C1
-          }) 
+        
 
         if signals:
               signals_df = pd.DataFrame(signals)

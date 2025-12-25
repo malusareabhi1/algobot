@@ -8069,6 +8069,24 @@ elif MENU=="Strategy Signals":
             open_3pm = None
             close_3pm = None
             st.warning("No 3:00 PM candle found for last trading day.")
+
+         #-----------------------------Marking 9.15 Candle---------------------------------
+        # Get today's 9:15 AM candle
+        candle_915 = df_plot[(df_plot['Datetime'].dt.date == today) &
+                          (df_plot['Datetime'].dt.hour == 9) &
+                          (df_plot['Datetime'].dt.minute == 15)]
+     
+        if not candle_915.empty:
+              o_915 = candle_915.iloc[0]['Open_^NSEI']
+              h_915 = candle_915.iloc[0]['High_^NSEI']
+              l_915 = candle_915.iloc[0]['Low_^NSEI']
+              c_915 = candle_915.iloc[0]['Close_^NSEI']
+              t_915 = candle_915.iloc[0]['Datetime']
+        else:
+              o_915 = h_915 = l_915 = c_915 = t_915 = None
+              st.warning("No 9:15 AM candle found for today.")  
+              
+         #---------------------------------------------------------------------------------
     
         # Plot candlestick chart
         fig = go.Figure(data=[go.Candlestick(

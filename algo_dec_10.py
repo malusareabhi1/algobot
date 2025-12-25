@@ -75,13 +75,8 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
     L1 = candle_915.iloc[0]['Low_^NSEI']
     C1 = candle_915.iloc[0]['Close_^NSEI']
 
-    st.subheader("9:15 AM Candle (NIFTY)")
-    st.write({
-              "Open": O1,
-              "High": H1,
-              "Low": L1,
-              "Close": C1
-          })  
+    #st.subheader("9:15 AM Candle (NIFTY)")
+    #st.write({"Open": O1,"High": H1,"Low": L1,"Close": C1})  
     entry_time = candle_915.iloc[0]['Datetime']
     trade_end_time = entry_time.replace(hour=14, minute=30, second=0)
     expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))

@@ -8149,20 +8149,20 @@ elif MENU=="Strategy Signals":
         if signals:
               signals_df = pd.DataFrame(signals)
               def calculate_pnl(row):
-              # Swing SL PnL
-              if row['option_type'] == 'CALL':
-                  pnl_swing = (row['exit_price'] - row['buy_price']) * row['quantity']
-                  pnl_fixed = (row['initial_sl'] - row['buy_price']) * row['quantity']
-              else:  # PUT
-                  pnl_swing = (row['buy_price'] - row['exit_price']) * row['quantity']
-                  pnl_fixed = (row['buy_price'] - row['initial_sl']) * row['quantity']
-          
-              return pd.Series([pnl_swing, pnl_fixed, pnl_swing - pnl_fixed])
-          
-          
-               signals_df[['PnL_Swing_SL', 'PnL_Fixed_SL', 'PnL_Diff']] = (
-                   signals_df.apply(calculate_pnl, axis=1)
-               )
+                   # Swing SL PnL
+                   if row['option_type'] == 'CALL':
+                       pnl_swing = (row['exit_price'] - row['buy_price']) * row['quantity']
+                       pnl_fixed = (row['initial_sl'] - row['buy_price']) * row['quantity']
+                   else:  # PUT
+                       pnl_swing = (row['buy_price'] - row['exit_price']) * row['quantity']
+                       pnl_fixed = (row['buy_price'] - row['initial_sl']) * row['quantity']
+               
+                   return pd.Series([pnl_swing, pnl_fixed, pnl_swing - pnl_fixed])
+               
+               
+              signals_df[['PnL_Swing_SL', 'PnL_Fixed_SL', 'PnL_Diff']] = (
+                        signals_df.apply(calculate_pnl, axis=1)
+                    )
 
               st.subheader("📊 Generated Trading Signals")
               st.dataframe(signals_df, use_container_width=True)

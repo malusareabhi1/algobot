@@ -8159,7 +8159,25 @@ elif MENU=="Strategy Signals":
                
                    return pd.Series([pnl_swing, pnl_fixed, pnl_swing - pnl_fixed])
                
-               
+                   show_cols = [
+                        'signal_time',
+                        'tradingsymbol',
+                        'option_type',
+                        'buy_price',
+                        'exit_price',
+                        'initial_sl',
+                        'stoploss',
+                        'SL_Trail_Count',
+                        'PnL_Fixed_SL',
+                        'PnL_Swing_SL',
+                        'PnL_Diff'
+                    ]
+                    
+                    st.subheader("📊 Generated Trading Signals with SL & PnL")
+                    st.dataframe(
+                        signals_df[show_cols].round(2),
+                        use_container_width=True
+                    ) 
                    signals_df[['PnL_Swing_SL', 'PnL_Fixed_SL', 'PnL_Diff']] = (
                         signals_df.apply(calculate_pnl, axis=1)
                     )

@@ -38,6 +38,221 @@ if "paper_trades" not in st.session_state:
 
 if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
+
+
+def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=True):
+
+    signals = []
+    spot_price = df['Close_^NSEI'].iloc[-1]
+
+    df = df.copy()
+    df['Date'] = df['Datetime'].dt.date
+    unique_days = sorted(df['Date'].unique())
+    if len(unique_days) < 2:
+        return None
+
+    day0 = unique_days[-2]
+    day1 = unique_days[-1]
+
+    candle_3pm = df[(df['Date'] == day0) &
+                    (df['Datetime'].dt.hour == 15) &
+                    (df['Datetime'].dt.minute == 0)]
+    if candle_3pm.empty:
+        return None
+
+    base_open = candle_3pm.iloc[0]['Open_^NSEI']
+    base_close = candle_3pm.iloc[0]['Close_^NSEI']
+    base_low = min(base_open, base_close)
+    base_high = max(base_open, base_close)
+
+    candle_915 = df[(df['Date'] == day1) &
+                    (df['Datetime'].dt.hour == 9) &
+                    (df['Datetime'].dt.minute == 30)]
+    if candle_915.empty:
+        return None
+
+    H1 = candle_915.iloc[0]['High_^NSEI']
+    L1 = candle_915.iloc[0]['Low_^NSEI']
+    C1 = candle_915.iloc[0]['Close_^NSEI']
+    entry_time = candle_915.iloc[0]['Datetime']
+
+    expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+
+    day1_after_915 = df[(df['Date'] == day1) &
+                        (df['Datetime'] > entry_time)].sort_values('Datetime')
+
+    last_exit_time = None   # ✅ TRACK LAST TRADE EXIT
+
+    # --------------------------------------------------
+    def get_recent_swing(current_time):
+        recent = df[(df['Date'] == day1) &
+                    (df['Datetime'] < current_time)].tail(10)
+        if recent.empty:
+            return np.nan, np.nan
+        return float(recent['High_^NSEI'].max()), float(recent['Low_^NSEI'].min())
+
+    def update_trailing_sl(option_type, sl, current_time):
+        high, low = get_recent_swing(current_time)
+
+        if option_type == 'CALL' and pd.notna(low):
+            return max(sl, low) if pd.notna(sl) else low
+
+        if option_type == 'PUT' and pd.notna(high):
+            return min(sl, high) if pd.notna(sl) else high
+
+        return sl
+
+    def monitor_trade(sig):
+        sl = sig['stoploss']
+        entry_dt = sig['entry_time']
+        exit_deadline = entry_dt + timedelta(minutes=16)
+
+        for _, candle in day1_after_915.iterrows():
+
+            if candle['Datetime'] <= entry_dt:
+                continue
+
+            if candle['Datetime'] >= exit_deadline:
+                sig['exit_price'] = candle['Close_^NSEI']
+                sig['exit_time'] = candle['Datetime']
+                sig['status'] = 'Time Exit'
+                return sig
+
+            sl = update_trailing_sl(sig['option_type'], sl, candle['Datetime'])
+            sig['stoploss'] = sl
+
+            if sig['option_type'] == 'CALL' and candle['Low_^NSEI'] <= sl:
+                sig['exit_price'] = sl
+                sig['exit_time'] = candle['Datetime']
+                sig['status'] = 'SL Hit'
+                return sig
+
+            if sig['option_type'] == 'PUT' and candle['High_^NSEI'] >= sl:
+                sig['exit_price'] = sl
+                sig['exit_time'] = candle['Datetime']
+                sig['status'] = 'SL Hit'
+                return sig
+
+        sig['exit_price'] = day1_after_915.iloc[-1]['Close_^NSEI']
+        sig['exit_time'] = day1_after_915.iloc[-1]['Datetime']
+        sig['status'] = 'EOD Exit'
+        return sig
+
+    # ==================================================
+    # CONDITION SCANS (MULTIPLE SIGNALS)
+    # ==================================================
+
+    for _, candle in day1_after_915.iterrows():
+
+        if last_exit_time and candle['Datetime'] <= last_exit_time:
+            continue
+
+        swing_high, swing_low = get_recent_swing(candle['Datetime'])
+
+        # ---- Condition 1
+        if (L1 < base_high and H1 > base_low) and C1 > base_high:
+            sig = {
+                'condition': 1,
+                'option_type': 'CALL',
+                'buy_price': H1,
+                'stoploss': swing_low,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': candle['Datetime'],
+                'spot_price': spot_price
+            }
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            last_exit_time = sig['exit_time']
+            continue
+
+        # ---- Condition 2
+        if C1 < base_low and candle['Low_^NSEI'] <= L1:
+            sig = {
+                'condition': 2,
+                'option_type': 'PUT',
+                'buy_price': L1,
+                'stoploss': swing_high,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': candle['Datetime'],
+                'spot_price': spot_price
+            }
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            last_exit_time = sig['exit_time']
+            continue
+
+        # ---- Flip 2.7
+        if C1 < base_low and candle['Close_^NSEI'] > base_high:
+            sig = {
+                'condition': 2.7,
+                'option_type': 'CALL',
+                'buy_price': candle['High_^NSEI'],
+                'stoploss': swing_low,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': candle['Datetime'],
+                'spot_price': spot_price
+            }
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            last_exit_time = sig['exit_time']
+            continue
+
+        # ---- Condition 3
+        if C1 > base_high and candle['High_^NSEI'] >= H1:
+            sig = {
+                'condition': 3,
+                'option_type': 'CALL',
+                'buy_price': H1,
+                'stoploss': swing_low,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': candle['Datetime'],
+                'spot_price': spot_price
+            }
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            last_exit_time = sig['exit_time']
+            continue
+
+        # ---- Flip 3.7
+        if C1 > base_high and candle['Close_^NSEI'] < base_low:
+            sig = {
+                'condition': 3.7,
+                'option_type': 'PUT',
+                'buy_price': candle['Low_^NSEI'],
+                'stoploss': swing_high,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': candle['Datetime'],
+                'spot_price': spot_price
+            }
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            last_exit_time = sig['exit_time']
+            continue
+
+        # ---- Condition 4
+        if (L1 < base_high and H1 > base_low) and C1 < base_low:
+            sig = {
+                'condition': 4,
+                'option_type': 'PUT',
+                'buy_price': L1,
+                'stoploss': swing_high,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': candle['Datetime'],
+                'spot_price': spot_price
+            }
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            last_exit_time = sig['exit_time']
+            continue
+
+    return signals if signals else None
+
 #-----------------------------------------Exit paper Trade----------------------------------------------------
 
 def normalize_trade(trade):
@@ -7865,7 +8080,7 @@ elif MENU=="Strategy Signals":
         #----------------------------------------------------------------------
         #----------------------------------------------------------------------
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
-        signal = trading_multi_signal_all_conditions(df_plot)
+        signal = trading_multi1_signal_all_conditions(df_plot)
 
         if signal is None:
             st.warning("⚠ No signal yet (conditions not met).")

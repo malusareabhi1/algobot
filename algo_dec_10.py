@@ -158,7 +158,7 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
         if candle['Datetime'] > trade_end_time:
              break
 
-        if candle['Datetime'] <= entry_dt:
+        if candle['Datetime'] <= exit_deadline:
              continue  
         if last_exit_time and candle['Datetime'] <= last_exit_time:
             continue

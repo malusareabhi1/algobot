@@ -149,13 +149,13 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
     # ==================================================
     # CONDITION SCANS (MULTIPLE SIGNALS)
     # ==================================================
-    exit_deadline = candle['entry_time'] + timedelta(minutes=16) 
+    #exit_deadline = candle['entry_time'] + timedelta(minutes=16) 
     for _, candle in day1_after_915.iterrows():
         if candle['Datetime'] > trade_end_time:
              break
 
-        if candle['Datetime'] <= exit_deadline:
-             continue  
+        #//if candle['Datetime'] <= exit_deadline:
+             #/continue  
         if last_exit_time and candle['Datetime'] <= last_exit_time:
             continue
         swing_high, swing_low = get_recent_swing(candle['Datetime'])

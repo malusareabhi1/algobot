@@ -69,7 +69,7 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
                     (df['Datetime'].dt.minute == 30)]
     if candle_915.empty:
         return None
-
+    O1 = candle_915.iloc[0]['Open_^NSEI'] 
     H1 = candle_915.iloc[0]['High_^NSEI']
     L1 = candle_915.iloc[0]['Low_^NSEI']
     C1 = candle_915.iloc[0]['Close_^NSEI']

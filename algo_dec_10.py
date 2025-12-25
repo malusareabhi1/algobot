@@ -8160,7 +8160,7 @@ elif MENU=="Strategy Signals":
                    return pd.Series([pnl_swing, pnl_fixed, pnl_swing - pnl_fixed])
                
                
-              signals_df[['PnL_Swing_SL', 'PnL_Fixed_SL', 'PnL_Diff']] = (
+                   signals_df[['PnL_Swing_SL', 'PnL_Fixed_SL', 'PnL_Diff']] = (
                         signals_df.apply(calculate_pnl, axis=1)
                     )
 

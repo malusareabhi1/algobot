@@ -8092,7 +8092,7 @@ elif MENU=="Strategy Signals":
 
         if signals:
               for sig in signals:
-                   st.success(f"✅ SIGNAL GENERATED: {sig.get('message', 'Signal generated')}")
+                  st.success(f"✅ SIGNAL GENERATED: {sig.get('message', 'Signal generated')}")
         else:
               st.info("No signal generated today")
 

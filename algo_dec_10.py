@@ -148,41 +148,7 @@ def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=
          return sig
      
       
-    def monitor_trade_0(sig):
-        sl = sig['stoploss']
-        #entry_dt = sig['entry_time']
-        exit_deadline = entry_dt + timedelta(minutes=16)
-
-        for _, candle in day1_after_915.iterrows():
-
-            if candle['Datetime'] <= entry_dt:
-                continue
-
-            if candle['Datetime'] >= exit_deadline:
-                sig['exit_price'] = candle['Close_^NSEI']
-                sig['exit_time'] = candle['Datetime']
-                sig['status'] = 'Time Exit'
-                return sig
-
-            sl = update_trailing_sl(sig['option_type'], sl, candle['Datetime'])
-            sig['stoploss'] = sl
-
-            if sig['option_type'] == 'CALL' and candle['Low_^NSEI'] <= sl:
-                sig['exit_price'] = sl
-                sig['exit_time'] = candle['Datetime']
-                sig['status'] = 'SL Hit'
-                return sig
-
-            if sig['option_type'] == 'PUT' and candle['High_^NSEI'] >= sl:
-                sig['exit_price'] = sl
-                sig['exit_time'] = candle['Datetime']
-                sig['status'] = 'SL Hit'
-                return sig
-
-        sig['exit_price'] = day1_after_915.iloc[-1]['Close_^NSEI']
-        sig['exit_time'] = day1_after_915.iloc[-1]['Datetime']
-        sig['status'] = 'EOD Exit'
-        return sig
+    
 
     # ==================================================
     # CONDITION SCANS (MULTIPLE SIGNALS)

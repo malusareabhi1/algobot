@@ -3004,7 +3004,7 @@ elif selected == "Swing SMA44 Strategy":
     
     # Scan and collect results
     results = []
-    for stock in nifty_100:
+    for stock in nifty_500:
         try:
             res = scan_bhanushali_strategy(stock)
             if res:

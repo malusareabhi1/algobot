@@ -6188,6 +6188,15 @@ elif MENU=="Paper Trade":
               st.warning("No 9:15 AM candle found for today.")    
          
          #---------------------------------------------------------------------------------
+         # Plot candlestick chart
+        fig = go.Figure(data=[go.Candlestick(
+            x=df_plot['Datetime'],
+            open=df_plot['Open_^NSEI'],
+            high=df_plot['High_^NSEI'],
+            low=df_plot['Low_^NSEI'],
+            close=df_plot['Close_^NSEI']
+        )])
+     
         if t_915 is not None:
               fig.add_vrect(
                   x0=t_915,
@@ -6209,15 +6218,7 @@ elif MENU=="Paper Trade":
               fig.add_hline(y=c_915, line_dash="solid", line_color="orange",
                             annotation_text="9:15 Close")
  
-        # Plot candlestick chart
-        fig = go.Figure(data=[go.Candlestick(
-            x=df_plot['Datetime'],
-            open=df_plot['Open_^NSEI'],
-            high=df_plot['High_^NSEI'],
-            low=df_plot['Low_^NSEI'],
-            close=df_plot['Close_^NSEI']
-        )])
-    
+       
         
     
     

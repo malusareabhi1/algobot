@@ -6942,6 +6942,7 @@ elif MENU == "10.10 Strategy":
         candle_3pm = df_plot[(df_plot['Datetime'].dt.date == last_day) &
                              (df_plot['Datetime'].dt.hour == 15) &
                              (df_plot['Datetime'].dt.minute == 0)]
+         
     
         if not candle_3pm.empty:
             open_3pm = candle_3pm.iloc[0]['Open_^NSEBANK']

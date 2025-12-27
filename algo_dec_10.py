@@ -3165,8 +3165,6 @@ with st.sidebar:
 # ------------------------------------------------------------
 # Home
 # ------------------------------------------------------------
-
-
 if MENU == "Home":
     st.title("Welcome to TALK ALGO LABS  Trading Platform")
     st.write("Automate your trades with smart, auditable strategies. Connect your broker, choose a strategy, and manage risk — all from one dashboard.")

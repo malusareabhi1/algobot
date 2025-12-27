@@ -6946,8 +6946,8 @@ elif MENU == "10.10 Strategy":
                              (df_plot['Datetime'].dt.minute == 0)]
     
         if not candle_3pm.empty:
-            open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
-            close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
+            open_3pm = candle_3pm.iloc[0]['Open_^NSEBANK']
+            close_3pm = candle_3pm.iloc[0]['Close_^NSEBANK']
         else:
             open_3pm = None
             close_3pm = None
@@ -6956,10 +6956,10 @@ elif MENU == "10.10 Strategy":
         # Plot candlestick chart
         fig = go.Figure(data=[go.Candlestick(
             x=df_plot['Datetime'],
-            open=df_plot['Open_^NSEI'],
-            high=df_plot['High_^NSEI'],
-            low=df_plot['Low_^NSEI'],
-            close=df_plot['Close_^NSEI']
+            open=df_plot['Open_^NSEBANK'],
+            high=df_plot['High_^NSEBANK'],
+            low=df_plot['Low_^NSEBANK'],
+            close=df_plot['Close_^NSEBANK']
         )])
     
         if open_3pm and close_3pm:
@@ -6972,7 +6972,7 @@ elif MENU == "10.10 Strategy":
         # Draw horizontal lines as line segments only between 3PM last day and 3PM next day
     
         
-        fig.update_layout(title="Nifty 15-min candles - Last Day & Today", xaxis_rangeslider_visible=False)
+        fig.update_layout(title="Bank Nifty 5-min candles - Last Day & Today", xaxis_rangeslider_visible=False)
         fig.update_layout(
         xaxis=dict(
             rangebreaks=[

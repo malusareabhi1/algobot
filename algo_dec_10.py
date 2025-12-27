@@ -3158,7 +3158,7 @@ with st.sidebar:
 
     MENU = st.radio(
         "Navigate",
-        ["Home", "Strategies","My Account", "Zerodha Broker API","Strategy Signals", "Dashboard","Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","Live Trade2","LIVE TRADE 3","Test1","Live IV/RANK","Logout"],
+        ["Home", "Strategies","My Account", "Zerodha Broker API","Strategy Signals", "Dashboard","Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","LIVE TRADE 3","Test1","Live IV/RANK","Logout"],
         index=0,
     )
 
@@ -6840,8 +6840,8 @@ elif MENU == "My Account":
 
 
 #-------------------------------------
-elif MENU == "Live Trade2":
-    st.title("Live Trade2")        
+elif MENU == "10.10 Strategy":
+    st.title("Live Trade BANK NIFTY 10.10 Strategy")        
 #-------------------------------------------------------------------------------------------
     from streamlit_autorefresh import st_autorefresh
     import time             # Python's time module

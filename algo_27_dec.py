@@ -20,8 +20,6 @@ from scipy.stats import norm
 # Auto-refresh every 30 seconds
 # Market hours condition
 #import pytz
-
-
 # Define IST timezone FIRST
 ist = pytz.timezone("Asia/Kolkata")
 start = time(9, 15)   # 9:30 AM

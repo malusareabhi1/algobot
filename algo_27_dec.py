@@ -6885,7 +6885,7 @@ elif MENU == "10.10 Strategy":
     else:
         st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
 
-    st.title("Nifty 15-min Chart")
+    st.title("Bank Nifty 5-min Chart")
     
     # Select date input (default today)
     selected_date = st.date_input("Select date", value=datetime.today())
@@ -6895,7 +6895,7 @@ elif MENU == "10.10 Strategy":
     end_date = selected_date + timedelta(days=1)
     
     # Download data for ^NSEI from start_date to end_date
-    df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="15m")
+    df = yf.download("^NSEBANK", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="5m")
     
     if df.empty:
         st.warning("No data downloaded for the selected range.")

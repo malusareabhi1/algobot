@@ -13,6 +13,7 @@ CHAT_ID=-1003574666083
 #st.write("BOT_TOKEN:", BOT_TOKEN)
 st.write("CHAT_ID:", CHAT_ID)
 
+
 def send_telegram_alert(message: str):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {

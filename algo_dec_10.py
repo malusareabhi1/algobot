@@ -8236,7 +8236,12 @@ elif MENU=="Strategy Signals":
                            f"SL: `{row['initial_sl']}`\n"
                            f"TP: `{row.get('exit_price', 'NA')}`"
                        )
-                       send_telegram_message(msg) 
+                       #send_telegram_message(msg) 
+                       ok, info = send_telegram_message(msg)
+                       if ok:
+                            st.success(f"Telegram sent: {info}")
+                       else:
+                            st.error(f"Telegram failed: {info}") 
                    st.subheader("📊 Generated Trading Signals with SL & PnL")
                    st.dataframe(
                         signals_df[show_cols].round(2),

@@ -27,7 +27,7 @@ def send_telegram_alert(message: str):
     return r.status_code == 200
 
 if st.button("Send Test Message"):
-    resp = send_telegram_message("Secure Telegram test 🚀")
+    resp = send_telegram_alert("Secure Telegram test 🚀")
 
     st.write("Status Code:", resp.status_code)
     st.write("Response:", resp.text)

@@ -36,7 +36,34 @@ if "paper_trades" not in st.session_state:
 
 if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
+#-----------------------------------------------telegram----------------------------------
+from dotenv import load_dotenv  # pip install python-dotenv
+import os
 
+load_dotenv()  # this will read your .env and put values into os.environ[web:22][web:23]
+
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+def send_telegram_message(text: str):
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        # Optional: show warning in Streamlit
+        # st.warning("Telegram env vars not set")
+        return
+
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": text,
+        "parse_mode": "Markdown"
+    }
+
+    try:
+        requests.post(url, json=payload, timeout=5)  # sendMessage expects chat_id & text[web:8]
+    except Exception as e:
+        st.error(f"Telegram send error: {e}")
+
+#--------------------------------------------------------------------------------------------------
 
 def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=True):
 
@@ -8198,7 +8225,18 @@ elif MENU=="Strategy Signals":
                         'PnL_Swing_SL',
                         'PnL_Diff'
                     ]
-                    
+                   for _, row in signals_df.iterrows():
+                       msg = (
+                           f"📈 *New Option Signal*\n"
+                           f"Time: `{row['signal_time']}`\n"
+                           f"Symbol: *{row['tradingsymbol']}*\n"
+                           f"Type: `{row['option_type']}`\n"
+                           f"Qty: `{row['quantity']}`\n"
+                           f"Buy: `{row['buy_price']}`\n"
+                           f"SL: `{row['initial_sl']}`\n"
+                           f"TP: `{row.get('exit_price', 'NA')}`"
+                       )
+                       send_telegram_message(msg) 
                    st.subheader("📊 Generated Trading Signals with SL & PnL")
                    st.dataframe(
                         signals_df[show_cols].round(2),

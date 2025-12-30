@@ -15,6 +15,7 @@ import yfinance as yf
 from streamlit_autorefresh import st_autorefresh
 import re
 import math 
+from dotenv import load_dotenv    
 from math import log, sqrt, exp
 from scipy.stats import norm
 # Auto-refresh every 30 seconds
@@ -6719,12 +6720,7 @@ elif MENU=="Paper Trade":
 
 
 elif MENU == "Telegram":
-    st.title("📱 Telegram")
-    
-    from dotenv import load_dotenv
-    import os
-    import requests
-    import pandas as pd
+    st.title("📱 Telegram") 
     
     load_dotenv()
     
@@ -6732,16 +6728,7 @@ elif MENU == "Telegram":
     TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
     st.write(TELEGRAM_BOT_TOKEN)
     st.write(TELEGRAM_CHAT_ID) 
-    def send_telegram_message(text: str):
-        if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-            return False, "Missing env vars: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID"
-
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-        payload = {
-            "chat_id": TELEGRAM_CHAT_ID,
-            "text": text,
-            "parse_mode": "Markdown"
-        }
+    
 
        
 

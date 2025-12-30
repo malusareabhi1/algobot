@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-
+#CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+CHAT_ID=-1003574666083
 
 st.write("BOT_TOKEN:", BOT_TOKEN)
 st.write("CHAT_ID:", CHAT_ID)

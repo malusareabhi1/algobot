@@ -6716,8 +6716,147 @@ elif MENU=="Paper Trade":
 
 
 #--------------------------------------------------------------------------------
+
+
 elif MENU == "Telegram":
-        st.title("Telegram")
+    st.title("📱 Telegram")
+    
+    from dotenv import load_dotenv
+    import os
+    import requests
+    import pandas as pd
+    
+    load_dotenv()
+    
+    TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+    TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+    
+    def send_telegram_message(text: str):
+        if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+            return False, "Missing env vars: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID"
+
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": TELEGRAM_CHAT_ID,
+            "text": text,
+            "parse_mode": "Markdown"
+        }
+
+        try:
+            resp = requests.post(url, json=payload, timeout=5)
+            
+            if resp.status_code != 200:
+                return False, f"HTTP {resp.status_code} - {resp.text}"
+            
+            data = resp.json()
+            
+            if data.get("ok"):
+                msg_id = data.get("result", {}).get("message_id")
+                return True, f"Message sent successfully (ID: {msg_id})"
+            else:
+                error_desc = data.get("description", "Unknown error")
+                return False, f"Telegram API error: {error_desc}"
+                
+        except Exception as e:
+            return False, f"Exception: {str(e)}"
+    
+    st.subheader("🔧 Telegram Configuration")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.info(f"**Bot Token:** `{TELEGRAM_BOT_TOKEN[:20]}...` ✅" if TELEGRAM_BOT_TOKEN else "**Bot Token:** ❌ Not found in .env")
+    with col2:
+        st.info(f"**Chat ID:** `{TELEGRAM_CHAT_ID}` ✅" if TELEGRAM_CHAT_ID else "**Chat ID:** ❌ Not found in .env")
+    
+    st.divider()
+    
+    st.subheader("📤 Send Test Message")
+    
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        test_message = st.text_area(
+            "Message text:",
+            value="✅ Test message from Telegram Bot - Trading Signal System",
+            height=100
+        )
+    with col2:
+        st.write("")
+        st.write("")
+        send_btn = st.button("🚀 Send Test", key="send_test_msg")
+    
+    if send_btn:
+        if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+            st.error("❌ Missing Telegram credentials in .env file")
+            st.info("Add these to your .env file:\n``````")
+        else:
+            with st.spinner("📡 Sending to Telegram..."):
+                success, message = send_telegram_message(test_message)
+            
+            if success:
+                st.success(f"✅ {message}")
+                st.balloons()
+            else:
+                st.error(f"❌ {message}")
+                st.warning("**Troubleshooting:**\n- Check bot token is valid\n- Verify chat ID is correct\n- Ensure bot is admin in channel\n- Check internet connection")
+    
+    st.divider()
+    
+    st.subheader("⚡ Quick Message Templates")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📈 Trading Signal", use_container_width=True):
+            template_msg = """📈 *New Trading Signal*
+Symbol: NIFTY
+Entry: 24500
+SL: 24400
+Target: 24650"""
+            success, msg = send_telegram_message(template_msg)
+            if success:
+                st.success(f"✅ {msg}")
+            else:
+                st.error(f"❌ {msg}")
+    
+    with col2:
+        if st.button("🔴 Alert", use_container_width=True):
+            template_msg = "🔴 *ALERT* - System down for maintenance"
+            success, msg = send_telegram_message(template_msg)
+            if success:
+                st.success(f"✅ {msg}")
+            else:
+                st.error(f"❌ {msg}")
+    
+    with col3:
+        if st.button("💰 PnL Update", use_container_width=True):
+            template_msg = "💰 *Daily P&L* - +₹2,500 (+1.2%)"
+            success, msg = send_telegram_message(template_msg)
+            if success:
+                st.success(f"✅ {msg}")
+            else:
+                st.error(f"❌ {msg}")
+    
+    st.divider()
+    
+    st.subheader("📜 Message History")
+    
+    if "telegram_history" not in st.session_state:
+        st.session_state.telegram_history = []
+    
+    if st.session_state.telegram_history:
+        history_df = pd.DataFrame(st.session_state.telegram_history)
+        st.dataframe(
+            history_df[['timestamp', 'message', 'status']],
+            use_container_width=True
+        )
+    else:
+        st.info("No messages sent yet.")
+    
+    if st.button("🗑️ Clear History"):
+        st.session_state.telegram_history = []
+        st.rerun()
+
+     
     
     
 #-------------------------------------

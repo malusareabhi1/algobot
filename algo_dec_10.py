@@ -6856,9 +6856,8 @@ Target: 24650"""
         st.session_state.telegram_history = []
         st.rerun()
 
-     
-    
-    
+  #--------------------------------------------------------------------   
+      
 #-------------------------------------
 elif MENU == "Logout":
         st.title("Logout")

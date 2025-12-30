@@ -9,6 +9,10 @@ load_dotenv()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
+BOT_TOKEN = "7553002182:AAHiRacVJ1iPkgc4VRPn6PsFo1jKQvTJsUU"
+CHAT_ID = "7553002182"
+
+
 st.write("BOT_TOKEN:", BOT_TOKEN)
 st.write("CHAT_ID:", CHAT_ID)
 

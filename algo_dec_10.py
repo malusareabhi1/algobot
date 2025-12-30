@@ -7038,6 +7038,14 @@ elif MENU == "Test1":
     else:
         kite = st.session_state.get("kite")
 
+
+    load_dotenv()
+    
+    TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+    TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+    st.write(TELEGRAM_BOT_TOKEN)
+    st.write(TELEGRAM_CHAT_ID)  
+
     #NIFTY_SYMBOL="NIFTY25D0926200CE"
     # ---------- helper: get underlying spot ----------
     def get_nifty_spot():

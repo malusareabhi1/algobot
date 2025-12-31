@@ -6726,8 +6726,8 @@ elif MENU == "Telegram":
     
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-    st.write(TELEGRAM_BOT_TOKEN)
-    st.write(TELEGRAM_CHAT_ID) 
+    #st.write(TELEGRAM_BOT_TOKEN)
+    #st.write(TELEGRAM_CHAT_ID) 
     send_telegram_message(text: str):
 
        

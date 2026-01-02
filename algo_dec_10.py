@@ -7642,7 +7642,7 @@ elif MENU =="LIVE TRADE 3":
          #st.write("India VIX:", vix_now)
  #-----------------------Add PARA----------------------------------------------
     # VIX
-            result = "Pass" if vix_now < 15 else "Fail"
+            result = "Pass" if vix_now > 10 else "Fail"
             vix_result  = result     
             add_param_row("VIX", round(vix_now, 2), "< 15", result)
 

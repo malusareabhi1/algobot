@@ -15,6 +15,10 @@ trades = []
 
 for sym in symbols:
     df = yf.download(sym, period="3y", interval="1d")
+    # FIX for yfinance MultiIndex issue
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+
     df.dropna(inplace=True)
 
     df["ema20"] = EMAIndicator(df["Close"], 20).ema_indicator()

@@ -2,7 +2,6 @@ import yfinance as yf
 import pandas as pd
 from ta.trend import EMAIndicator
 from ta.momentum import RSIIndicator
-
 CAPITAL = 200000
 RISK_PER_TRADE = 0.01
 

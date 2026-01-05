@@ -6538,7 +6538,7 @@ elif MENU=="Paper Trade":
                   #cash_balance = 73500
                   lots = get_lot_size(funds['cash'])
                   #st.write("Lot Size:", lots)
-                  qty=75*lots
+                  qty=65*lots
                   #st.divider()
 
    
@@ -6886,7 +6886,7 @@ elif MENU == "My Account":
                        # Convert to DataFrame for display
                        df_funds = pd.DataFrame([{
                            "Available Cash": margins["equity"]["available"]["cash"],
-                           "Opening Balance": margins["equity"]["opening_balance"],
+                           #"Opening Balance": margins["equity"]["opening_balance"],
                            "Utilised Margin": margins["equity"]["utilised"]["debits"],
                            "Exposure": margins["equity"]["utilised"]["exposure"],
                            "SPAN": margins["equity"]["utilised"]["span"],

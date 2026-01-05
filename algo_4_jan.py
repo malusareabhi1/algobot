@@ -7644,7 +7644,7 @@ elif MENU =="LIVE TRADE 3":
     # VIX
             result = "Pass" if vix_now > 10 else "Fail"
             vix_result  = result     
-            add_param_row("VIX", round(vix_now, 2), "< 15", result)
+            add_param_row("VIX", round(vix_now, 2), "< 10", result)
 
  #------------------------------------------------------------------------------   
     # Apply IV + VIX Filter

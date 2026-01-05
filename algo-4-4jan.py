@@ -6108,6 +6108,7 @@ elif MENU=="Paper Trade":
     #if is_kite_connected(kite):
     funds = get_fund_status(kite)
     cash = (funds['cash'])
+    cash = (funds['net'])
     #iv_value = 0.26
     result = "Pass" if 75000 <= cash <= 25000 else "Fail"
     add_param_row("CASH", cash, "25K - 100K", result)

@@ -1168,12 +1168,12 @@ def get_fund_status(kite, segment="equity"):
             "net": funds.get("net", 0),
             "cash": funds["available"].get("cash", 0),
             #"opening_balance": funds["available"].get("opening_balance", 0),
-            "collateral": funds["available"].get("collateral", 0),
-            "intraday_payin": funds["available"].get("intraday_payin", 0),
-            "option_premium": funds["utilised"].get("option_premium", 0),
-            "span": funds["utilised"].get("span", 0),
-            "exposure": funds["utilised"].get("exposure", 0),
-            "payout": funds["utilised"].get("payout", 0)
+            #"collateral": funds["available"].get("collateral", 0),
+            #"intraday_payin": funds["available"].get("intraday_payin", 0),
+            #"option_premium": funds["utilised"].get("option_premium", 0),
+            #"span": funds["utilised"].get("span", 0),
+            #"exposure": funds["utilised"].get("exposure", 0),
+            #"payout": funds["utilised"].get("payout", 0)
         }
 
         return result

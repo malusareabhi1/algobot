@@ -6891,7 +6891,7 @@ elif MENU == "My Account":
                            "Exposure": margins["equity"]["utilised"]["exposure"],
                            "SPAN": margins["equity"]["utilised"]["span"],
                            "Option Premium": margins["equity"]["utilised"]["option_premium"],
-                           "Collateral": margins["equity"]["collateral"],
+                           #"Collateral": margins["equity"]["collateral"],
                            "Total Equity": margins["equity"]["net"]
                        }])
                

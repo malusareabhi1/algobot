@@ -6812,7 +6812,7 @@ elif MENU == "My Account":
             #---------------------------------------------------------------------------
 
             # Tabs
-            tab1, tab2, tab3 = st.tabs(["👤 Account Details", "📁 Holdings", "📘 Orders","📘 Funds"])
+            tab1, tab2, tab3,tab4 = st.tabs(["👤 Account Details", "📁 Holdings", "📘 Orders","📘 Funds"])
         
             # -----------------------------------------------------------
             # TAB 1 — ACCOUNT HOLDER DETAILS

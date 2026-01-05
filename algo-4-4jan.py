@@ -7319,6 +7319,7 @@ elif MENU =="LIVE TRADE 3":
     funds = get_fund_status(kite)
     st.write(funds) 
     cash = (funds['cash'])
+    cash = (funds['net']) 
     #iv_value = 0.26
     result = "Pass" if 75000 <= cash <= 25000 else "Fail"
     add_param_row("CASH", cash, "25K - 100K", result)
@@ -7771,7 +7772,7 @@ elif MENU =="LIVE TRADE 3":
 
 #-------------------------------------lot ty------------------------------------------------
      # Default lot size
-            qty = 1*75
+            qty = 1*65
      
      # Apply rule
             if iv_result == "Fail" or iv_rank_result == "Fail":

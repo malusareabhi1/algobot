@@ -7686,7 +7686,7 @@ elif MENU =="LIVE TRADE 3":
                   #cash_balance = 73500
                   lots = get_lot_size(funds['cash'])
                   #st.write("Lot Size:", lots)
-                  qty=75*lots
+                  qty=65*lots
                   #st.divider()
 
    
@@ -8059,6 +8059,7 @@ elif MENU=="Strategy Signals":
     #if is_kite_connected(kite):
     funds = get_fund_status(kite)
     cash = (funds['cash'])
+    st.write(cash) 
     #iv_value = 0.26
     result = "Pass" if 75000 <= cash <= 25000 else "Fail"
     add_param_row("CASH", cash, "25K - 100K", result)

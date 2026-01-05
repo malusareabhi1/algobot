@@ -6595,7 +6595,7 @@ elif MENU=="Paper Trade":
 
 #-------------------------------------lot ty------------------------------------------------
      # Default lot size
-            qty = 1*75
+            qty = 1*65
      
      # Apply rule
             if iv_result == "Fail" or iv_rank_result == "Fail":
@@ -7291,6 +7291,7 @@ elif MENU =="LIVE TRADE 3":
     #----------------------------------------------------------------------
     #if is_kite_connected(kite):
     funds = get_fund_status(kite)
+    st.write(fund) 
     cash = (funds['cash'])
     #iv_value = 0.26
     result = "Pass" if 75000 <= cash <= 25000 else "Fail"

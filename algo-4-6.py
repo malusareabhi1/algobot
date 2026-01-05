@@ -1840,7 +1840,7 @@ def find_nearest_itm_option(kite, spot_price, option_type):
 
 
 #----------------------------------------------------------------------------------------
-def trading_signal_all_conditions(df, quantity=10*75, return_all_signals=False):
+def trading_signal_all_conditions(df, quantity=10*65, return_all_signals=False):
         """
         Evaluate trading conditions based on Base Zone strategy with:
         - CALL stop loss = recent swing low (last 10 candles)

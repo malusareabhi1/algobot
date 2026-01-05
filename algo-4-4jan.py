@@ -7316,7 +7316,7 @@ elif MENU =="LIVE TRADE 3":
     #----------------------------------------------------------------------
     #if is_kite_connected(kite):
     funds = get_fund_status(kite)
-    st.write(fund) 
+    st.write(funds) 
     cash = (funds['cash'])
     #iv_value = 0.26
     result = "Pass" if 75000 <= cash <= 25000 else "Fail"

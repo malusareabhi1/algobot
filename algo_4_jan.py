@@ -6812,7 +6812,7 @@ elif MENU == "My Account":
             #---------------------------------------------------------------------------
 
             # Tabs
-            tab1, tab2, tab3 = st.tabs(["👤 Account Details", "📁 Holdings", "📘 Orders"])
+            tab1, tab2, tab3 = st.tabs(["👤 Account Details", "📁 Holdings", "📘 Orders","📘 Funds"])
         
             # -----------------------------------------------------------
             # TAB 1 — ACCOUNT HOLDER DETAILS
@@ -6875,6 +6875,30 @@ elif MENU == "My Account":
         
                 except Exception as e:
                     st.error(f"Error fetching orders: {e}")
+
+            with tab4:   # replace tabX with your actual tab variable
+                   st.subheader("💰 Fund Status")
+               
+                   try:
+                       margins = kite.margins()   # Fetch account margins
+               
+                       # Convert to DataFrame for display
+                       df_funds = pd.DataFrame([{
+                           "Available Cash": margins["equity"]["available"]["cash"],
+                           "Opening Balance": margins["equity"]["opening_balance"],
+                           "Utilised Margin": margins["equity"]["utilised"]["debits"],
+                           "Exposure": margins["equity"]["utilised"]["exposure"],
+                           "SPAN": margins["equity"]["utilised"]["span"],
+                           "Option Premium": margins["equity"]["utilised"]["option_premium"],
+                           "Collateral": margins["equity"]["collateral"],
+                           "Total Equity": margins["equity"]["net"]
+                       }])
+               
+                       st.dataframe(df_funds, use_container_width=True)
+               
+                   except Exception as e:
+                       st.error(f"Error fetching fund status: {e}")
+
 
 
 #-------------------------------------

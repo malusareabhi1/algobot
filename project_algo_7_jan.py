@@ -67,14 +67,24 @@ def send_telegram_message(text: str):
 
 #-----------------------------------------------KITE---------------------------------------------------
  # --------------------------------------------------
-def get_recent_swing(current_time):
+
+ # Add after data processing:
+def is_kite_connected(kite):
+        try:
+            kite.profile()
+            return True
+        except:
+            return False
+
+def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
+    def get_recent_swing(current_time):
         recent = df[(df['Date'] == day1) &
                     (df['Datetime'] < current_time)].tail(10)
         if recent.empty:
             return np.nan, np.nan
         return float(recent['High_^NSEI'].max()), float(recent['Low_^NSEI'].min())
 
-def update_trailing_sl(option_type, sl, current_time):
+    def update_trailing_sl(option_type, sl, current_time):
         high, low = get_recent_swing(current_time)
 
         if option_type == 'CALL' and pd.notna(low):
@@ -85,7 +95,7 @@ def update_trailing_sl(option_type, sl, current_time):
 
         return sl
 
-def monitor_trade(sig):
+    def monitor_trade(sig):
          sl = sig['stoploss']
          exit_deadline = sig['entry_time'] + timedelta(minutes=16)
          
@@ -129,17 +139,7 @@ def monitor_trade(sig):
          sig['exit_time'] = last_candle['Datetime']
          sig['status'] = 'Forced Exit @ 14:30'
          return sig    
-
- # Add after data processing:
-def is_kite_connected(kite):
-        try:
-            kite.profile()
-            return True
-        except:
-            return False
-
-def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
-
+ 
     signals = []
     spot_price = df['Close_^NSEI'].iloc[-1]
 

@@ -274,7 +274,6 @@ def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=
                 'stoploss': swing_high,
                 'quantity': quantity,
                 'expiry': expiry,
-                
                 'message': 'Condition 3 Flip: Later candle closed below Base Zone → Buy PUT'
             }
             sig = monitor_trade(sig)
@@ -290,7 +289,7 @@ def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=
                 'buy_price': L1,
                 'entry_time': candle['Datetime'],
                 'spot_price': spot_price,
-                'message': 'Condition 4: Bearish breakdown below Base Zone → Buy PUT below L1'
+                'message': 'Condition 4: Bearish breakdown below Base Zone → Buy PUT below L1',
                 'stoploss': swing_high,
                 'quantity': quantity,
                 'expiry': expiry,

@@ -8304,7 +8304,7 @@ elif MENU=="Strategy Signals":
                    return pd.Series([pnl_swing, pnl_fixed, pnl_swing - pnl_fixed])
 
         if signals:
-              signals_df = pd.DataFrame(signals)
+                   signals_df = pd.DataFrame(signals)
              
                
                    show_cols = [

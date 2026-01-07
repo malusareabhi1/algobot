@@ -8767,55 +8767,64 @@ elif MENU=="Download Instrument":
          )
 
 elif MENU=="Upload Instrument":
-     # ---------------- CONFIG ----------------
-     #GITHUB_TOKEN = "YOUR_GITHUB_TOKEN_HERE"  # DO NOT hardcode in public repo
-     GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+    # ---------------- CONFIG ----------------
+    import os, base64, requests, json
+    import pandas as pd
+    import streamlit as st
 
-     if not GITHUB_TOKEN:
-         raise Exception("GITHUB_TOKEN not set")
-     OWNER = "malusareabhi1"
-     REPO = "algobot"
-     BRANCH = "main"
-     FILE_PATH = "data/instruments.csv"
-     COMMIT_MESSAGE = "Update Zerodha instruments file"
-     # ----------------------------------------
-     
-     def upload_instruments_to_github():
-         # Step 1: Download Zerodha instruments
-         df = pd.read_csv("https://api.kite.trade/instruments")
-         csv_content = df.to_csv(index=False)
-     
-         encoded_content = base64.b64encode(csv_content.encode()).decode()
-     
-         # Step 2: Check if file exists (get SHA)
-         url = f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{FILE_PATH}"
-         headers = {
-             "Authorization": f"token {GITHUB_TOKEN}",
-             "Accept": "application/vnd.github.v3+json"
-         }
-     
-         response = requests.get(url, headers=headers)
-         sha = response.json().get("sha") if response.status_code == 200 else None
-     
-         # Step 3: Upload or update file
-         payload = {
-             "message": COMMIT_MESSAGE,
-             "content": encoded_content,
-             "branch": BRANCH
-         }
-     
-         if sha:
-             payload["sha"] = sha  # update existing file
-     
-         upload_response = requests.put(url, headers=headers, data=json.dumps(payload))
-     
-         if upload_response.status_code in [200, 201]:
-             print("✅ instruments.csv uploaded successfully")
-         else:
-             raise Exception(upload_response.text)
+    # ---------------- CONFIG ----------------
+    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+    OWNER = "malusareabhi1"
+    REPO = "algobot"
+    BRANCH = "main"
+    FILE_PATH = "data/instruments.csv"
+    COMMIT_MESSAGE = "Update Zerodha instruments file"
+    # ----------------------------------------
 
-     upload_instruments_to_github()
+    if not GITHUB_TOKEN:
+        st.error("❌ GITHUB_TOKEN set केलेला नाही")
+        st.stop()
 
+    def upload_instruments_to_github():
+        # 1. Download Zerodha instruments
+        df = pd.read_csv("https://api.kite.trade/instruments")
+        content = base64.b64encode(
+            df.to_csv(index=False).encode()
+        ).decode()
+
+        url = f"https://api.github.com/repos/{OWNER}/{REPO}/contents/{FILE_PATH}"
+        headers = {
+            "Authorization": f"token {GITHUB_TOKEN}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+
+        # 2. Check if file exists
+        r = requests.get(url, headers=headers)
+        sha = r.json().get("sha") if r.status_code == 200 else None
+
+        payload = {
+            "message": COMMIT_MESSAGE,
+            "content": content,
+            "branch": BRANCH
+        }
+
+        if sha:
+            payload["sha"] = sha
+
+        # 3. Upload / Update
+        res = requests.put(url, headers=headers, json=payload)
+
+        if res.status_code in (200, 201):
+            st.success("✅ instruments.csv GitHub वर upload झाला")
+        else:
+            st.error("❌ GitHub upload failed")
+            st.code(res.status_code)
+            st.code(res.text)
+            st.stop()
+
+    # 🔴 VERY IMPORTANT: Button trigger
+    if st.button("Upload Instruments to GitHub"):
+        upload_instruments_to_github()
 
 # ------------------------------------------------------------
 # Footer

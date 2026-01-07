@@ -6824,7 +6824,7 @@ elif MENU == "My Account":
             #---------------------------------------------------------------------------
 
             # Tabs
-            tab1, tab2, tab3,tab4 = st.tabs(["👤 Account Details", "📁 Holdings", "📘 Orders","📘 Funds"])
+            tab1, tab2, tab3,tab4,tab5 = st.tabs(["👤 Account Details", "📁 Holdings", "📘 Orders","💵 Funds","📈 Positions"])
         
             # -----------------------------------------------------------
             # TAB 1 — ACCOUNT HOLDER DETAILS
@@ -6911,6 +6911,44 @@ elif MENU == "My Account":
                    except Exception as e:
                        st.error(f"Error fetching fund status: {e}")
 
+            with tab5:
+                   st.subheader("📊 Open Positions")
+               
+                   try:
+                       positions = kite.positions()
+               
+                       # Combine day + net positions
+                       df_positions = pd.DataFrame(
+                           positions.get("net", [])
+                       )
+               
+                       if not df_positions.empty:
+                           # Optional: select useful columns only
+                           display_cols = [
+                               "tradingsymbol",
+                               "exchange",
+                               "product",
+                               "quantity",
+                               "average_price",
+                               "last_price",
+                               "pnl",
+                               "unrealised",
+                               "realised"
+                           ]
+               
+                           df_positions = df_positions[display_cols]
+               
+                           st.dataframe(
+                               df_positions,
+                               use_container_width=True
+                           )
+                       else:
+                           st.info("No open positions.")
+               
+                   except Exception as e:
+                       st.error(f"Error fetching positions: {e}")
+                                
+               
 
 
 #-------------------------------------

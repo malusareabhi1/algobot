@@ -76,6 +76,178 @@ def is_kite_connected(kite):
         except:
             return False
 
+#-------------------------------------------------Singal 2------------------------------------------------------
+
+def trading_multi2_signal_all_conditions(
+    df,
+    quantity=10 * 65,
+    max_trades_per_day=1,
+):
+    """
+    Multi-condition intraday option strategy
+    - One trade per condition
+    - First-break logic only
+    - Trailing SL using swing points
+    - Time exit after 16 minutes or 14:30
+    """
+
+    df = df.copy()
+    signals = []
+
+    # ---------------- BASIC SETUP ----------------
+    df["Date"] = df["Datetime"].dt.date
+    unique_days = sorted(df["Date"].unique())
+    if len(unique_days) < 2:
+        return None
+
+    day0, day1 = unique_days[-2], unique_days[-1]
+
+    # ---------------- BASE ZONE (3PM) ----------------
+    candle_3pm = df[
+        (df["Date"] == day0)
+        & (df["Datetime"].dt.hour == 15)
+        & (df["Datetime"].dt.minute == 0)
+    ]
+    if candle_3pm.empty:
+        return None
+
+    base_open = candle_3pm.iloc[0]["Open_^NSEI"]
+    base_close = candle_3pm.iloc[0]["Close_^NSEI"]
+    base_low, base_high = sorted([base_open, base_close])
+
+    # ---------------- 9:15 CANDLE ----------------
+    candle_915 = df[
+        (df["Date"] == day1)
+        & (df["Datetime"].dt.hour == 9)
+        & (df["Datetime"].dt.minute == 30)
+    ]
+    if candle_915.empty:
+        return None
+
+    O1 = candle_915.iloc[0]["Open_^NSEI"]
+    H1 = candle_915.iloc[0]["High_^NSEI"]
+    L1 = candle_915.iloc[0]["Low_^NSEI"]
+    C1 = candle_915.iloc[0]["Close_^NSEI"]
+    entry_start_time = candle_915.iloc[0]["Datetime"]
+
+    trade_end_time = entry_start_time.replace(hour=14, minute=30)
+    expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+    spot_price = df["Close_^NSEI"].iloc[-1]
+
+    day_df = df[
+        (df["Date"] == day1)
+        & (df["Datetime"] > entry_start_time)
+        & (df["Datetime"] <= trade_end_time)
+    ].sort_values("Datetime")
+
+    # ---------------- SAFETY GUARDS ----------------
+    fired_conditions = set()
+    trade_count = 0
+
+    # ---------------- HELPERS ----------------
+    def recent_swing(time):
+        recent = day_df[day_df["Datetime"] < time].tail(10)
+        if recent.empty:
+            return None, None
+        return recent["High_^NSEI"].max(), recent["Low_^NSEI"].min()
+
+    def monitor_trade(sig):
+        sl = sig["stoploss"]
+        exit_deadline = sig["entry_time"] + timedelta(minutes=16)
+
+        for _, c in day_df.iterrows():
+            if c["Datetime"] <= sig["entry_time"]:
+                continue
+            if c["Datetime"] >= exit_deadline:
+                sig["exit_price"] = c["Close_^NSEI"]
+                sig["exit_time"] = c["Datetime"]
+                sig["status"] = "Time Exit"
+                return sig
+
+            high, low = recent_swing(c["Datetime"])
+
+            if sig["option_type"] == "CALL" and low:
+                sl = max(sl, low)
+                if c["Low_^NSEI"] <= sl:
+                    sig["exit_price"] = sl
+                    sig["exit_time"] = c["Datetime"]
+                    sig["status"] = "SL Hit"
+                    return sig
+
+            if sig["option_type"] == "PUT" and high:
+                sl = min(sl, high)
+                if c["High_^NSEI"] >= sl:
+                    sig["exit_price"] = sl
+                    sig["exit_time"] = c["Datetime"]
+                    sig["status"] = "SL Hit"
+                    return sig
+
+        last = day_df.iloc[-1]
+        sig["exit_price"] = last["Close_^NSEI"]
+        sig["exit_time"] = last["Datetime"]
+        sig["status"] = "Forced Exit 14:30"
+        return sig
+
+    # ---------------- MAIN LOOP ----------------
+    for i in range(1, len(day_df)):
+        if trade_count >= max_trades_per_day:
+            break
+
+        candle = day_df.iloc[i]
+        prev = day_df.iloc[i - 1]
+        high, low = recent_swing(candle["Datetime"])
+
+        # -------- CONDITION 2 (PUT GAP DOWN) --------
+        if (
+            2 not in fired_conditions
+            and C1 < base_low
+            and prev["Low_^NSEI"] > L1
+            and candle["Low_^NSEI"] <= L1
+        ):
+            sig = {
+                "condition": 2,
+                "option_type": "PUT",
+                "buy_price": L1,
+                "entry_time": candle["Datetime"],
+                "spot_price": spot_price,
+                "stoploss": high,
+                "quantity": quantity,
+                "expiry": expiry,
+                "message": "Cond 2: First break below L1 → BUY PUT",
+            }
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            fired_conditions.add(2)
+            trade_count += 1
+            continue
+
+        # -------- CONDITION 3 (CALL GAP UP) --------
+        if (
+            3 not in fired_conditions
+            and C1 > base_high
+            and prev["High_^NSEI"] < H1
+            and candle["High_^NSEI"] >= H1
+        ):
+            sig = {
+                "condition": 3,
+                "option_type": "CALL",
+                "buy_price": H1,
+                "entry_time": candle["Datetime"],
+                "spot_price": spot_price,
+                "stoploss": low,
+                "quantity": quantity,
+                "expiry": expiry,
+                "message": "Cond 3: First break above H1 → BUY CALL",
+            }
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            fired_conditions.add(3)
+            trade_count += 1
+            continue
+
+    return signals if signals else None
+
+#------------------------------------------------Signal generation -------------------------------------------------------
 def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
     def get_recent_swing(current_time):
         recent = df[(df['Date'] == day1) &
@@ -8291,7 +8463,8 @@ elif MENU=="Strategy Signals":
         #----------------------------------------------------------------------
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
         #signal = trading_multi1_signal_all_conditions(df_plot)
-        signals = trading_multi1_signal_all_conditions(df)
+        #signals = trading_multi1_signal_all_conditions(df)
+        signals = trading_multi2_signal_all_conditions(df) 
         def calculate_pnl(row):
                    # Swing SL PnL
                    if row['option_type'] == 'CALL':

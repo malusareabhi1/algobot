@@ -570,76 +570,114 @@ nifty50_stocks = [
     ]
 if selected == "Penny Stock Swing":
     st.title("⚠️ Penny Stock Swing Scanner (NSE)")
-    st.caption("High Risk Strategy | Strict Stop Loss Mandatory")
+    st.caption("High Risk Strategy | Strict Stop Loss | Educational Use Only")
     
-    # ---- NSE Penny Stock List (Sample – extend this) ----
-    PENNY_STOCKS = [
-        "YESBANK.NS", "SUZLON.NS", "RPOWER.NS", "JPPOWER.NS",
-        "GTLINFRA.NS", "DHANI.NS", "UCOBANK.NS", "SOUTHBANK.NS",
-        "IDEA.NS", "PNBHOUSING.NS"
-    ]
+    # ---------------- HELPER FUNCTIONS ----------------
+    def EMA(series, period):
+        return series.ewm(span=period, adjust=False).mean()
+    
+    def RSI(series, period=14):
+        delta = series.diff()
+    
+        gain = delta.where(delta > 0, 0.0)
+        loss = -delta.where(delta < 0, 0.0)
+    
+        avg_gain = gain.rolling(period).mean()
+        avg_loss = loss.rolling(period).mean()
+    
+        rs = avg_gain / avg_loss
+        rsi = 100 - (100 / (1 + rs))
+        return rsi
     
     @st.cache_data(ttl=3600)
     def fetch_data(symbol):
-        df = yf.download(symbol, period="6mo", interval="1d", progress=False)
-        return df
+        try:
+            df = yf.download(
+                symbol,
+                period="6mo",
+                interval="1d",
+                progress=False
+            )
+            return df
+        except:
+            return pd.DataFrame()
+    
+    # ---------------- PENNY STOCK LIST ----------------
+    PENNY_STOCKS = [
+        "YESBANK.NS",
+        "SUZLON.NS",
+        "RPOWER.NS",
+        "JPPOWER.NS",
+        "GTLINFRA.NS",
+        "IDEA.NS",
+        "UCOBANK.NS",
+        "SOUTHBANK.NS",
+        "DHANI.NS",
+        "IRFC.NS"
+    ]
+    
+    st.info("📊 Scanning penny stocks using EMA + RSI + Volume + Breakout logic")
     
     results = []
     
-    st.info("📌 Scanning penny stocks based on EMA + Volume + RSI + Breakout")
-    
+    # ---------------- SCAN LOGIC ----------------
     for stock in PENNY_STOCKS:
         df = fetch_data(stock)
     
         if df.empty or len(df) < 60:
             continue
     
+        df = df.copy()
         df["Close"] = df["Close"].astype(float)
         df["Volume"] = df["Volume"].astype(float)
     
         # Indicators
-        df["EMA50"] = ta.trend.ema_indicator(df["Close"], 50)
-        df["RSI"] = ta.momentum.rsi(df["Close"], 14)
+        df["EMA50"] = EMA(df["Close"], 50)
+        df["RSI"] = RSI(df["Close"], 14)
         df["AvgVol"] = df["Volume"].rolling(20).mean()
-        df["20High"] = df["High"].rolling(20).max()
+        df["High20"] = df["High"].rolling(20).max()
     
         latest = df.iloc[-1]
     
-        # ---- Strategy Conditions ----
+        # ---------------- STRATEGY CONDITIONS ----------------
         if (
             latest["Close"] <= 10 and
             latest["Close"] > latest["EMA50"] and
             latest["Volume"] >= 2 * latest["AvgVol"] and
             latest["RSI"] > 50 and
-            latest["Close"] > latest["20High"] * 0.995
+            latest["Close"] >= latest["High20"] * 0.995
         ):
             results.append({
                 "Stock": stock.replace(".NS", ""),
-                "Price": round(latest["Close"], 2),
+                "Price (₹)": round(latest["Close"], 2),
                 "RSI": round(latest["RSI"], 2),
-                "Volume Spike": round(latest["Volume"] / latest["AvgVol"], 2),
-                "Stop Loss": round(latest["Close"] * 0.95, 2),
-                "Target (1:2)": round(latest["Close"] * 1.10, 2)
+                "Volume Spike (x)": round(latest["Volume"] / latest["AvgVol"], 2),
+                "Stop Loss (5%)": round(latest["Close"] * 0.95, 2),
+                "Target (1:2 RR)": round(latest["Close"] * 1.10, 2)
             })
     
-    # ---- Display Results ----
+    # ---------------- DISPLAY RESULTS ----------------
+    st.divider()
+    
     if results:
         df_result = pd.DataFrame(results)
-        st.success(f"✅ {len(df_result)} Penny Stocks Found")
+        st.success(f"✅ {len(df_result)} Penny Stocks Matching Strategy")
         st.dataframe(df_result, use_container_width=True)
     else:
         st.warning("❌ No penny stock matches criteria today")
     
+    # ---------------- RISK WARNING ----------------
     st.divider()
-    
     st.markdown("""
-    ### ⚠️ Risk Management Rules
+    ### ⚠️ Risk Management Rules (MUST FOLLOW)
     - ❌ Never average penny stocks  
     - ❌ Avoid ASM / GSM stocks  
-    - ✔ Strict Stop Loss (5%)  
-    - ✔ Book partial profits early  
+    - ✔ Maximum 1–2% capital risk per trade  
+    - ✔ Strict stop loss (5%)  
+    - ✔ Book partial profits fast  
     
-    **This scanner is for educational purposes only**
+    > Penny stocks are operator-driven.  
+    > **Discipline is more important than strategy.**
     """)
 
 

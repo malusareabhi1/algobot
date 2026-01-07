@@ -8292,11 +8292,7 @@ elif MENU=="Strategy Signals":
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
         #signal = trading_multi1_signal_all_conditions(df_plot)
         signals = trading_multi1_signal_all_conditions(df)
-        
-
-        if signals:
-              signals_df = pd.DataFrame(signals)
-              def calculate_pnl(row):
+        def calculate_pnl(row):
                    # Swing SL PnL
                    if row['option_type'] == 'CALL':
                        pnl_swing = (row['exit_price'] - row['buy_price']) * row['quantity']
@@ -8306,6 +8302,10 @@ elif MENU=="Strategy Signals":
                        pnl_fixed = (row['buy_price'] - row['initial_sl']) * row['quantity']
                
                    return pd.Series([pnl_swing, pnl_fixed, pnl_swing - pnl_fixed])
+
+        if signals:
+              signals_df = pd.DataFrame(signals)
+             
                
                    show_cols = [
                         'signal_time',

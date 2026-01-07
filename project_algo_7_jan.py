@@ -8306,7 +8306,8 @@ elif MENU=="Strategy Signals":
         if signals:
                    signals_df = pd.DataFrame(signals)
              
-               
+                   st.write("Signals columns:", list(signals_df.columns))
+ 
                    show_cols = [
                         'signal_time',
                         'tradingsymbol',

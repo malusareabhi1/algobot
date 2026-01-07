@@ -38,6 +38,16 @@ if "paper_trades" not in st.session_state:
 
 if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
+
+#--------------------------------------------Zerodha Instrument------------------
+
+INSTRUMENTS_URL = "https://api.kite.trade/instruments"
+
+@st.cache_data(ttl=24*60*60)  # cache for 1 day
+def download_zerodha_instruments():
+    df = pd.read_csv(INSTRUMENTS_URL)
+    return df
+     
 #-----------------------------------------------telegram----------------------------------
 from dotenv import load_dotenv  # pip install python-dotenv
 import os

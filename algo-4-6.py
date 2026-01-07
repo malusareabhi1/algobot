@@ -65,7 +65,15 @@ def send_telegram_message(text: str):
     except Exception as e:
         st.error(f"Telegram send error: {e}")
 
-#--------------------------------------------------------------------------------------------------
+#-----------------------------------------------KITE---------------------------------------------------
+
+ # Add after data processing:
+def is_kite_connected(kite):
+        try:
+            kite.profile()
+            return True
+        except:
+            return False
 
 def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
 
@@ -8068,13 +8076,7 @@ elif MENU=="Strategy Signals":
     
     if "signal_time" not in st.session_state:
         st.session_state.signal_time = None
-    # Add after data processing:
-    def is_kite_connected(kite):
-        try:
-            kite.profile()
-            return True
-        except:
-            return False
+   
 
     if is_kite_connected(kite):
         st.success("Kite connection active")

@@ -118,8 +118,8 @@ def trading_multi2_signal_all_conditions(
     # ---------------- 9:15 CANDLE ----------------
     candle_915 = df[
         (df["Date"] == day1)
-        & (df["Datetime"].dt.hour == 9.15)
-        & (df["Datetime"].dt.minute == 30)
+        & (df["Datetime"].dt.hour == 9)
+        & (df["Datetime"].dt.minute == 15)
     ]
     if candle_915.empty:
         return None

@@ -7995,7 +7995,7 @@ elif MENU=="Live IV/RANK":
     
    
          
-    tradingsymbol = "NIFTY26J2726200PE"
+    tradingsymbol = "NIFTY20J2726200PE"
      
     option = get_live_option_details(kite, tradingsymbol)
      

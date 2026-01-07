@@ -8779,7 +8779,28 @@ elif MENU=="Upload Instrument":
     BRANCH = "main"
     FILE_PATH = "data/instruments.csv"
     COMMIT_MESSAGE = "Update Zerodha instruments file"
-    # ----------------------------------------
+    # ----------------------------------------------------------------------------------------------
+
+     GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
+     if not GITHUB_TOKEN:
+         st.error("Token not found")
+         st.stop()
+     
+     headers = {
+         "Authorization": f"token {GITHUB_TOKEN}",
+         "Accept": "application/vnd.github.v3+json"
+     }
+     
+     r = requests.get("https://api.github.com/user", headers=headers)
+     
+     st.write("Status code:", r.status_code)
+     st.json(r.json())
+
+
+
+
+    #------------------------------------------------------------------------------------------------ 
 
     if not GITHUB_TOKEN:
         st.error("❌ GITHUB_TOKEN set केलेला नाही")

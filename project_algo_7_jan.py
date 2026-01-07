@@ -8781,21 +8781,21 @@ elif MENU=="Upload Instrument":
     COMMIT_MESSAGE = "Update Zerodha instruments file"
     # ----------------------------------------------------------------------------------------------
 
-     GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
-     if not GITHUB_TOKEN:
+    if not GITHUB_TOKEN:
          st.error("Token not found")
          st.stop()
      
-     headers = {
+    headers = {
          "Authorization": f"token {GITHUB_TOKEN}",
          "Accept": "application/vnd.github.v3+json"
      }
      
-     r = requests.get("https://api.github.com/user", headers=headers)
+    r = requests.get("https://api.github.com/user", headers=headers)
      
-     st.write("Status code:", r.status_code)
-     st.json(r.json())
+    st.write("Status code:", r.status_code)
+    st.json(r.json())
 
 
 

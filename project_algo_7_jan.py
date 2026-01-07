@@ -8010,7 +8010,7 @@ elif MENU =="LIVE TRADE 3":
                   st.write("No parameters added yet.")
     
             qty=qty*lot_qty
-            
+            qty=0
                 # Check 1: Only run if current time is within trading window
             if is_valid_signal_time(entry_time):
                  st.warning("Signal time  match today's date .") 

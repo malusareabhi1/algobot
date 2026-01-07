@@ -232,12 +232,12 @@ def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=
             sig = {
                 'condition': 2.7,
                 'option_type': 'CALL',
+                'entry_time': candle['Datetime'],
                 'buy_price': candle['High_^NSEI'],
+                'spot_price': spot_price,
                 'stoploss': swing_low,
                 'quantity': quantity,
-                'expiry': expiry,
-                'entry_time': candle['Datetime'],
-                'spot_price': spot_price,
+                'expiry': expiry, 
                 'message': 'Condition 2.7 Flip: Later candle closed above Base Zone → Buy CALL'
             }
             sig = monitor_trade(sig)
@@ -251,11 +251,11 @@ def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=
                 'condition': 3,
                 'option_type': 'CALL',
                 'buy_price': H1,
+                'entry_time': candle['Datetime'],
+                'spot_price': spot_price,
                 'stoploss': swing_low,
                 'quantity': quantity,
                 'expiry': expiry,
-                'entry_time': candle['Datetime'],
-                'spot_price': spot_price,
                 'message': 'Condition 3: Gap up confirmed → Buy CALL above H1'
             }
             sig = monitor_trade(sig)
@@ -269,11 +269,12 @@ def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=
                 'condition': 3.7,
                 'option_type': 'PUT',
                 'buy_price': candle['Low_^NSEI'],
+                'entry_time': candle['Datetime'],
+                'spot_price': spot_price,
                 'stoploss': swing_high,
                 'quantity': quantity,
                 'expiry': expiry,
-                'entry_time': candle['Datetime'],
-                'spot_price': spot_price,
+                
                 'message': 'Condition 3 Flip: Later candle closed below Base Zone → Buy PUT'
             }
             sig = monitor_trade(sig)
@@ -287,12 +288,13 @@ def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=
                 'condition': 4,
                 'option_type': 'PUT',
                 'buy_price': L1,
-                'stoploss': swing_high,
-                'quantity': quantity,
-                'expiry': expiry,
                 'entry_time': candle['Datetime'],
                 'spot_price': spot_price,
                 'message': 'Condition 4: Bearish breakdown below Base Zone → Buy PUT below L1'
+                'stoploss': swing_high,
+                'quantity': quantity,
+                'expiry': expiry,
+                
             }
             sig = monitor_trade(sig)
             signals.append(sig)

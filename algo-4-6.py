@@ -67,7 +67,7 @@ def send_telegram_message(text: str):
 
 #--------------------------------------------------------------------------------------------------
 
-def trading_multi1_signal_all_conditions(df, quantity=10*75, return_all_signals=True):
+def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
 
     signals = []
     spot_price = df['Close_^NSEI'].iloc[-1]

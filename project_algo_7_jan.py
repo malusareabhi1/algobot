@@ -8813,6 +8813,9 @@ elif MENU=="Upload Instrument":
          else:
              raise Exception(upload_response.text)
 
+     upload_instruments_to_github()
+
+
 # ------------------------------------------------------------
 # Footer
 # ------------------------------------------------------------

@@ -3367,7 +3367,7 @@ with st.sidebar:
 
     MENU = st.radio(
         "Navigate",
-        ["Home", "Strategies","My Account", "Login Zerodha  API","Strategy Signals","Strategy Multi Signals", "Dashboard","Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","LIVE TRADE 3","Test1","Live IV/RANK","Telegram","Logout"],
+        ["Home", "Strategies","My Account", "Login Zerodha  API","Strategy Signals","Strategy Multi Signals", "Dashboard","Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","LIVE TRADE 3","Test1","Live IV/RANK","Telegram","Download Instrument","Upload Instrument""Logout"],
         index=0,
     )
 
@@ -8727,6 +8727,29 @@ elif MENU=="Strategy Multi Signals":
 
    
 
+elif MENU=="Download Instrument":
+     st.title("Zerodha Instruments Downloader")
+
+     if st.button("Download Instruments"):
+         instruments_df = download_zerodha_instruments()
+         
+         st.success(f"Downloaded {len(instruments_df)} instruments")
+         st.dataframe(instruments_df.head(50))
+     
+         # Save locally
+         today = datetime.now().strftime("%Y-%m-%d")
+         file_name = f"zerodha_instruments_{today}.csv"
+         instruments_df.to_csv(file_name, index=False)
+     
+         st.success(f"Saved as {file_name}")
+     
+         # Download button
+         st.download_button(
+             label="Download CSV",
+             data=instruments_df.to_csv(index=False),
+             file_name=file_name,
+             mime="text/csv"
+         )
 
 
 # ------------------------------------------------------------

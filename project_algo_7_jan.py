@@ -78,7 +78,7 @@ def is_kite_connected(kite):
 def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
 
     signals = []
-    spot_price = df['Close_^NSEI'].iloc[-1]
+    #spot_price = df['Close_^NSEI'].iloc[-1]
 
     df = df.copy()
     df['Date'] = df['Datetime'].dt.date

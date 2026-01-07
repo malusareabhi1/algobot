@@ -47,7 +47,11 @@ INSTRUMENTS_URL = "https://api.kite.trade/instruments"
 def download_zerodha_instruments():
     df = pd.read_csv(INSTRUMENTS_URL)
     return df
-     
+#-------------------------------------------------------------------------------------------
+if "instruments" not in st.session_state:
+    st.session_state["instruments"] = download_zerodha_instruments()
+
+
 #-----------------------------------------------telegram----------------------------------
 from dotenv import load_dotenv  # pip install python-dotenv
 import os

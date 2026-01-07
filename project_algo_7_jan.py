@@ -8463,8 +8463,8 @@ elif MENU=="Strategy Signals":
         #----------------------------------------------------------------------
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
         #signal = trading_multi1_signal_all_conditions(df_plot)
-        signals = trading_multi1_signal_all_conditions(df)
-        #signals = trading_multi2_signal_all_conditions(df) 
+        #signals = trading_multi1_signal_all_conditions(df)
+        signals = trading_multi2_signal_all_conditions(df) 
         def calculate_pnl(row):
                    # Swing SL PnL
                    if row['option_type'] == 'CALL':
@@ -8699,8 +8699,8 @@ elif MENU=="Strategy Multi Signals":
         #----------------------------------------------------------------------
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
         #signal = trading_multi1_signal_all_conditions(df_plot)
-        #signals = trading_multi1_signal_all_conditions(df)
-        signals = trading_multi2_signal_all_conditions(df) 
+        signals = trading_multi1_signal_all_conditions(df)
+        #signals = trading_multi2_signal_all_conditions(df) 
         def calculate_pnl(row):
                    # Swing SL PnL
                    if row['option_type'] == 'CALL':

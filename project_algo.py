@@ -34,12 +34,12 @@ with st.sidebar:
     selected = option_menu(
     menu_title="ALGO BOT  ",
     options=[
-        "Dashboard", "Get Stock Data", "Doctor Strategy","Doctor1.0 Strategy","Doctor2.0 Strategy","Doctor3.0 Strategy", "Swing Trade Strategy", "Swing SMA44 Strategy","SMA44+200MA Strategy","Trend–Pullback–Breakout Swing","Golden Cross","Pullback to EMA20","New Nifty Strategy",
+        "Dashboard", "Get Stock Data", "Doctor Strategy","Doctor1.0 Strategy","Doctor2.0 Strategy","Doctor3.0 Strategy", "Swing Trade Strategy", "Swing SMA44 Strategy","SMA44+200MA Strategy","Trend–Pullback–Breakout Swing","Golden Cross","Pullback to EMA20","Penny Stock Swing","New Nifty Strategy",
         "Intraday Stock Finder","ORB Strategy","ORB Screener", "Trade Log", "Account Info", "Candle Chart", "Strategy Detail","Strategy2.0 Detail", "Project Detail", "KITE API", "API","Alpha Vantage API","Live Algo Trading","Paper Trade","Volatility Scanner","TradingView","Telegram Demo","NIFTY PCR","3PM STRATEGY","3PM OPTION","NIFTY OI,PCR,D "
     ],
     icons=[
         "bar-chart", "search", "cpu", "cpu","cpu", "cpu","cpu","cpu","cpu","cpu", "arrow-repeat",
-        "search", "clipboard-data", "wallet2", "graph-up","graph-up","graph-up", "info-circle", "search","file-earmark","file-earmark", "code-slash", "code-slash","code-slash", "code-slash","journal-text","search", "bar-chart", "bar-chart","file-earmark", "bar-chart","file-earmark","file-earmark","file-earmark"
+        "search", "clipboard-data", "wallet2", "graph-up","graph-up","graph-up", "info-circle", "search","file-earmark","file-earmark", "code-slash", "code-slash","code-slash", "code-slash","journal-text","journal-text","search", "bar-chart", "bar-chart","file-earmark", "bar-chart","file-earmark","file-earmark","file-earmark"
     ],
     menu_icon="cast",
     default_index=0,
@@ -568,7 +568,79 @@ nifty50_stocks = [
         'ZYDUSLIFE.NS',
         'ECLERX.NS',
     ]
+if selected == "Penny Stock Swing":
+    st.title("⚠️ Penny Stock Swing Scanner (NSE)")
+    st.caption("High Risk Strategy | Strict Stop Loss Mandatory")
     
+    # ---- NSE Penny Stock List (Sample – extend this) ----
+    PENNY_STOCKS = [
+        "YESBANK.NS", "SUZLON.NS", "RPOWER.NS", "JPPOWER.NS",
+        "GTLINFRA.NS", "DHANI.NS", "UCOBANK.NS", "SOUTHBANK.NS",
+        "IDEA.NS", "PNBHOUSING.NS"
+    ]
+    
+    @st.cache_data(ttl=3600)
+    def fetch_data(symbol):
+        df = yf.download(symbol, period="6mo", interval="1d", progress=False)
+        return df
+    
+    results = []
+    
+    st.info("📌 Scanning penny stocks based on EMA + Volume + RSI + Breakout")
+    
+    for stock in PENNY_STOCKS:
+        df = fetch_data(stock)
+    
+        if df.empty or len(df) < 60:
+            continue
+    
+        df["Close"] = df["Close"].astype(float)
+        df["Volume"] = df["Volume"].astype(float)
+    
+        # Indicators
+        df["EMA50"] = ta.trend.ema_indicator(df["Close"], 50)
+        df["RSI"] = ta.momentum.rsi(df["Close"], 14)
+        df["AvgVol"] = df["Volume"].rolling(20).mean()
+        df["20High"] = df["High"].rolling(20).max()
+    
+        latest = df.iloc[-1]
+    
+        # ---- Strategy Conditions ----
+        if (
+            latest["Close"] <= 10 and
+            latest["Close"] > latest["EMA50"] and
+            latest["Volume"] >= 2 * latest["AvgVol"] and
+            latest["RSI"] > 50 and
+            latest["Close"] > latest["20High"] * 0.995
+        ):
+            results.append({
+                "Stock": stock.replace(".NS", ""),
+                "Price": round(latest["Close"], 2),
+                "RSI": round(latest["RSI"], 2),
+                "Volume Spike": round(latest["Volume"] / latest["AvgVol"], 2),
+                "Stop Loss": round(latest["Close"] * 0.95, 2),
+                "Target (1:2)": round(latest["Close"] * 1.10, 2)
+            })
+    
+    # ---- Display Results ----
+    if results:
+        df_result = pd.DataFrame(results)
+        st.success(f"✅ {len(df_result)} Penny Stocks Found")
+        st.dataframe(df_result, use_container_width=True)
+    else:
+        st.warning("❌ No penny stock matches criteria today")
+    
+    st.divider()
+    
+    st.markdown("""
+    ### ⚠️ Risk Management Rules
+    - ❌ Never average penny stocks  
+    - ❌ Avoid ASM / GSM stocks  
+    - ✔ Strict Stop Loss (5%)  
+    - ✔ Book partial profits early  
+    
+    **This scanner is for educational purposes only**
+    """)
 
 
 if selected == "Dashboard":

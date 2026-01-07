@@ -8773,7 +8773,7 @@ elif MENU=="Upload Instrument":
     import streamlit as st
 
     # ---------------- CONFIG ----------------
-    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+    #GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
     OWNER = "malusareabhi1"
     REPO = "algobot"
     BRANCH = "main"
@@ -8781,8 +8781,9 @@ elif MENU=="Upload Instrument":
     COMMIT_MESSAGE = "Update Zerodha instruments file"
     # ----------------------------------------------------------------------------------------------
 
-    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-
+    #GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+    GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
+ 
     if not GITHUB_TOKEN:
          st.error("Token not found")
          st.stop()

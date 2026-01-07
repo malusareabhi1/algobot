@@ -8347,8 +8347,8 @@ elif MENU=="Strategy Signals":
                     )
                    
               
-              st.subheader("📊 Generated Trading Signals")
-              st.dataframe(signals_df, use_container_width=True)
+                   st.subheader("📊 Generated Trading Signals")
+                   st.dataframe(signals_df, use_container_width=True)
         else:
               st.info("No signal generated today")
 

@@ -8065,7 +8065,7 @@ elif MENU=="Live IV/RANK":
              st.error("❌ Invalid format (Example: NIFTY25D1626000CE)") 
     #tradingsymbol="NIFTY25D1626000CE" 
     option_dict = get_live_option_details(kite, tradingsymbol)
-    spot_price=26046.00 
+    spot_price=26136.00 
     ltp = option_dict.get("ltp")
     strike = option_dict.get("strike")
     expiry = option_dict.get("expiry")

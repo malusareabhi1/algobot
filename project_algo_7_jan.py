@@ -66,70 +66,15 @@ def send_telegram_message(text: str):
         st.error(f"Telegram send error: {e}")
 
 #-----------------------------------------------KITE---------------------------------------------------
-
- # Add after data processing:
-def is_kite_connected(kite):
-        try:
-            kite.profile()
-            return True
-        except:
-            return False
-
-def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
-
-    signals = []
-    spot_price = df['Close_^NSEI'].iloc[-1]
-
-    df = df.copy()
-    df['Date'] = df['Datetime'].dt.date
-    unique_days = sorted(df['Date'].unique())
-    if len(unique_days) < 2:
-        return None
-
-    day0 = unique_days[-2]
-    day1 = unique_days[-1]
-
-    candle_3pm = df[(df['Date'] == day0) &
-                    (df['Datetime'].dt.hour == 15) &
-                    (df['Datetime'].dt.minute == 0)]
-    if candle_3pm.empty:
-        return None
-
-    base_open = candle_3pm.iloc[0]['Open_^NSEI']
-    base_close = candle_3pm.iloc[0]['Close_^NSEI']
-    base_low = min(base_open, base_close)
-    base_high = max(base_open, base_close)
-
-    candle_915 = df[(df['Date'] == day1) &
-                    (df['Datetime'].dt.hour == 9) &
-                    (df['Datetime'].dt.minute == 30)]
-    if candle_915.empty:
-        return None
-    O1 = candle_915.iloc[0]['Open_^NSEI'] 
-    H1 = candle_915.iloc[0]['High_^NSEI']
-    L1 = candle_915.iloc[0]['Low_^NSEI']
-    C1 = candle_915.iloc[0]['Close_^NSEI']
-
-    #st.subheader("9:15 AM Candle (NIFTY)")
-    #st.write({"Open": O1,"High": H1,"Low": L1,"Close": C1})  
-    entry_time = candle_915.iloc[0]['Datetime']
-    trade_end_time = entry_time.replace(hour=14, minute=30, second=0)
-    expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
-
-    day1_after_915 = df[(df['Date'] == day1) &
-                        (df['Datetime'] > entry_time)].sort_values('Datetime')
-
-    last_exit_time = None   # ✅ TRACK LAST TRADE EXIT
-
-    # --------------------------------------------------
-    def get_recent_swing(current_time):
+ # --------------------------------------------------
+def get_recent_swing(current_time):
         recent = df[(df['Date'] == day1) &
                     (df['Datetime'] < current_time)].tail(10)
         if recent.empty:
             return np.nan, np.nan
         return float(recent['High_^NSEI'].max()), float(recent['Low_^NSEI'].min())
 
-    def update_trailing_sl(option_type, sl, current_time):
+def update_trailing_sl(option_type, sl, current_time):
         high, low = get_recent_swing(current_time)
 
         if option_type == 'CALL' and pd.notna(low):
@@ -140,7 +85,7 @@ def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=
 
         return sl
 
-    def monitor_trade(sig):
+def monitor_trade(sig):
          sl = sig['stoploss']
          exit_deadline = sig['entry_time'] + timedelta(minutes=16)
          
@@ -185,6 +130,61 @@ def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=
          sig['status'] = 'Forced Exit @ 14:30'
          return sig    
 
+ # Add after data processing:
+def is_kite_connected(kite):
+        try:
+            kite.profile()
+            return True
+        except:
+            return False
+
+def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
+
+    signals = []
+    spot_price = df['Close_^NSEI'].iloc[-1]
+
+    df = df.copy()
+    df['Date'] = df['Datetime'].dt.date
+    unique_days = sorted(df['Date'].unique())
+    if len(unique_days) < 2:
+        return None
+
+    day0 = unique_days[-2]
+    day1 = unique_days[-1]
+
+    candle_3pm = df[(df['Date'] == day0) &
+                    (df['Datetime'].dt.hour == 15) &
+                    (df['Datetime'].dt.minute == 0)]
+    if candle_3pm.empty:
+        return None
+
+    base_open = candle_3pm.iloc[0]['Open_^NSEI']
+    base_close = candle_3pm.iloc[0]['Close_^NSEI']
+    base_low = min(base_open, base_close)
+    base_high = max(base_open, base_close)
+
+    candle_915 = df[(df['Date'] == day1) &
+                    (df['Datetime'].dt.hour == 9) &
+                    (df['Datetime'].dt.minute == 15)]
+    if candle_915.empty:
+        return None
+    O1 = candle_915.iloc[0]['Open_^NSEI'] 
+    H1 = candle_915.iloc[0]['High_^NSEI']
+    L1 = candle_915.iloc[0]['Low_^NSEI']
+    C1 = candle_915.iloc[0]['Close_^NSEI']
+
+    #st.subheader("9:15 AM Candle (NIFTY)")
+    #st.write({"Open": O1,"High": H1,"Low": L1,"Close": C1})  
+    entry_time = candle_915.iloc[0]['Datetime']
+    trade_end_time = entry_time.replace(hour=14, minute=30, second=0)
+    expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+
+    day1_after_915 = df[(df['Date'] == day1) &
+                        (df['Datetime'] > entry_time)].sort_values('Datetime')
+
+    last_exit_time = None   # ✅ TRACK LAST TRADE EXIT
+
+   
     # ==================================================
     # CONDITION SCANS (MULTIPLE SIGNALS)
     # ==================================================

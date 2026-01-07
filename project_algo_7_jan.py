@@ -81,7 +81,7 @@ def is_kite_connected(kite):
 def trading_multi2_signal_all_conditions(
     df,
     quantity=10 * 65,
-    max_trades_per_day=1,
+    max_trades_per_day=2,
 ):
     """
     Multi-condition intraday option strategy

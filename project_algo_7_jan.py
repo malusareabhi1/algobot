@@ -8320,23 +8320,7 @@ elif MENU=="Strategy Signals":
                         'PnL_Swing_SL',
                         'PnL_Diff'
                     ]
-                   for _, row in signals_df.iterrows():
-                       msg = (
-                           f"📈 *New Option Signal*\n"
-                           f"Time: `{row['signal_time']}`\n"
-                           f"Symbol: *{row['tradingsymbol']}*\n"
-                           f"Type: `{row['option_type']}`\n"
-                           f"Qty: `{row['quantity']}`\n"
-                           f"Buy: `{row['buy_price']}`\n"
-                           f"SL: `{row['initial_sl']}`\n"
-                           f"TP: `{row.get('exit_price', 'NA')}`"
-                       )
-                       #send_telegram_message(msg) 
-                       ok, info = send_telegram_message(msg)
-                       if ok:
-                            st.success(f"Telegram sent: {info}")
-                       else:
-                            st.error(f"Telegram failed: {info}") 
+                  
                    st.subheader("📊 Generated Trading Signals with SL & PnL")
                    st.dataframe(
                         signals_df[show_cols].round(2),

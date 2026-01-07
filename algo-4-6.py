@@ -215,12 +215,13 @@ def trading_multi1_signal_all_conditions(df, quantity=10*65, return_all_signals=
                 'condition': 2,
                 'option_type': 'PUT',
                 'buy_price': L1,
-                'stoploss': swing_high,
-                'quantity': quantity,
-                'expiry': expiry,
                 'entry_time': candle['Datetime'],
                 'spot_price': spot_price,
-                'message': 'Condition 2: Gap down confirmed → Buy PUT below L1'
+                'message': 'Condition 2: Gap down confirmed → Buy PUT below L1',
+                'stoploss': swing_high,
+                'quantity': quantity,
+                'expiry': expiry
+               
             }
             sig = monitor_trade(sig)
             signals.append(sig)

@@ -8255,17 +8255,7 @@ elif MENU=="Strategy Signals":
                   annotation_text="9:15 Candle",
                   annotation_position="top left"
               )
-        if open_3pm is not None:
-              fig.add_vrect(
-                  x0=open_3pm,
-                  x1=open_3pm + pd.Timedelta(minutes=15),
-                  fillcolor="blue",
-                  opacity=0.05,
-                  layer="below",
-                  line_width=0,
-                  annotation_text="3pm Candle",
-                  annotation_position="top left"
-              )     
+        
         if open_3pm and close_3pm:
             fig.add_hline(y=open_3pm, line_dash="dot", line_color="blue", annotation_text="3PM Open")
             fig.add_hline(y=close_3pm, line_dash="dot", line_color="red", annotation_text="3PM Close")

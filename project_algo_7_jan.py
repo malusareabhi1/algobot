@@ -8355,7 +8355,7 @@ elif MENU =="LIVE TRADE 3":
     # IV Rank
             result = "Pass" if 0.20 <= iv_info["iv_rank"] <= 0.70 else "Fail"
             iv_rank_result  = result    
-            add_param_row("IV Rank", round(iv_info["iv_rank"], 2), "0.20 - 0.70", result)
+            #add_param_row("IV Rank", round(iv_info["iv_rank"], 2), "0.20 - 0.70", result)
 #--------------------------------------------------Getting New IV-----------& adding to para----------------------------
             #result = compute_option_iv_details(option, spot)
      

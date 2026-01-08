@@ -8215,7 +8215,7 @@ elif MENU =="LIVE TRADE 3":
     #----------------------------------------------------------------------
     #if is_kite_connected(kite):
     funds = get_fund_status(kite)
-    st.write(funds) 
+    #st.write(funds) 
     cash = (funds['cash'])
     cash = (funds['net']) 
     #iv_value = 0.26

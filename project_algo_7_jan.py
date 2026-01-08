@@ -8988,12 +8988,13 @@ elif MENU =="LIVE TRADE 3":
 
             import time   
             last_order = get_last_buy_order(kite)
-            st.write("Last Order",last_order)   
+            #st.write("Last Order",last_order)   
             if last_order:
               pos = get_open_position_for_symbol(
                   kite,
                   last_order["tradingsymbol"]
               )
+                 st.write("POS",pos)
             else:
                  st.write("No Open Position Active")
           

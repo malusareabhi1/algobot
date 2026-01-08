@@ -6470,7 +6470,7 @@ elif MENU =="Live Trade":
     if signal:
          st.session_state.signal_log.append({
              "Datetime": latest_time,
-             "Signal": signal["type"],          # BUY CALL / BUY PUT
+             "Signal": signal["option_type"],          # BUY CALL / BUY PUT
              "Condition": signal["condition"],  # e.g. Gap down confirmed
              "Price": signal["price"],
              "Status": signal.get("status", "Generated")

@@ -280,9 +280,9 @@ def monitor_and_exit_last_position(kite):
     entry_time = pos["exchange_timestamp"]
     now = datetime.now(ist)
 
-    if now < entry_time + timedelta(minutes=16):
-        st.warning("⏳ Hold time < 16 min → Exit blocked")
-        return
+    #if now < entry_time + timedelta(minutes=16):
+        #st.warning("⏳ Hold time < 16 min → Exit blocked")
+        #return
 
     # --- BEST TRAILING SL ---
     # Initial SL: -0.5%
@@ -290,15 +290,15 @@ def monitor_and_exit_last_position(kite):
     initial_sl = entry_price * 0.995
     trail_start = entry_price * 1.007
     trail_step = 0.3 / 100     # 0.3%
-
+    st.write("initial SL", initial_sl)  
     if ltp > trail_start:
         tsl = ltp * (1 - trail_step)
     else:
         tsl = initial_sl
-
+    st.write("Trail SL", tsl) 
     # --- TARGET (optional safety cap) ---
     target = entry_price * 1.02   # 2%
-
+    st.write("Target ", target)
     # --- EXIT CONDITIONS ---
     if ltp <= tsl:
         reason = "TRAIL SL HIT"
@@ -335,7 +335,24 @@ def place_exit_order(kite, symbol, qty, reason):
 
 
 
-#=================================================================================================
+#======================================show_live_position ===========================================================
+
+
+def show_live_position(pos, ltp, tsl, target):
+    pnl = (ltp - pos["average_price"]) * abs(pos["quantity"])
+    pnl_pct = (ltp - pos["average_price"]) / pos["average_price"] * 100
+
+    st.subheader("🟢 Live Open Position")
+    st.write({
+        "Symbol": pos["tradingsymbol"],
+        "Qty": pos["quantity"],
+        "Entry Price": pos["average_price"],
+        "LTP": ltp,
+        "P&L (₹)": round(pnl, 2),
+        "P&L %": round(pnl_pct, 2),
+        "Trailing SL": round(tsl, 2),
+        "Target": round(target, 2)
+    })
 
 
 
@@ -8994,7 +9011,7 @@ elif MENU =="LIVE TRADE 3":
                   kite,
                   last_order["tradingsymbol"]
               )
-              st.write("POS",pos)
+              #st.write("POS",pos)
             else:
                  st.write("No Open Position Active")
           

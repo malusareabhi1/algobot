@@ -7389,12 +7389,12 @@ elif MENU=="Paper Trade":
                   # 🔐 LOCK THE SIGNAL
                   st.session_state.last_executed_signal_time = signal_time
           
-                  st.success(f"Paper trade entered @ {entry_price}")
+                  #st.success(f"Paper trade entered @ {entry_price}")
 
-            monitor_paper_trades(kite)
-            for trade in st.session_state.paper_trades:
-              normalize_trade(trade)
-              manage_exit_papertrade(kite, trade)
+            #monitor_paper_trades(kite)
+            #for trade in st.session_state.paper_trades:
+              #normalize_trade(trade)
+              #manage_exit_papertrade(kite, trade)
 
             st.write("Moniter")
              

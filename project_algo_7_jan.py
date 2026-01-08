@@ -39,6 +39,105 @@ if "paper_trades" not in st.session_state:
 
 if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
+#=================================================================================================
+
+def get_last_buy_order(kite):
+    orders = kite.orders()
+
+    buy_orders = [
+        o for o in orders
+        if o["transaction_type"] == "BUY"
+        and o["status"] == "COMPLETE"
+        and o["exchange"] == "NFO"
+    ]
+
+    if not buy_orders:
+        return None
+
+    # Latest order by time
+    buy_orders.sort(
+        key=lambda x: x["order_timestamp"],
+        reverse=True
+    )
+
+    return buy_orders[0]
+
+
+#=================================================================================================
+
+def get_open_position_for_symbol(kite, tradingsymbol):
+    positions = kite.positions()["net"]
+
+    for p in positions:
+        if (
+            p["tradingsymbol"] == tradingsymbol
+            and p["quantity"] != 0
+        ):
+            return p
+
+    return None
+
+
+#=================================================================================================
+def exit_last_open_position(kite):
+    last_order = get_last_buy_order(kite)
+
+    if not last_order:
+        st.info("No BUY order found today.")
+        return
+
+    symbol = last_order["tradingsymbol"]
+
+    position = get_open_position_for_symbol(kite, symbol)
+
+    if not position:
+        st.info("Last order already exited. No open position.")
+        return
+
+    qty = abs(position["quantity"])
+
+    try:
+        kite.place_order(
+            tradingsymbol=symbol,
+            exchange=kite.EXCHANGE_NFO,
+            transaction_type=kite.TRANSACTION_TYPE_SELL,
+            quantity=qty,
+            order_type=kite.ORDER_TYPE_MARKET,
+            variety=kite.VARIETY_REGULAR,
+            product=position["product"]
+        )
+
+        st.success(f"✅ Position EXITED: {symbol} | Qty: {qty}")
+
+    except Exception as e:
+        st.error(f"❌ Exit failed: {e}")
+
+
+
+#=================================================================================================
+
+
+
+#=================================================================================================
+
+
+
+#=================================================================================================
+
+
+
+#=================================================================================================
+
+
+
+#=================================================================================================
+
+
+
+#=================================================================================================
+
+
+
 
 #===============================Exit Logic========================================================
 
@@ -8672,12 +8771,28 @@ elif MENU =="LIVE TRADE 3":
             else:
                    st.info("No active trade found.")
 
-#--------------------------------------Exit Logix=-----------------------------------------------------------             
+#--------------------------------------Exit Logix=-----------------------------------------------------------        
 
-            #last_order = get_last_active_order(kite)
 
-            if last_order:
-                  exit_logic(kite, last_order)
+           last_order = get_last_buy_order(kite)
+
+           if last_order:
+              pos = get_open_position_for_symbol(
+                  kite,
+                  last_order["tradingsymbol"]
+              )
+          
+              if pos:
+                  st.subheader("🟢 Active Position")
+                  st.table(pd.DataFrame([{
+                      "Symbol": pos["tradingsymbol"],
+                      "Qty": pos["quantity"],
+                      "Avg Price": pos["average_price"],
+                      "PnL": pos["pnl"]
+                  }]))
+          
+                  if st.button("🚪 EXIT POSITION"):
+                      exit_last_open_position(kite)
 
            
 

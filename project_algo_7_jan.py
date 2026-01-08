@@ -7362,18 +7362,18 @@ elif MENU=="Paper Trade":
             st.session_state.tradingsymbol = trending_symbol
 #-------------------------------Exit Order-----------------------------------------------
 
-             last_order = get_last_active_order(kite)
+            last_order = get_last_active_order(kite)
 
-             st.subheader("🟢 Active Trade")
+            st.subheader("🟢 Active Trade")
                
-             if last_order:
+            if last_order:
                    st.write({
                        "Symbol": last_order["tradingsymbol"],
                        "Qty": last_order["quantity"],
                        "Entry Price": last_order["average_price"],
                        "Order Time": last_order["order_timestamp"]
                    })
-             else:
+            else:
                    st.info("No active trade found.")
 
 

@@ -6494,7 +6494,7 @@ elif MENU =="Live Trade":
     pcr = get_nifty_pcr(kite)
 
     add_param_row("IV", iv, "0.10–0.35", "Pass" if 0.10 <= iv <= 0.35 else "Fail")
-    add_param_row("IV Rank", iv_rank, "0.20–0.70", "Pass" if 0.20 <= iv_rank <= 0.70 else "Fail")
+    #add_param_row("IV Rank", iv_rank, "0.20–0.70", "Pass" if 0.20 <= iv_rank <= 0.70 else "Fail")
     add_param_row("VIX", vix, "> 10", "Pass" if vix > 10 else "Fail")
     add_param_row("PCR", pcr, "0.80–1.30", "Pass" if 0.80 <= pcr <= 1.30 else "Fail")
 

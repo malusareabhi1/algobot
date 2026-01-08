@@ -6513,9 +6513,9 @@ elif MENU =="Live Trade":
 
     st.table(pd.DataFrame(st.session_state.param_rows))
 
-    if lot_qty == 0:
-        st.warning("Trade filtered out")
-        st.stop()
+    #if lot_qty == 0:
+        #st.warning("Trade filtered out")
+        #st.stop()
 
     qty = lot_qty * 75
     qty=0 

@@ -6472,7 +6472,7 @@ elif MENU =="Live Trade":
              "Datetime": latest_time,
              "Signal": signal["option_type"],          # BUY CALL / BUY PUT
              "Condition": signal["condition"],  # e.g. Gap down confirmed
-             "Price": signal["price"],
+             "Price": signal["buy_price"],
              "Status": signal.get("status", "Generated")
          })
  

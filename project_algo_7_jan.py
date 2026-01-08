@@ -6242,6 +6242,8 @@ elif MENU == "Support":
 elif MENU =="Live Trade":
     #st.write("Live Trade")
     st.session_state.param_rows = []
+    if "signal_log" not in st.session_state:
+         st.session_state.signal_log = []
 
     # ================== IMPORTS ==================
     import pytz
@@ -6459,7 +6461,20 @@ elif MENU =="Live Trade":
     #st.write("DF Columns:", df.columns.tolist())
  
     # ================== SIGNAL ==================
+    #signal = trading_signal_all_conditions(df_plot)
+    latest_time = df_plot["Datetime"].iloc[-1]
+
     signal = trading_signal_all_conditions(df_plot)
+     
+    if signal:
+         st.session_state.signal_log.append({
+             "Datetime": latest_time,
+             "Signal": signal["type"],          # BUY CALL / BUY PUT
+             "Condition": signal["condition"],  # e.g. Gap down confirmed
+             "Price": signal["price"],
+             "Status": signal.get("status", "Generated")
+         })
+ 
 
     if signal is None:
         st.warning("No signal yet")

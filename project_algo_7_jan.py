@@ -1039,13 +1039,10 @@ def monitor_paper_trades(kite):
     if rows:
         df = pd.DataFrame(rows)
 
-        st.subheader("📊 Paper Trade Monitor")
-        st.dataframe(df, use_container_width=True)
+        #st.subheader("📊 Paper Trade Monitor")
+        #st.dataframe(df, use_container_width=True)
 
-        st.metric(
-            "Total P&L",
-            f"₹ {df['P&L (₹)'].sum():,.2f}"
-        )
+        #st.metric(            "Total P&L",            f"₹ {df['P&L (₹)'].sum():,.2f}"        )
 
 #==========================================================================================================
 def monitor_paper_trades23(kite):
@@ -8424,7 +8421,7 @@ elif MENU =="LIVE TRADE 3":
     cash = (funds['cash'])
     cash = (funds['net']) 
     #iv_value = 0.26
-    result = "Pass" if 75000 <= cash <= 25000 else "Fail"
+    result = "Fail" if 75000 <= cash <= 25000 else "Pass"
     add_param_row("CASH", cash, "25K - 100K", result)
 
 
@@ -8672,10 +8669,10 @@ elif MENU =="LIVE TRADE 3":
           
                   st.success(f"Paper trade entered @ {entry_price}")
 
-            monitor_paper_trades(kite)
-            for trade in st.session_state.paper_trades:
-              normalize_trade(trade)
-              manage_exit_papertrade(kite, trade)
+            #monitor_paper_trades(kite)
+            #for trade in st.session_state.paper_trades:
+              #normalize_trade(trade)
+              #manage_exit_papertrade(kite, trade)
 
             st.write("Moniter")
              
@@ -8775,7 +8772,7 @@ elif MENU =="LIVE TRADE 3":
     # VIX
             result = "Pass" if vix_now > 10 else "Fail"
             vix_result  = result     
-            add_param_row("VIX", round(vix_now, 2), "< 10", result)
+            add_param_row("VIX", round(vix_now, 2), "> 10", result)
 
  #------------------------------------------------------------------------------   
     # Apply IV + VIX Filter

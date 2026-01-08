@@ -7143,7 +7143,7 @@ elif MENU == "My Account":
                             [(k, str(v)) for k, v in st.session_state.items()],
                             columns=["Key", "Value"]
                         )
-                        st.table(df)
+                       st.table(df)
                  else:
                         st.info("Session state is empty")
 

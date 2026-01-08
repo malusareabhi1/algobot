@@ -6465,7 +6465,8 @@ elif MENU =="Live Trade":
     latest_time = df_plot["Datetime"].iloc[-1]
 
     signal = trading_signal_all_conditions(df_plot)
-     
+    st.write("Signal keys / columns:")
+    st.write(list(signal.keys())) 
     if signal:
          st.session_state.signal_log.append({
              "Datetime": latest_time,

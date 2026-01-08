@@ -8774,9 +8774,9 @@ elif MENU =="LIVE TRADE 3":
 #--------------------------------------Exit Logix=-----------------------------------------------------------        
 
 
-           last_order = get_last_buy_order(kite)
+            last_order = get_last_buy_order(kite)
 
-           if last_order:
+            if last_order:
               pos = get_open_position_for_symbol(
                   kite,
                   last_order["tradingsymbol"]

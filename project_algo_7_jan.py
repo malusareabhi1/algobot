@@ -8141,33 +8141,8 @@ elif MENU =="LIVE TRADE 3":
                    st.session_state.final_exit_done = False
  
 
-            if "trade_active" not in st.session_state:
-                st.session_state.trade_active = False
-          
-            if "entry_price" not in st.session_state:
-                st.session_state.entry_price = None
-          
-            if "highest_price" not in st.session_state:
-                st.session_state.highest_price = None
-          
-            if "entry_time" not in st.session_state:
-                st.session_state.entry_time = None
-          
-            if "partial_exit_done" not in st.session_state:
-                st.session_state.partial_exit_done = False
-          
-            if "final_exit_done" not in st.session_state:
-                st.session_state.final_exit_done = False
-               #-------------------------------
-            st.session_state.trade_active = True
-            st.session_state.entry_price = ltp   # from trade average price
-            st.session_state.highest_price = ltp
-            st.session_state.entry_time = datetime.now()
-            st.session_state.partial_exit_done = False
-            st.session_state.final_exit_done = False
-            st.session_state.qty = lot_qty
-            st.session_state.tradingsymbol = trending_symbol
-              #-------------------------------
+            
+           
 
 
 

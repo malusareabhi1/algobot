@@ -116,9 +116,91 @@ def exit_last_open_position(kite):
 
 #=================================================================================================
 
+def show_open_positions(kite):
+    positions = kite.positions()["net"]
+
+    open_pos = [p for p in positions if p["quantity"] != 0]
+
+    if not open_pos:
+        st.info("ℹ️ No Open Positions")
+        return 0
+
+    rows = []
+    total_pnl = 0
+
+    for p in open_pos:
+        symbol = p["tradingsymbol"]
+        qty = p["quantity"]
+        entry = p["average_price"]
+
+        ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
+
+        pnl = round((ltp - entry) * qty, 2)
+        pnl_pct = round(((ltp - entry) / entry) * 100, 2)
+
+        total_pnl += pnl
+
+        rows.append({
+            "Symbol": symbol,
+            "Qty": qty,
+            "Entry": entry,
+            "LTP": ltp,
+            "P&L (₹)": pnl,
+            "P&L %": pnl_pct
+        })
+
+    df = pd.DataFrame(rows)
+
+    st.subheader("📈 Open Positions")
+    st.dataframe(df, use_container_width=True)
+
+    st.metric("Open P&L", f"₹ {total_pnl:,.2f}")
+    return total_pnl
 
 
 #=================================================================================================
+
+def show_closed_positions(kite):
+    positions = kite.positions()["net"]
+
+    closed_pos = [
+        p for p in positions
+        if p["quantity"] == 0 and (p["buy_quantity"] > 0 or p["sell_quantity"] > 0)
+    ]
+
+    if not closed_pos:
+        st.info("ℹ️ No Closed Positions Today")
+        return 0
+
+    rows = []
+    total_pnl = 0
+
+    for p in closed_pos:
+        symbol = p["tradingsymbol"]
+        buy_val = p["buy_value"]
+        sell_val = p["sell_value"]
+
+        pnl = round(sell_val - buy_val, 2)
+
+        pnl_pct = round((pnl / buy_val) * 100, 2) if buy_val > 0 else 0
+
+        total_pnl += pnl
+
+        rows.append({
+            "Symbol": symbol,
+            "Buy Value": buy_val,
+            "Sell Value": sell_val,
+            "Realized P&L (₹)": pnl,
+            "P&L %": pnl_pct
+        })
+
+    df = pd.DataFrame(rows)
+
+    st.subheader("📕 Closed Positions (Today)")
+    st.dataframe(df, use_container_width=True)
+
+    st.metric("Closed P&L", f"₹ {total_pnl:,.2f}")
+    return total_pnl
 
 
 
@@ -8749,6 +8831,17 @@ elif MENU =="LIVE TRADE 3":
 
 #------------------------------------ORDERS--------------------------------------------
             show_kite_orders(kite)
+#===========================================OPEN POSITION--------------------------------------
+            st.divider()
+
+            open_pnl = show_open_positions(kite)
+            closed_pnl = show_closed_positions(kite)
+               
+            st.divider()
+            st.metric(
+                   "💰 TOTAL DAY P&L",
+                   f"₹ {open_pnl + closed_pnl:,.2f}"
+             )
 
 #---------------------------------Exit Logic-----------------------------------------------
             if "trade_active" not in st.session_state:

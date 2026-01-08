@@ -592,7 +592,63 @@ def trade_already_taken(signal_time, symbol):
     return False
 
 #----------------------------Moniter Paper tRade----------------------------------------------------
+
+
 def monitor_paper_trades(kite):
+    if not st.session_state.get("paper_trades"):
+        return
+
+    rows = []
+
+    for trade in st.session_state.paper_trades:
+
+        # 🛡 Normalize trade (important)
+        trade.setdefault("quantity", trade.get("remaining_qty", 0))
+        trade.setdefault("remaining_qty", trade.get("quantity", 0))
+        trade.setdefault("status", "OPEN")
+
+        if trade["status"] != "OPEN":
+            continue
+
+        symbol = f"NFO:{trade['symbol']}"
+
+        try:
+            ltp = kite.ltp(symbol)[symbol]["last_price"]
+        except Exception as e:
+            st.warning(f"LTP fetch failed for {trade['symbol']}")
+            continue
+
+        qty = trade.get("quantity", 0)
+
+        pnl = round(
+            (ltp - trade.get("entry_price", 0)) * qty,
+            2
+        )
+
+        rows.append({
+            "Entry Time": trade.get("entry_time"),
+            "Symbol": trade.get("symbol"),
+            "Type": trade.get("option_type"),
+            "Entry Price": trade.get("entry_price"),
+            "LTP": ltp,
+            "Qty": qty,
+            "P&L (₹)": pnl,
+            "Status": trade.get("status")
+        })
+
+    if rows:
+        df = pd.DataFrame(rows)
+
+        st.subheader("📊 Paper Trade Monitor")
+        st.dataframe(df, use_container_width=True)
+
+        st.metric(
+            "Total P&L",
+            f"₹ {df['P&L (₹)'].sum():,.2f}"
+        )
+
+#==========================================================================================================
+def monitor_paper_trades23(kite):
     if not st.session_state.paper_trades:
         return
 

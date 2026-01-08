@@ -8623,6 +8623,21 @@ elif MENU =="LIVE TRADE 3":
                    st.session_state.partial_exit_done = False
                    st.session_state.final_exit_done = False
  
+#--------------------------------------Manage Order--------------------------------------------------------
+
+            last_order = get_last_active_order(kite)
+
+            st.subheader("🟢 Active Trade")
+               
+            if last_order:
+                   st.write({
+                       "Symbol": last_order["tradingsymbol"],
+                       "Qty": last_order["quantity"],
+                       "Entry Price": last_order["average_price"],
+                       "Order Time": last_order["order_timestamp"]
+                   })
+            else:
+                   st.info("No active trade found.")
 
             
            

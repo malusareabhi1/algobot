@@ -39,6 +39,30 @@ if "paper_trades" not in st.session_state:
 
 if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
+#-----------------------LAST ORDER----------------------------------------
+
+
+def get_last_active_order(kite):
+    orders = kite.orders()
+
+    # Filter only BUY orders that are complete
+    buy_orders = [
+        o for o in orders
+        if o["transaction_type"] == "BUY"
+        and o["status"] == "COMPLETE"
+    ]
+
+    if not buy_orders:
+        return None
+
+    # Sort by order time (latest first)
+    buy_orders.sort(
+        key=lambda x: x["order_timestamp"],
+        reverse=True
+    )
+
+    return buy_orders[0]   # ✅ Last active order
+
 
 #--------------------------------------------Zerodha Instrument------------------
 
@@ -7336,7 +7360,22 @@ elif MENU=="Paper Trade":
             st.session_state.final_exit_done = False
             st.session_state.qty = lot_qty
             st.session_state.tradingsymbol = trending_symbol
-              #-------------------------------
+#-------------------------------Exit Order-----------------------------------------------
+
+             last_order = get_last_active_order(kite)
+
+             st.subheader("🟢 Active Trade")
+               
+             if last_order:
+                   st.write({
+                       "Symbol": last_order["tradingsymbol"],
+                       "Qty": last_order["quantity"],
+                       "Entry Price": last_order["average_price"],
+                       "Order Time": last_order["order_timestamp"]
+                   })
+             else:
+                   st.info("No active trade found.")
+
 
 
 
@@ -8513,7 +8552,7 @@ elif MENU =="LIVE TRADE 3":
                   st.write("No parameters added yet.")
     #------------------------------------------------------------------------------------------------
             qty=qty*lot_qty
-            #qty=0
+            qty=0
                 # Check 1: Only run if current time is within trading window
             if is_valid_signal_time(entry_time):
                  st.warning("Signal time  match today's date .") 
@@ -8537,6 +8576,15 @@ elif MENU =="LIVE TRADE 3":
                                            )
                            
                                        st.session_state.order_executed = True   # Mark executed
+                                       st.session_state.order_executed = True
+                                       st.session_state.last_order_id = order_id
+                              
+                                      # ✅ Mark trade active
+                                       st.session_state.trade_active = True
+                                       st.session_state.entry_price = ltp
+                                       st.session_state.entry_time = datetime.now()
+                                       st.session_state.qty = qty
+                                       st.session_state.tradingsymbol = trending_symbol 
                                        st.success(f"Order Placed Successfully! Order ID: {order_id}")
                                        st.session_state["last_order_id"] = order_id
                            

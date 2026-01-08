@@ -39,6 +39,43 @@ if "paper_trades" not in st.session_state:
 
 if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
+
+#===============================Exit Logic========================================================
+
+def exit_logic(kite, order):
+    symbol = order["tradingsymbol"]
+    qty = order["quantity"]
+    entry_price = order["average_price"]
+
+    ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
+
+    target = entry_price * 1.01
+    stoploss = entry_price * 0.995
+
+    if ltp >= target:
+        reason = "TARGET HIT"
+    elif ltp <= stoploss:
+        reason = "STOP LOSS HIT"
+    else:
+        return   # ❌ No exit yet
+
+    try:
+        kite.place_order(
+            tradingsymbol=symbol,
+            exchange=kite.EXCHANGE_NFO,
+            transaction_type=kite.TRANSACTION_TYPE_SELL,
+            quantity=qty,
+            order_type=kite.ORDER_TYPE_MARKET,
+            variety=kite.VARIETY_REGULAR,
+            product=kite.PRODUCT_MIS
+        )
+
+        st.success(f"Exit done: {reason}")
+
+    except Exception as e:
+        st.error(f"Exit failed: {e}")
+
+
 #-----------------------LAST ORDER----------------------------------------
 
 
@@ -8630,7 +8667,7 @@ elif MENU =="LIVE TRADE 3":
             st.subheader("🟢 Active Trade")
                
             if last_order:
-                   st.write({
+                   #st.write({
                        "Symbol": last_order["tradingsymbol"],
                        "Qty": last_order["quantity"],
                        "Entry Price": last_order["average_price"],
@@ -8639,7 +8676,13 @@ elif MENU =="LIVE TRADE 3":
             else:
                    st.info("No active trade found.")
 
-            
+#--------------------------------------Exit Logix=-----------------------------------------------------------             
+
+            #last_order = get_last_active_order(kite)
+
+            if last_order:
+                  exit_logic(kite, last_order)
+
            
 
 

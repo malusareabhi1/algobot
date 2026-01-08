@@ -8667,7 +8667,7 @@ elif MENU =="LIVE TRADE 3":
             st.subheader("🟢 Active Trade")
                
             if last_order:
-                   st.write({"Symbol": last_order["tradingsymbol"],"Qty": last_order["quantity"],"Entry Price": last_order["average_price"],Order Time": last_order["order_timestamp"] })
+                   st.write({"Symbol": last_order["tradingsymbol"],"Qty": last_order["quantity"],"Entry Price": last_order["average_price"],"Order Time": last_order["order_timestamp"] })
                    st.write("Last Order")
             else:
                    st.info("No active trade found.")

@@ -6342,6 +6342,34 @@ elif MENU =="Live Trade":
     ])
     fig.update_layout(title="NIFTY 15-Min Chart", xaxis_rangeslider_visible=False)
     st.plotly_chart(fig, use_container_width=True)
+
+    #=====================Reset=======================
+    # ================== FIX YFINANCE MULTIINDEX COLUMNS ==================
+
+     # 1. Flatten MultiIndex columns safely
+     if isinstance(df.columns, pd.MultiIndex):
+         df.columns = [
+             f"{col[0]}_{col[1]}" if col[1] else col[0]
+             for col in df.columns
+         ]
+     
+     # 2. Standardize column names for strategy compatibility
+     rename_map = {
+         "Open_^NSEI": "Open_^NSEI",
+         "High_^NSEI": "High_^NSEI",
+         "Low_^NSEI": "Low_^NSEI",
+         "Close_^NSEI": "Close_^NSEI",
+         "Volume_^NSEI": "Volume_^NSEI",
+         "Open": "Open_^NSEI",
+         "High": "High_^NSEI",
+         "Low": "Low_^NSEI",
+         "Close": "Close_^NSEI",
+     }
+     
+     df.rename(columns={c: rename_map[c] for c in df.columns if c in rename_map}, inplace=True)
+
+
+     
     st.write("DF Columns:", df.columns.tolist())
  
     # ================== SIGNAL ==================

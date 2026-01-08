@@ -6240,12 +6240,203 @@ elif MENU == "Support":
 
     #######################################################################################################
 elif MENU =="Live Trade":
-     st.write("Live Trade")
-     with st.sidebar:
-         if st.button("🧹 Clear Paper Trades"):
+    #st.write("Live Trade")
+    
+
+    # ================== IMPORTS ==================
+    import pytz
+    import yfinance as yf
+    import pandas as pd
+    import plotly.graph_objects as go
+    from datetime import datetime, timedelta, time as dtime
+    from streamlit_autorefresh import st_autorefresh
+
+    # ================== PAGE CONFIG ==================
+    st.set_page_config(layout="wide")
+    st.title("🔴 LIVE TRADE  – NIFTY 15 MIN")
+
+    # ================== SESSION STATE INIT ==================
+    defaults = {
+        "paper_trades": [],
+        "last_executed_signal_time": None,
+        "order_executed": False,
+        "param_rows": [],
+        "trade_active": False
+    }
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
+
+    # ================== SIDEBAR ==================
+    with st.sidebar:
+        if st.button("🧹 Clear Paper Trades"):
             st.session_state.paper_trades = []
-            st.success("All paper trades cleared")
-            st.rerun() 
+            st.session_state.last_executed_signal_time = None
+            st.session_state.order_executed = False
+            st.success("Paper trades cleared")
+            st.rerun()
+
+    # ================== KITE CHECK ==================
+    if not is_kite_connected(kite):
+        st.error("Kite not connected. Please login.")
+        st.stop()
+
+    st.success("Kite connection active")
+
+    # ================== AUTO REFRESH ==================
+    ist = pytz.timezone("Asia/Kolkata")
+    now = datetime.now(ist).time()
+
+    if dtime(9, 15) <= now <= dtime(15, 25):
+        st_autorefresh(interval=60000, key="live3_refresh")
+    else:
+        st.info("Auto-refresh paused (outside market hours)")
+
+    # ================== FUND CHECK ==================
+    funds = get_fund_status(kite)
+    cash = funds.get("net", 0)
+    add_param_row("CASH", cash, "≥ 25,000", "Pass" if cash >= 25000 else "Fail")
+
+    # ================== DATA DOWNLOAD ==================
+    selected_date = st.date_input("Select Date", datetime.today())
+    start_date = selected_date - timedelta(days=7)
+    end_date = selected_date + timedelta(days=1)
+
+    df = yf.download(
+        "^NSEI",
+        start=start_date.strftime("%Y-%m-%d"),
+        end=end_date.strftime("%Y-%m-%d"),
+        interval="15m"
+    )
+
+    if df.empty:
+        st.warning("No data received")
+        st.stop()
+
+    df.reset_index(inplace=True)
+    df.rename(columns={"Datetime": "Datetime"}, inplace=True)
+    df["Datetime"] = df["Datetime"].dt.tz_localize("UTC").dt.tz_convert("Asia/Kolkata")
+
+    # ================== LAST 2 DAYS ==================
+    days = df["Datetime"].dt.date.unique()
+    df_plot = df[df["Datetime"].dt.date.isin(days[-2:])]
+
+    # ================== PLOT ==================
+    fig = go.Figure(data=[
+        go.Candlestick(
+            x=df_plot["Datetime"],
+            open=df_plot["Open"],
+            high=df_plot["High"],
+            low=df_plot["Low"],
+            close=df_plot["Close"]
+        )
+    ])
+    fig.update_layout(title="NIFTY 15-Min Chart", xaxis_rangeslider_visible=False)
+    st.plotly_chart(fig, use_container_width=True)
+
+    # ================== SIGNAL ==================
+    signal = trading_signal_all_conditions(df_plot)
+
+    if signal is None:
+        st.warning("No signal yet")
+        st.stop()
+
+    signal_time = signal["entry_time"]
+    st.success(signal["message"])
+
+    # ================== SIGNAL LOCK ==================
+    if st.session_state.last_executed_signal_time == signal_time:
+        st.info("Signal already traded")
+        st.stop()
+
+    # ================== OPTION SELECTION ==================
+    option = find_nearest_itm_option(
+        kite,
+        signal["spot_price"],
+        signal["option_type"]
+    )
+
+    symbol = option["tradingsymbol"]
+    option_symbol = f"NFO:{symbol}"
+    ltp = kite.ltp(option_symbol)[option_symbol]["last_price"]
+
+    st.table(pd.DataFrame([option]))
+
+    # ================== IV / VIX / PCR ==================
+    iv_info = get_iv_rank0(kite, option)
+    iv = iv_info.get("iv", 0)
+    iv_rank = iv_info.get("iv_rank", 0)
+    vix = fetch_india_vix_kite(kite)
+    pcr = get_nifty_pcr(kite)
+
+    add_param_row("IV", iv, "0.10–0.35", "Pass" if 0.10 <= iv <= 0.35 else "Fail")
+    add_param_row("IV Rank", iv_rank, "0.20–0.70", "Pass" if 0.20 <= iv_rank <= 0.70 else "Fail")
+    add_param_row("VIX", vix, "> 10", "Pass" if vix > 10 else "Fail")
+    add_param_row("PCR", pcr, "0.80–1.30", "Pass" if 0.80 <= pcr <= 1.30 else "Fail")
+
+    allowed, position_size = combined_filter(iv, iv_rank, vix)
+
+    # ================== LOT LOGIC ==================
+    lot_qty = 0
+    if allowed:
+        lot_qty = 1
+        if iv_rank < 0.30:
+            lot_qty = 2
+        if iv_rank < 0.20:
+            lot_qty = 4
+
+    add_param_row("LOT QTY", lot_qty, "0–6", "OK")
+
+    st.table(pd.DataFrame(st.session_state.param_rows))
+
+    if lot_qty == 0:
+        st.warning("Trade filtered out")
+        st.stop()
+
+    qty = lot_qty * 75
+    qty=0 
+    # ================== TIME FILTER ==================
+    now_dt = datetime.now(ist)
+    sig_dt = signal_time.astimezone(ist)
+
+    if not (dtime(9, 30) <= sig_dt.time() <= dtime(14, 30)):
+        st.warning("Signal outside trading window")
+        st.stop()
+
+    # ================== PAPER TRADE ==================
+    trade = {
+        "signal_time": signal_time,
+        "symbol": symbol,
+        "entry_price": ltp,
+        "qty": qty,
+        "status": "OPEN"
+    }
+    st.session_state.paper_trades.append(trade)
+    st.session_state.last_executed_signal_time = signal_time
+
+    st.success(f"Paper trade entered @ {ltp}")
+
+    # ================== LIVE ORDER ==================
+    if not st.session_state.order_executed:
+        try:
+            order_id = kite.place_order(
+                tradingsymbol=symbol,
+                exchange=kite.EXCHANGE_NFO,
+                transaction_type=kite.TRANSACTION_TYPE_BUY,
+                quantity=qty,
+                order_type=kite.ORDER_TYPE_MARKET,
+                variety=kite.VARIETY_REGULAR,
+                product=kite.PRODUCT_MIS
+            )
+            st.session_state.order_executed = True
+            st.success(f"Order placed: {order_id}")
+        except Exception as e:
+            st.error(f"Order failed: {e}")
+
+    # ================== ORDERS ==================
+    st.divider()
+    show_kite_orders(kite)
+
               
     
 
@@ -8076,7 +8267,7 @@ elif MENU =="LIVE TRADE 3":
                   st.table(df)
             else:
                   st.write("No parameters added yet.")
-    
+    #------------------------------------------------------------------------------------------------
             qty=qty*lot_qty
             #qty=0
                 # Check 1: Only run if current time is within trading window

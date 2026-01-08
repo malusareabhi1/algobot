@@ -368,7 +368,7 @@ def has_open_position(kite):
 # --- HARD BLOCK: Do not trade if position already exists ---
 if has_open_position(kite):
     st.info("Open position exists → New signal ignored")
-    return
+    #return
 else:
     st.info("Open Not position exists →")
 

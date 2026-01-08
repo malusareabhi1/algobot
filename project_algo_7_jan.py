@@ -7165,6 +7165,25 @@ elif MENU == "My Account":
                     if isinstance(st.session_state.get("trade_logs"), pd.DataFrame):
                         st.subheader("📊 Trade Logs")
                         st.dataframe(st.session_state.trade_logs, use_container_width=True)
+                    st.subheader("📌 Active Trade State")
+
+                    trade_keys = [
+                        "trade_active",
+                        "tradingsymbol",
+                        "entry_price",
+                        "qty",
+                        "entry_time",
+                        "partial_exit_done",
+                        "final_exit_done",
+                        "order_executed"
+                    ]
+                    
+                    trade_rows = [
+                        {"Key": k, "Value": st.session_state.get(k)}
+                        for k in trade_keys
+                    ]
+                    
+                    st.table(pd.DataFrame(trade_rows))
 
 
 

@@ -6354,7 +6354,33 @@ elif MENU =="Live Trade":
         )
     ])
     fig.update_layout(title="NIFTY 15-Min Chart", xaxis_rangeslider_visible=False)
+    fig = go.Figure(
+         data=[
+             go.Candlestick(
+                 x=df_plot["Datetime"],
+                 open=df_plot["Open_^NSEI"],
+                 high=df_plot["High_^NSEI"],
+                 low=df_plot["Low_^NSEI"],
+                 close=df_plot["Close_^NSEI"],
+             )
+         ]
+     )
+
+    fig.update_layout(
+         title="NIFTY 15-Min Chart",
+         xaxis=dict(
+             rangeslider_visible=False,
+             rangebreaks=[
+                 dict(bounds=["sat", "mon"]),
+                 dict(bounds=[15.5, 9.25], pattern="hour"),
+             ],
+         ),
+         height=500
+    )
+     
     st.plotly_chart(fig, use_container_width=True)
+ 
+    #st.plotly_chart(fig, use_container_width=True)
 
     #=====================Reset=======================
     # ================== FIX YFINANCE MULTIINDEX COLUMNS ==================
@@ -6383,7 +6409,7 @@ elif MENU =="Live Trade":
 
 
      
-    st.write("DF Columns:", df.columns.tolist())
+    #st.write("DF Columns:", df.columns.tolist())
  
     # ================== SIGNAL ==================
     signal = trading_signal_all_conditions(df_plot)

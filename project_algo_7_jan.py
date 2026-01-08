@@ -6315,7 +6315,16 @@ elif MENU =="Live Trade":
 
     df.reset_index(inplace=True)
     df.rename(columns={"Datetime": "Datetime"}, inplace=True)
-    df["Datetime"] = df["Datetime"].dt.tz_localize("UTC").dt.tz_convert("Asia/Kolkata")
+    #df["Datetime"] = df["Datetime"].dt.tz_localize("UTC").dt.tz_convert("Asia/Kolkata")
+    df["Datetime"] = pd.to_datetime(df["Datetime"], errors="coerce")
+
+    if df["Datetime"].dt.tz is None:
+         # tz-naive → localize first
+         df["Datetime"] = df["Datetime"].dt.tz_localize("UTC").dt.tz_convert("Asia/Kolkata")
+    else:
+         # already tz-aware → only convert
+         df["Datetime"] = df["Datetime"].dt.tz_convert("Asia/Kolkata")
+      
 
     # ================== LAST 2 DAYS ==================
     days = df["Datetime"].dt.date.unique()

@@ -6347,10 +6347,10 @@ elif MENU =="Live Trade":
     fig = go.Figure(data=[
         go.Candlestick(
             x=df_plot["Datetime"],
-            open=df_plot["Open"],
-            high=df_plot["High"],
-            low=df_plot["Low"],
-            close=df_plot["Close"]
+            open=df_plot["Open_^NSEI"],
+            high=df_plot["High_^NSEI"],
+            low=df_plot["Low_^NSEI"],
+            close=df_plot["Close_^NSEI"]
         )
     ])
     fig.update_layout(title="NIFTY 15-Min Chart", xaxis_rangeslider_visible=False)

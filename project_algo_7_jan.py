@@ -6478,7 +6478,7 @@ elif MENU =="Live Trade":
     #st.write("Signal keys / columns:")
     #st.write(list(signal.keys())) 
     if signal:
-          key = signal_key(latest_time, signal["type"])
+          key = signal_key(latest_time, signal["option_type"])
 
           if key not in st.session_state.seen_signals:
              st.session_state.seen_signals.add(key)

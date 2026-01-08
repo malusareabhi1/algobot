@@ -8784,7 +8784,7 @@ elif MENU =="LIVE TRADE 3":
             else:
                  st.write("No Open Position Active")
           
-              if pos:
+            if pos:
                   st.subheader("🟢 Active Position")
                   st.table(pd.DataFrame([{
                       "Symbol": pos["tradingsymbol"],

@@ -7137,7 +7137,16 @@ elif MENU == "My Account":
 
             with tab6:    
                  st.subheader("🧠 Session State Debug")
-                 st.write(st.session_state)
+                 #st.write(st.session_state)
+                 if st.session_state:
+                      df = pd.DataFrame(
+                            [(k, str(v)) for k, v in st.session_state.items()],
+                            columns=["Key", "Value"]
+                        )
+                        st.table(df)
+                 else:
+                        st.info("Session state is empty")
+
 
                                 
                

@@ -8994,7 +8994,7 @@ elif MENU =="LIVE TRADE 3":
                   kite,
                   last_order["tradingsymbol"]
               )
-                 st.write("POS",pos)
+              st.write("POS",pos)
             else:
                  st.write("No Open Position Active")
           

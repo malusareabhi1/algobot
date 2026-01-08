@@ -6245,8 +6245,7 @@ elif MENU =="Live Trade":
     if "signal_log" not in st.session_state:
          st.session_state.signal_log = []
     #today = latest_time.date()
-    latest_time = pd.to_datetime(df_plot["Datetime"].iloc[-1])
-    today = latest_time.date()
+    
     if "signal_day" not in st.session_state or st.session_state.signal_day != today:
          st.session_state.signal_day = today
          st.session_state.seen_signals.clear()
@@ -6435,9 +6434,9 @@ elif MENU =="Live Trade":
     
      
     st.plotly_chart(fig, use_container_width=True)
- 
+    
     #st.plotly_chart(fig, use_container_width=True)
-
+    
     #=====================Reset=======================
     # ================== FIX YFINANCE MULTIINDEX COLUMNS ==================
 
@@ -6480,7 +6479,8 @@ elif MENU =="Live Trade":
  
     #signal = trading_signal_all_conditions(df_plot)
     latest_time = df_plot["Datetime"].iloc[-1]
-
+    latest_time = pd.to_datetime(df_plot["Datetime"].iloc[-1])
+    today = latest_time.date()
     signal = trading_signal_all_conditions(df_plot)
     #st.write("Signal keys / columns:")
     #st.write(list(signal.keys())) 

@@ -6448,12 +6448,150 @@ elif MENU =="Live Trade":
         )
     )
     
-    
         st.plotly_chart(fig, use_container_width=True)  
-    
-
-    
-    
+         
+        if "signal_log" not in st.session_state:
+              st.session_state.signal_log = []
+          
+        if "seen_signals" not in st.session_state:
+              st.session_state.seen_signals = set()
+          
+        if "param_rows" not in st.session_state:
+              st.session_state.param_rows = []
+          
+        if "last_candle_time" not in st.session_state:
+              st.session_state.last_candle_time = None
+          
+        if "last_trade_time" not in st.session_state:
+              st.session_state.last_trade_time = None
+          
+        def reset_param_rows_if_new_candle(latest_time):
+              if st.session_state.last_candle_time != latest_time:
+                  st.session_state.param_rows = []
+                  st.session_state.last_candle_time = latest_time
+          
+        def add_param_row(param, value, valid_range, result):
+              st.session_state.param_rows.append({
+                  "Parameter": param,
+                  "Value": value,
+                  "Range": valid_range,
+                  "Result": result
+              })
+        def is_valid_intraday_time(ts):
+              ist = pytz.timezone("Asia/Kolkata")
+              t = ts.astimezone(ist).time()
+              return dt.time(9, 30) <= t <= dt.time(14, 30)
+        st.title("📌 Intraday Signals (09:30–14:30)")
+          
+          # df must already be loaded
+          # df["Datetime"] must be datetime64
+        latest_row = df.iloc[-1]
+        latest_time = pd.to_datetime(latest_row["Datetime"])
+          
+        reset_param_rows_if_new_candle(latest_time)
+          
+        signal = trading_signal_all_conditions(df)
+          
+        if signal is None:
+              st.info("No signal yet")
+              st.stop()
+          
+        signal_type = signal["option_type"]   # CALL / PUT
+        spot_price = signal["spot_price"]
+        condition = signal["condition"]
+          
+          
+        signal_key = f"{latest_time.strftime('%Y-%m-%d %H:%M')}_{signal_type}"
+          
+        if signal_key in st.session_state.seen_signals:
+              st.info("Signal already processed for this candle")
+              st.stop()
+          
+        st.session_state.seen_signals.add(signal_key)
+          
+        time_ok = is_valid_intraday_time(latest_time)
+        add_param_row("Signal Time", latest_time.time(), "09:30–14:30", "Pass" if time_ok else "Fail")
+          
+        if not time_ok:
+              st.warning("Outside trading window")
+              st.stop()
+          
+          
+        nearest_itm = find_nearest_itm_option(
+              kite,
+              spot_price,
+              signal_type
+          )
+          
+        iv_info = get_iv_rank0(kite, nearest_itm)
+        iv = iv_info.get("iv", 0)
+        iv_rank = iv_info.get("iv_rank", 0)
+          
+        vix = fetch_india_vix_kite(kite)
+        pcr = get_nifty_pcr(kite)
+          
+          
+        add_param_row("IV", round(iv, 2), "0.10–0.35", "Pass" if 0.10 <= iv <= 0.35 else "Fail")
+        add_param_row("IV Rank", round(iv_rank, 2), "0.20–0.70", "Pass" if 0.20 <= iv_rank <= 0.70 else "Fail")
+        add_param_row("VIX", round(vix, 2), "> 10", "Pass" if vix > 10 else "Fail")
+        add_param_row("PCR", round(pcr, 2), "0.80–1.30", "Pass" if 0.80 <= pcr <= 1.30 else "Fail")
+          
+          
+          
+        lot_qty = 1
+          
+        if not (0.10 <= iv <= 0.35):
+              lot_qty = 0
+        if not (0.20 <= iv_rank <= 0.70):
+              lot_qty = 0
+        if vix <= 10:
+              lot_qty = 0
+          
+        add_param_row("LOT QTY", lot_qty, "0–6", "OK")
+          
+        if lot_qty == 0:
+              st.warning("Trade blocked by filters")
+              st.stop()
+          
+          
+        st.session_state.signal_log.append({
+              "Datetime": latest_time,
+              "Signal": signal_type,
+              "Condition": condition,
+              "Price": spot_price,
+              "Status": "Generated"
+          })
+          
+          
+        if st.session_state.last_trade_time == latest_time:
+              st.info("Trade already executed for this candle")
+              st.stop()
+          
+          
+        qty = lot_qty * 65
+        symbol = nearest_itm["tradingsymbol"]
+        ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
+          
+          # PAPER MODE
+        st.session_state.last_trade_time = latest_time
+          
+        st.success(f"TRADE EXECUTED: {signal_type} @ {ltp}")
+          
+          
+        st.subheader("📊 Parameters")
+        st.table(pd.DataFrame(st.session_state.param_rows))
+          
+        st.subheader("📌 Intraday Signals")
+        st.dataframe(pd.DataFrame(st.session_state.signal_log))
+          
+          
+          
+          
+           
+              
+          
+              
+              
 
 
     

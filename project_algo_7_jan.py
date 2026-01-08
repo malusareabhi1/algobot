@@ -6342,7 +6342,8 @@ elif MENU =="Live Trade":
     ])
     fig.update_layout(title="NIFTY 15-Min Chart", xaxis_rangeslider_visible=False)
     st.plotly_chart(fig, use_container_width=True)
-
+    st.write("DF Columns:", df.columns.tolist())
+ 
     # ================== SIGNAL ==================
     signal = trading_signal_all_conditions(df_plot)
 

@@ -365,12 +365,7 @@ def has_open_position(kite):
             return True
     return False
 
-# --- HARD BLOCK: Do not trade if position already exists ---
-if has_open_position(kite):
-    st.info("Open position exists → New signal ignored")
-    #return
-else:
-    st.info("Open Not position exists →")
+
 
 
 #=================================================================================================
@@ -8424,7 +8419,14 @@ elif MENU =="LIVE TRADE 3":
     if not is_kite_connected(kite):
         st.warning("Please login first to access LIVE trade.")
         st.stop()     # Stop page execution safely
-
+     # --- --------------------------------------------------------------------------------        
+    # --- HARD BLOCK: Do not trade if position already exists ---
+    if has_open_position(kite):
+         st.info("Open position exists → New signal ignored")
+         #return
+    else:
+         st.info("Open Not position exists →")
+      # --- --------------------------------------------------------------------------------    
     #st.success("You are logged in.")
      
     st.session_state.param_rows = []

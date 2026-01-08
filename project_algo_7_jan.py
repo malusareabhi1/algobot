@@ -7011,7 +7011,7 @@ elif MENU == "My Account":
             #---------------------------------------------------------------------------
 
             # Tabs
-            tab1, tab2, tab3,tab4,tab5 = st.tabs(["👤 Account Details", "📁 Holdings", "📘 Orders","💵 Funds","📈 Positions"])
+            tab1, tab2, tab3,tab4,tab5,tab6 = st.tabs(["👤 Account Details", "📁 Holdings", "📘 Orders","💵 Funds","📈 Positions","Session"])
         
             # -----------------------------------------------------------
             # TAB 1 — ACCOUNT HOLDER DETAILS
@@ -7134,6 +7134,11 @@ elif MENU == "My Account":
                
                    except Exception as e:
                        st.error(f"Error fetching positions: {e}")
+
+            with tab6:    
+                 st.subheader("🧠 Session State Debug")
+                 st.write(st.session_state)
+
                                 
                
 

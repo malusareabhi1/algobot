@@ -6308,7 +6308,20 @@ elif MENU =="Live Trade":
         end=end_date.strftime("%Y-%m-%d"),
         interval="15m"
     )
+    df.reset_index(inplace=True)
 
+     # FORCE FLATTEN — no exceptions
+    if isinstance(df.columns, pd.MultiIndex):
+         df.columns = [
+             f"{c[0]}_{c[1]}" if c[1] else c[0]
+             for c in df.columns
+         ]
+     
+     # Safety assert
+    required_cols = {"Close_^NSEI", "Open_^NSEI", "High_^NSEI", "Low_^NSEI"}
+    missing = required_cols - set(df.columns)
+    if missing:
+         raise ValueError(f"Missing columns after normalize: {missing}")
     if df.empty:
         st.warning("No data received")
         st.stop()

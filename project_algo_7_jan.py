@@ -6461,20 +6461,35 @@ elif MENU =="Live Trade":
     #st.write("DF Columns:", df.columns.tolist())
  
     # ================== SIGNAL ==================
+    def signal_key(dt, signal_type):
+         return f"{dt.strftime('%Y-%m-%d %H:%M')}_{signal_type}"
+
+    if "seen_signals" not in st.session_state:
+         st.session_state.seen_signals = set()
+
+    if "signal_log" not in st.session_state:
+         st.session_state.signal_log = []
+  
+ 
     #signal = trading_signal_all_conditions(df_plot)
     latest_time = df_plot["Datetime"].iloc[-1]
 
     signal = trading_signal_all_conditions(df_plot)
-    st.write("Signal keys / columns:")
-    st.write(list(signal.keys())) 
+    #st.write("Signal keys / columns:")
+    #st.write(list(signal.keys())) 
     if signal:
-         st.session_state.signal_log.append({
+          key = signal_key(latest_time, signal["type"])
+
+          if key not in st.session_state.seen_signals:
+             st.session_state.seen_signals.add(key)
+
+          st.session_state.signal_log.append({
              "Datetime": latest_time,
              "Signal": signal["option_type"],          # BUY CALL / BUY PUT
              "Condition": signal["condition"],  # e.g. Gap down confirmed
              "Price": signal["buy_price"],
              "Status": signal.get("status", "Generated")
-         })
+          })
     signal_df = pd.DataFrame(st.session_state.signal_log)
 
     if not signal_df.empty:

@@ -6342,7 +6342,86 @@ elif MENU =="Live Trade":
     # ================== LAST 2 DAYS ==================
     days = df["Datetime"].dt.date.unique()
     df_plot = df[df["Datetime"].dt.date.isin(days[-2:])]
+     #===============================Mark Candles=============================================
+    df_plot["Datetime"] = pd.to_datetime(df_plot["Datetime"])
 
+     # 9:15 candle (today)
+     candle_915 = df_plot[
+         (df_plot["Datetime"].dt.hour == 9) &
+         (df_plot["Datetime"].dt.minute == 15)
+     ].iloc[-1]
+     
+     # 3:00 PM candle (previous day or today as per your logic)
+     candle_300 = df_plot[
+         (df_plot["Datetime"].dt.hour == 15) &
+         (df_plot["Datetime"].dt.minute == 0)
+     ].iloc[-1]
+
+     fig = go.Figure(
+         data=[
+             go.Candlestick(
+                 x=df_plot["Datetime"],
+                 open=df_plot["Open_^NSEI"],
+                 high=df_plot["High_^NSEI"],
+                 low=df_plot["Low_^NSEI"],
+                 close=df_plot["Close_^NSEI"],
+                 increasing_line_width=1,
+                 decreasing_line_width=1,
+             )
+         ]
+     )
+
+     fig.add_vrect(
+          x0=candle_915["Datetime"] - pd.Timedelta(minutes=7),
+          x1=candle_915["Datetime"] + pd.Timedelta(minutes=7),
+          fillcolor="orange",
+          opacity=0.25,
+          layer="below",
+          line_width=0,
+     )
+     levels = [
+         ("9:15 Open", candle_915["Open_^NSEI"], "green", "solid"),
+         ("9:15 Close", candle_915["Close_^NSEI"], "orange", "solid"),
+         ("3PM Open", candle_300["Open_^NSEI"], "blue", "dot"),
+         ("3PM Close", candle_300["Close_^NSEI"], "red", "dot"),
+     ]
+     
+     for label, price, color, dash in levels:
+         fig.add_hline(
+             y=price,
+             line_dash=dash,
+             line_color=color,
+             annotation_text=label,
+             annotation_position="right",
+             annotation_font_size=11,
+             annotation_font_color=color,
+         )
+     fig.add_annotation(
+         x=candle_915["Datetime"],
+         y=candle_915["High_^NSEI"],
+         text="9:15 Candle",
+         showarrow=False,
+         yshift=15,
+         bgcolor="rgba(255,165,0,0.4)",
+         font=dict(size=11)
+     )
+     fig.update_layout(
+         title="Nifty 15-min candles - Last Day & Today",
+         xaxis=dict(
+             rangeslider_visible=False,
+             rangebreaks=[
+                 dict(bounds=["sat", "mon"]),
+                 dict(bounds=[15.5, 9.25], pattern="hour"),
+             ],
+         ),
+         height=500,
+         margin=dict(l=40, r=40, t=50, b=40),
+     )
+     
+     fig.show()
+
+
+     #=================================================================================================
     # ================== PLOT ==================
     fig = go.Figure(data=[
         go.Candlestick(

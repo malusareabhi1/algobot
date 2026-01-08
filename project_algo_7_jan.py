@@ -507,8 +507,43 @@ def normalize_trade(trade):
     trade.setdefault("remaining_qty", trade["quantity"])
     trade.setdefault("status", "OPEN")
 
-
+#=================================================================================================== 
 def manage_exit_papertrade(kite, trade):
+
+    normalize_trade(trade)   # 🔒 ALWAYS normalize first
+
+    entry_time = trade.get("entry_time")
+    entry_price = trade.get("entry_price")
+    qty = trade.get("remaining_qty", 0)
+
+    if trade["status"] != "OPEN":
+        return
+
+    symbol = f"NFO:{trade['symbol']}"
+
+    try:
+        ltp = kite.ltp(symbol)[symbol]["last_price"]
+    except:
+        return
+
+    # 🧠 Example exit logic
+    target = entry_price * 1.25
+    sl = entry_price * 0.85
+
+    # 🎯 Partial exit (50%)
+    if not trade["partial_exit_done"] and ltp >= target:
+        trade["remaining_qty"] = qty // 2
+        trade["partial_exit_done"] = True
+        st.success(f"Partial exit @ {ltp}")
+
+    # ❌ Final SL / Exit
+    if ltp <= sl:
+        trade["remaining_qty"] = 0
+        trade["final_exit_done"] = True
+        trade["status"] = "CLOSED"
+        st.error(f"Trade exited @ {ltp}")
+#===================================================================================================     
+def manage_exit_papertrade23(kite, trade):
 
     if trade["status"] != "OPEN":
         return

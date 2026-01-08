@@ -8761,12 +8761,12 @@ elif MENU =="LIVE TRADE 3":
  
 #--------------------------------------Manage Order--------------------------------------------------------
 
-            last_order = get_last_active_order(kite)
+            last_order1 = get_last_active_order(kite)
 
             st.subheader("🟢 Active Trade")
                
-            if last_order:
-                   st.write({"Symbol": last_order["tradingsymbol"],"Qty": last_order["quantity"],"Entry Price": last_order["average_price"],"Order Time": last_order["order_timestamp"] })
+            if last_order1:
+                   #st.write({"Symbol": last_order["tradingsymbol"],"Qty": last_order["quantity"],"Entry Price": last_order["average_price"],"Order Time": last_order["order_timestamp"] })
                    st.write("Last Order")
             else:
                    st.info("No active trade found.")
@@ -8781,6 +8781,8 @@ elif MENU =="LIVE TRADE 3":
                   kite,
                   last_order["tradingsymbol"]
               )
+            else:
+                 st.write("No Open Position Active")
           
               if pos:
                   st.subheader("🟢 Active Position")

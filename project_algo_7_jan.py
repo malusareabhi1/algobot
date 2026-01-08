@@ -6241,7 +6241,7 @@ elif MENU == "Support":
     #######################################################################################################
 elif MENU =="Live Trade":
     #st.write("Live Trade")
-    
+    st.session_state.param_rows = []
 
     # ================== IMPORTS ==================
     import pytz

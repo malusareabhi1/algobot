@@ -259,8 +259,79 @@ def show_closed_positions0(kite):
 #=================================================================================================
 
 
+from datetime import datetime, timedelta
+import pytz
+
+def monitor_and_exit_last_position(kite):
+    pos = get_last_open_position(kite)
+
+    if not pos:
+        st.info("ℹ️ No open position to monitor")
+        return
+
+    symbol = pos["tradingsymbol"]
+    qty = abs(pos["quantity"])
+    entry_price = pos["average_price"]
+
+    ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
+
+    # --- Time logic (minimum hold 16 minutes) ---
+    ist = pytz.timezone("Asia/Kolkata")
+    entry_time = pos["exchange_timestamp"]
+    now = datetime.now(ist)
+
+    if now < entry_time + timedelta(minutes=16):
+        st.warning("⏳ Hold time < 16 min → Exit blocked")
+        return
+
+    # --- BEST TRAILING SL ---
+    # Initial SL: -0.5%
+    # Trail after +0.7%
+    initial_sl = entry_price * 0.995
+    trail_start = entry_price * 1.007
+    trail_step = 0.3 / 100     # 0.3%
+
+    if ltp > trail_start:
+        tsl = ltp * (1 - trail_step)
+    else:
+        tsl = initial_sl
+
+    # --- TARGET (optional safety cap) ---
+    target = entry_price * 1.02   # 2%
+
+    # --- EXIT CONDITIONS ---
+    if ltp <= tsl:
+        reason = "TRAIL SL HIT"
+    elif ltp >= target:
+        reason = "TARGET HIT"
+    elif now.hour == 15 and now.minute >= 20:
+        reason = "EOD EXIT"
+    else:
+        show_live_position(pos, ltp, tsl, target)
+        return
+
+    place_exit_order(kite, symbol, qty, reason)
+
 
 #=================================================================================================
+
+
+def place_exit_order(kite, symbol, qty, reason):
+    try:
+        kite.place_order(
+            tradingsymbol=symbol,
+            exchange=kite.EXCHANGE_NFO,
+            transaction_type=kite.TRANSACTION_TYPE_SELL,
+            quantity=qty,
+            order_type=kite.ORDER_TYPE_MARKET,
+            variety=kite.VARIETY_REGULAR,
+            product=kite.PRODUCT_MIS
+        )
+        st.success(f"🚀 Exit Done → {symbol} | {reason}")
+
+    except Exception as e:
+        st.error(f"❌ Exit Failed: {e}")
+
 
 
 
@@ -8918,7 +8989,7 @@ elif MENU =="LIVE TRADE 3":
 
 #--------------------------------------Exit Logix=-----------------------------------------------------------        
 
-
+            import time   
             last_order = get_last_buy_order(kite)
 
             if last_order:
@@ -8938,8 +9009,12 @@ elif MENU =="LIVE TRADE 3":
                       "PnL": pos["pnl"]
                   }]))
           
-                  if st.button("🚪 EXIT POSITION"):
-                      exit_last_open_position(kite)
+                 
+
+                  while True:
+                        monitor_and_exit_last_position(kite)
+                        time.sleep(5)
+
 
            
 

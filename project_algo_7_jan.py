@@ -6244,6 +6244,12 @@ elif MENU =="Live Trade":
     st.session_state.param_rows = []
     if "signal_log" not in st.session_state:
          st.session_state.signal_log = []
+    today = latest_time.date()
+
+    if "signal_day" not in st.session_state or st.session_state.signal_day != today:
+         st.session_state.signal_day = today
+         st.session_state.seen_signals.clear()
+         st.session_state.signal_log.clear()
 
     # ================== IMPORTS ==================
     import pytz

@@ -6475,7 +6475,27 @@ elif MENU =="Live Trade":
              "Price": signal["buy_price"],
              "Status": signal.get("status", "Generated")
          })
+    signal_df = pd.DataFrame(st.session_state.signal_log)
+
+    if not signal_df.empty:
+         signal_df["Datetime"] = pd.to_datetime(signal_df["Datetime"])
+     
+         session_signals = signal_df[
+             (signal_df["Datetime"].dt.time >= pd.to_datetime("09:30").time()) &
+             (signal_df["Datetime"].dt.time <= pd.to_datetime("14:30").time())
+         ]
+    else:
+         session_signals = pd.DataFrame()
  
+    st.subheader("📌 Intraday Signals (09:30–14:30)")
+
+    if session_signals.empty:
+         st.info("No signals generated in the session window.")
+    else:
+         st.dataframe(
+             session_signals.sort_values("Datetime"),
+             use_container_width=True
+         )
 
     if signal is None:
         st.warning("No signal yet")

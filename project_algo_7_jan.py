@@ -6246,10 +6246,7 @@ elif MENU =="Live Trade":
          st.session_state.signal_log = []
     #today = latest_time.date()
     
-    if "signal_day" not in st.session_state or st.session_state.signal_day != today:
-         st.session_state.signal_day = today
-         st.session_state.seen_signals.clear()
-         st.session_state.signal_log.clear()
+    
 
     # ================== IMPORTS ==================
     import pytz
@@ -6481,6 +6478,11 @@ elif MENU =="Live Trade":
     latest_time = df_plot["Datetime"].iloc[-1]
     latest_time = pd.to_datetime(df_plot["Datetime"].iloc[-1])
     today = latest_time.date()
+    if "signal_day" not in st.session_state or st.session_state.signal_day != today:
+         st.session_state.signal_day = today
+         st.session_state.seen_signals.clear()
+         st.session_state.signal_log.clear()
+         
     signal = trading_signal_all_conditions(df_plot)
     #st.write("Signal keys / columns:")
     #st.write(list(signal.keys())) 

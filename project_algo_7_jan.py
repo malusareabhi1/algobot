@@ -160,7 +160,59 @@ def show_open_positions(kite):
 
 #=================================================================================================
 
+
 def show_closed_positions(kite):
+    positions = kite.positions()["net"]
+
+    closed_pos = [
+        p for p in positions
+        if p["quantity"] == 0 and p["buy_quantity"] > 0 and p["sell_quantity"] > 0
+    ]
+
+    if not closed_pos:
+        st.info("ℹ️ No Closed Positions Today")
+        return 0
+
+    rows = []
+    total_pnl = 0
+
+    for p in closed_pos:
+        symbol = p["tradingsymbol"]
+
+        buy_qty = p["buy_quantity"]
+        sell_qty = p["sell_quantity"]
+
+        buy_val = p["buy_value"]
+        sell_val = p["sell_value"]
+
+        buy_price = round(buy_val / buy_qty, 2)
+        sell_price = round(sell_val / sell_qty, 2)
+
+        pnl = round(sell_val - buy_val, 2)
+        pnl_pct = round((pnl / buy_val) * 100, 2)
+
+        total_pnl += pnl
+
+        rows.append({
+            "Symbol": symbol,
+            "Buy Qty": buy_qty,
+            "Buy Price": buy_price,
+            "Sell Qty": sell_qty,
+            "Sell Price": sell_price,
+            "Realized P&L (₹)": pnl,
+            "P&L %": pnl_pct
+        })
+
+    df = pd.DataFrame(rows)
+
+    st.subheader("📕 Closed Positions (Today)")
+    st.dataframe(df, use_container_width=True)
+
+    st.metric("Closed P&L", f"₹ {total_pnl:,.2f}")
+    return total_pnl
+
+
+def show_closed_positions0(kite):
     positions = kite.positions()["net"]
 
     closed_pos = [
@@ -8770,7 +8822,7 @@ elif MENU =="LIVE TRADE 3":
                   st.write("No parameters added yet.")
     #------------------------------------------------------------------------------------------------
             qty=qty*lot_qty
-            qty=0
+            #qty=0
                 # Check 1: Only run if current time is within trading window
             if is_valid_signal_time(entry_time):
                  st.warning("Signal time  match today's date .") 

@@ -8667,8 +8667,8 @@ elif MENU =="LIVE TRADE 3":
             st.subheader("🟢 Active Trade")
                
             if last_order:
-                   #st.write({"Symbol": last_order["tradingsymbol"],"Qty": last_order["quantity"],"Entry Price": last_order["average_price"],Order Time": last_order["order_timestamp"] })
-                    st.write("Last Order")
+                   st.write({"Symbol": last_order["tradingsymbol"],"Qty": last_order["quantity"],"Entry Price": last_order["average_price"],Order Time": last_order["order_timestamp"] })
+                   st.write("Last Order")
             else:
                    st.info("No active trade found.")
 
@@ -8684,13 +8684,7 @@ elif MENU =="LIVE TRADE 3":
 
 
 #--------------------------------EXIT------------------------------------------------
-            # ---------------- EXIT MANAGEMENT ----------------
-            if st.session_state.trade_active:
-                   manage_exit(
-                       kite=kite,
-                       tradingsymbol=st.session_state.tradingsymbol,
-                       qty=st.session_state.qty
-                   )
+          
 
 
 #--------------------------------------------------------------------------------

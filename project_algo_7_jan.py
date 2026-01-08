@@ -7136,16 +7136,32 @@ elif MENU == "My Account":
                        st.error(f"Error fetching positions: {e}")
 
             with tab6:    
-                 st.subheader("🧠 Session State Debug")
-                 #st.write(st.session_state)
-                 if st.session_state:
-                      df = pd.DataFrame(
-                            [(k, str(v)) for k, v in st.session_state.items()],
-                            columns=["Key", "Value"]
-                        )
-                      st.table(df)
-                 else:
-                        st.info("Session state is empty")
+                    st.subheader("🧠 Session State Debug (Clean View)")
+
+                    rows = []
+                    for key, value in st.session_state.items():
+                        if isinstance(value, pd.DataFrame):
+                            display_value = f"DataFrame shape={value.shape}"
+                        elif isinstance(value, dict):
+                            display_value = str(value)
+                        elif isinstance(value, list):
+                            display_value = f"List (len={len(value)})"
+                        else:
+                            display_value = value
+                    
+                        rows.append({
+                            "Key": key,
+                            "Value": display_value,
+                            "Type": type(value).__name__
+                        })
+                    
+                    df_debug = pd.DataFrame(rows)
+                    
+                    st.dataframe(
+                        df_debug,
+                        use_container_width=True,
+                        hide_index=True
+                    )
 
 
                                 

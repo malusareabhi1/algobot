@@ -6289,7 +6289,7 @@ elif MENU =="Live Trade":
     #----------------------------------------------------------------------
     #if is_kite_connected(kite):
     funds = get_fund_status(kite)
-    st.write(funds) 
+    #st.write(funds) 
     cash = (funds['cash'])
     cash = (funds['net']) 
     #iv_value = 0.26
@@ -6380,6 +6380,25 @@ elif MENU =="Live Trade":
             close_3pm = None
             st.warning("No 3:00 PM candle found for last trading day.")
     
+          #----------------------------------------------------------------------
+        #-----------------------------Marking 9.15 Candle---------------------------------
+        # Get today's 9:15 AM candle
+        candle_915 = df_plot[(df_plot['Datetime'].dt.date == today) &
+                          (df_plot['Datetime'].dt.hour == 9) &
+                          (df_plot['Datetime'].dt.minute == 15)]
+     
+        if not candle_915.empty:
+              o_915 = candle_915.iloc[0]['Open_^NSEI']
+              h_915 = candle_915.iloc[0]['High_^NSEI']
+              l_915 = candle_915.iloc[0]['Low_^NSEI']
+              c_915 = candle_915.iloc[0]['Close_^NSEI']
+              t_915 = candle_915.iloc[0]['Datetime']
+        else:
+              o_915 = h_915 = l_915 = c_915 = t_915 = None
+              st.warning("No 9:15 AM candle found for today.")    
+         
+         #---------------------------------------------------------------------------------
+    
         # Plot candlestick chart
         fig = go.Figure(data=[go.Candlestick(
             x=df_plot['Datetime'],
@@ -6388,10 +6407,28 @@ elif MENU =="Live Trade":
             low=df_plot['Low_^NSEI'],
             close=df_plot['Close_^NSEI']
         )])
-    
+        if t_915 is not None:
+              fig.add_vrect(
+                  x0=t_915,
+                  x1=t_915 + pd.Timedelta(minutes=15),
+                  fillcolor="orange",
+                  opacity=0.25,
+                  layer="below",
+                  line_width=0,
+                  annotation_text="9:15 Candle",
+                  annotation_position="top left"
+              )
+        
         if open_3pm and close_3pm:
             fig.add_hline(y=open_3pm, line_dash="dot", line_color="blue", annotation_text="3PM Open")
             fig.add_hline(y=close_3pm, line_dash="dot", line_color="red", annotation_text="3PM Close")
+
+        if o_915 is not None and c_915 is not None:
+              fig.add_hline(y=o_915, line_dash="solid", line_color="green",
+                            annotation_text="9:15 Open")
+              fig.add_hline(y=c_915, line_dash="solid", line_color="orange",
+                            annotation_text="9:15 Close")
+ 
     
     
     
@@ -6412,8 +6449,7 @@ elif MENU =="Live Trade":
     )
     
     
-        st.plotly_chart(fig, use_container_width=True)
-        #----------------------------------------------------------------------
+        st.plotly_chart(fig, use_container_width=True)  
     
 
     

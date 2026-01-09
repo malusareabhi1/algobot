@@ -8767,7 +8767,7 @@ elif MENU =="LIVE TRADE 3":
                   # 🔐 LOCK THE SIGNAL
                   st.session_state.last_executed_signal_time = signal_time
           
-                  st.success(f"Paper trade entered @ {entry_price}")
+                  #st.success(f"Paper trade entered @ {entry_price}")
 
             #monitor_paper_trades(kite)
             #for trade in st.session_state.paper_trades:
@@ -8998,7 +8998,8 @@ elif MENU =="LIVE TRADE 3":
                  
                  # Check 2: Signal time reached
                     if now >= signal_time:
-                      
+                       st.write("signal_time",signal_time)
+                       st.write("Now Time", now)
                       # Check 3: Order placed only once
                          if lot_qty>0: 
                               if has_open_position(kite):

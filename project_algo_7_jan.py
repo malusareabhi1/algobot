@@ -259,6 +259,15 @@ def show_closed_positions0(kite):
 #=================================================================================================
 
 
+def get_last_open_position(kite):
+    positions = kite.positions()["net"]
+    for p in positions:
+        if p["quantity"] != 0:
+            return p
+    return None
+
+
+#-------------------------------------------------------------------------------
 from datetime import datetime, timedelta
 import pytz
 

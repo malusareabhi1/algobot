@@ -8997,7 +8997,7 @@ elif MENU =="LIVE TRADE 3":
                  if start_time <= now <= end_time:
                  
                  # Check 2: Signal time reached
-                    if now >= signal_time:
+                    if now >= entry_time:
                          st.write("entry_time",entry_time)
                          st.write("Now Time", now)
                       # Check 3: Order placed only once

@@ -287,8 +287,8 @@ def monitor_and_exit_last_position(kite):
     # --- BEST TRAILING SL ---
     # Initial SL: -0.5%
     # Trail after +0.7%
-    initial_sl = entry_price * 0.995
-    trail_start = entry_price * 1.007
+    initial_sl = entry_price * 0.90
+    trail_start = entry_price * 0.993
     trail_step = 0.3 / 100     # 0.3%
     st.write("initial SL", initial_sl)  
     if ltp > trail_start:

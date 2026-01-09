@@ -367,14 +367,20 @@ def show_live_position(pos, ltp, tsl, target):
 
 #==========================================has_open_position=======================================================
 
-def has_open_position(kite):
+def has_open_position0(kite):
     positions = kite.positions()["net"]
     for p in positions:
         if p["quantity"] != 0 and p["product"] == kite.PRODUCT_MIS:
             return True
     return False
 
-
+def has_open_position(kite, tradingsymbol=None):
+    positions = kite.positions()["net"]
+    for p in positions:
+        if p["quantity"] != 0:
+            if tradingsymbol is None or p["tradingsymbol"] == tradingsymbol:
+                return True
+    return False
 
 
 #=================================================================================================
@@ -8995,33 +9001,39 @@ elif MENU =="LIVE TRADE 3":
                       
                       # Check 3: Order placed only once
                          if lot_qty>0: 
-                               if not st.session_state.order_executed:
-                                   try:
-                                       order_id = kite.place_order(
-                                               tradingsymbol=trending_symbol,
-                                               exchange=kite.EXCHANGE_NFO,
-                                               transaction_type=kite.TRANSACTION_TYPE_BUY,
-                                               quantity=qty,
-                                               order_type=kite.ORDER_TYPE_MARKET,
-                                               variety=kite.VARIETY_REGULAR,
-                                               product=kite.PRODUCT_MIS
-                                           )
-                           
-                                       st.session_state.order_executed = True   # Mark executed
-                                       st.session_state.order_executed = True
-                                       st.session_state.last_order_id = order_id
-                              
-                                      # ✅ Mark trade active
-                                       st.session_state.trade_active = True
-                                       st.session_state.entry_price = ltp
-                                       st.session_state.entry_time = datetime.now()
-                                       st.session_state.qty = qty
-                                       st.session_state.tradingsymbol = trending_symbol 
-                                       st.success(f"Order Placed Successfully! Order ID: {order_id}")
-                                       st.session_state["last_order_id"] = order_id
-                           
-                                   except Exception as e:
-                                       st.error(f"Order Failed: {e}")
+                              if has_open_position(kite):
+
+                                  st.warning("⚠️ Open position exists. New trade not allowed.")
+                                  
+                              else:
+                                    if not st.session_state.order_executed:
+                                        try:
+                                            order_id = kite.place_order(
+                                                    tradingsymbol=trending_symbol,
+                                                    exchange=kite.EXCHANGE_NFO,
+                                                    transaction_type=kite.TRANSACTION_TYPE_BUY,
+                                                    quantity=qty,
+                                                    order_type=kite.ORDER_TYPE_MARKET,
+                                                    variety=kite.VARIETY_REGULAR,
+                                                    product=kite.PRODUCT_MIS
+                                                )
+                                
+                                            st.session_state.order_executed = True   # Mark executed
+                                            st.session_state.order_executed = True
+                                            st.session_state.last_order_id = order_id
+                                   
+                                           # ✅ Mark trade active
+                                            st.session_state.trade_active = True
+                                            st.session_state.entry_price = ltp
+                                            st.session_state.entry_time = datetime.now()
+                                            st.session_state.qty = qty
+                                            st.session_state.tradingsymbol = trending_symbol 
+                                            st.success(f"Order Placed Successfully! Order ID: {order_id}")
+                                            st.session_state["last_order_id"] = order_id
+                                
+                                        except Exception as e:
+                                            st.error(f"Order Failed: {e}")
+                                        
                          else:
                                st.info("Trade Not Allowed Qty=0.")  
                     else:

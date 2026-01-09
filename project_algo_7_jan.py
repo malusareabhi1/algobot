@@ -8998,7 +8998,7 @@ elif MENU =="LIVE TRADE 3":
                  
                  # Check 2: Signal time reached
                     #if now >= entry_time:
-                     if abs((now - entry_time).total_seconds()) < 30:  
+                    if abs((now - entry_time).total_seconds()) < 30:  
                          st.info("Execution window In (30 seconds).") 
                          st.write("entry_time-",entry_time)
                          st.write("Now Time-", now)

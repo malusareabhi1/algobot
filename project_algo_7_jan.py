@@ -8421,7 +8421,7 @@ elif MENU == "Setting":
         "lot_size": int(manual_lot_size)
     }
 
-
+#========================================================================================================
 elif MENU =="LIVE TRADE 3":
     with st.sidebar:
          if st.button("🧹 Clear Paper Trades"):
@@ -8652,7 +8652,7 @@ elif MENU =="LIVE TRADE 3":
             df_sig1 = pd.DataFrame([signal])
             signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
             signal["signal_time"] = signal_time
-  
+            signal_time1=signal["signal_time"] 
  
                 
                 # Display as table
@@ -8998,7 +8998,7 @@ elif MENU =="LIVE TRADE 3":
                  
                  # Check 2: Signal time reached
                     if now >= signal_time:
-                         st.write("signal_time",signal_time)
+                         st.write("signal_time1",signal_time1)
                          st.write("Now Time", now)
                       # Check 3: Order placed only once
                          if lot_qty>0: 

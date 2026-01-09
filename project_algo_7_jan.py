@@ -8997,9 +8997,11 @@ elif MENU =="LIVE TRADE 3":
                  if start_time <= now <= end_time:
                  
                  # Check 2: Signal time reached
-                    if now >= entry_time:
-                         st.write("entry_time",entry_time)
-                         st.write("Now Time", now)
+                    #if now >= entry_time:
+                     if abs((now - entry_time).total_seconds()) < 30:  
+                         st.info("Execution window In (30 seconds).") 
+                         st.write("entry_time-",entry_time)
+                         st.write("Now Time-", now)
                       # Check 3: Order placed only once
                          if lot_qty>0: 
                               if has_open_position(kite):

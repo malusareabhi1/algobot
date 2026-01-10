@@ -2533,7 +2533,7 @@ def find_nearest_itm_option(kite, spot_price, option_type):
         "instrument_token": int(selected["instrument_token"]),
         "option_type": option_type.upper(),
         "expiry": selected.get("expiry"),
-        "lot_size": selected.get("lot_size", selected.get("lot_sizes", 75)),
+        "lot_size": selected.get("lot_size", selected.get("lot_sizes", 65)),
         "tick_size": selected.get("tick_size"),
         "segment": selected.get("segment"),
         "exchange": selected.get("exchange", "NFO"),

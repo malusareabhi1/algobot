@@ -9491,11 +9491,11 @@ elif MENU =="NIFTY 3:20 PM Intraday Strategy":
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
         #signal = trading_signal_all_conditions(df_plot)
         signal = nifty_320_breakout_strategy(df_plot) 
-        st.write(signal)  
+        #st.write(signal)  
         if signal is None:
             st.warning("⚠ No signal yet (conditions not met).")
         else:
-            st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
+            st.success(f"✅ SIGNAL GENERATED: {signal['option_type']}")
             df_sig1 = pd.DataFrame([signal])
             signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
             signal["signal_time"] = signal_time

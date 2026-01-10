@@ -9276,71 +9276,67 @@ elif MENU =="NIFTY 3:20 PM Intraday Strategy":
              st.rerun()
  
     st.title("🔴 LIVE TRADE NIFTY 3:20 PM Intraday Strategy")
-    st.write("""
-     📈 NIFTY 3:20 PM Intraday Breakout Options Strategy
+    with st.expander("📈 NIFTY 3:20 PM Intraday Breakout Options Strategy - Click to expand"):
+    st.markdown("""
+     1️⃣ **Market Preparation**  
+     - The strategy is applied on NIFTY index only.  
+     - The 3:15 PM to 3:20 PM candle is used as the reference candle.  
      
-     1️⃣ Market Preparation  
-     The strategy is applied on NIFTY index only.  
-     The 3:15 PM to 3:20 PM candle is used as the reference candle.
-     
-     • Box High = High of 3:20 PM candle  
-     • Box Low = Low of 3:20 PM candle  
+     **Box High** = High of 3:20 PM candle  
+     **Box Low** = Low of 3:20 PM candle  
      
      This candle represents where institutional traders have positioned themselves.
      
      ---
      
-     2️⃣ Trading Time  
-     The strategy becomes active from 3:20 PM to 3:29 PM only.  
-     Only one trade is allowed per day.
+     2️⃣ **Trading Time**  
+     - The strategy becomes active from 3:20 PM to 3:29 PM only.  
+     - Only one trade is allowed per day.
      
      ---
      
-     3️⃣ Entry Rules  
+     3️⃣ **Entry Rules**  
      
-     Bullish Breakout (CALL Option):  
+     **Bullish Breakout (CALL Option):**  
      If NIFTY price breaks above the 3:20 PM candle high, buy ATM CALL option.
      
-     Bearish Breakout (PUT Option):  
+     **Bearish Breakout (PUT Option):**  
      If NIFTY price breaks below the 3:20 PM candle low, buy ATM PUT option.
      
      ---
      
-     4️⃣ Stop Loss  
+     4️⃣ **Stop Loss**  
      
-     For CALL trade:  
-     Stop Loss = 3:20 PM candle low  
-     
-     For PUT trade:  
-     Stop Loss = 3:20 PM candle high  
+     - For CALL trade: Stop Loss = 3:20 PM candle low  
+     - For PUT trade: Stop Loss = 3:20 PM candle high
      
      ---
      
-     5️⃣ Target  
+     5️⃣ **Target**  
      
-     Risk = Box High − Box Low  
-     Target = Entry Price ± (1.5 × Risk)
+     - Risk = Box High − Box Low  
+     - Target = Entry Price ± (1.5 × Risk)  
      
      This ensures positive risk-reward.
      
      ---
      
-     6️⃣ Time Exit  
+     6️⃣ **Time Exit**  
      
-     If target or stop loss is not hit, the trade is exited at 3:29 PM at market price.
-     
-     ---
-     
-     7️⃣ Risk Management  
-     
-     • Only one trade per day  
-     • Fixed stop loss  
-     • Fixed target  
-     • Very short holding time  
+     - If target or stop loss is not hit, the trade is exited at 3:29 PM at market price.
      
      ---
      
-     8️⃣ Why this strategy works  
+     7️⃣ **Risk Management**  
+     
+     - Only one trade per day  
+     - Fixed stop loss  
+     - Fixed target  
+     - Very short holding time
+     
+     ---
+     
+     8️⃣ **Why this strategy works**  
      
      After 3:20 PM, large traders and institutions adjust hedges.  
      This creates a strong directional move in NIFTY options which this strategy captures.

@@ -2613,6 +2613,7 @@ def nifty_320_breakout_strategy(df, quantity=65, return_all_signals=False):
                 "strategy": "NIFTY 3:20 Breakout",
                 "option_type": "CALL",
                 "entry_price": box_high,
+                "spot_price": box_high, 
                 "stoploss": box_low,
                 "target": target,
                 "entry_time": candle["Datetime"],
@@ -2633,6 +2634,7 @@ def nifty_320_breakout_strategy(df, quantity=65, return_all_signals=False):
                 "strategy": "NIFTY 3:20 Breakout",
                 "option_type": "PUT",
                 "entry_price": box_low,
+                "spot_price": box_high,  
                 "stoploss": box_high,
                 "target": target,
                 "entry_time": candle["Datetime"],
@@ -2672,6 +2674,7 @@ def nifty_320_breakout_strategy(df, quantity=65, return_all_signals=False):
     if trade_taken and "exit_price" not in sig:
         last_price = after.iloc[-1]["Close_^NSEI"]
         sig["exit_price"] = last_price
+        sig["spot_price"] = last_price 
         sig["status"] = "TIME EXIT"
 
     if trade_taken:

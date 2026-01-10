@@ -8572,6 +8572,116 @@ elif MENU =="LIVE TRADE 3":
  
     st.title("🔴 LIVE TRADE 3")
     #st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")
+    with st.expander("📘 Base Zone Multi-Condition Options Strategy (Click to Expand)"):
+         st.markdown("""
+     ### 🔷 What this strategy does
+     This is a **rule-based NIFTY options strategy** that uses:
+     - Previous day **3:00 PM candle**
+     - Current day **9:15–9:30 range**
+     - **Price behavior after market open**
+     
+     It detects whether the market is:
+     - Trending bullish
+     - Trending bearish
+     - Or reversing after a gap
+     
+     and trades accordingly.
+     
+     ---
+     
+     ## 🧱 1️⃣ Base Zone (Previous Day)
+     From **yesterday’s 3:00 PM candle**:
+     - `Base High` = max(Open, Close)
+     - `Base Low` = min(Open, Close)
+     
+     This zone represents **institutional positioning**.
+     
+     ---
+     
+     ## ⏰ 2️⃣ Today’s First 15-Minute Range (9:15 – 9:30)
+     From today’s **9:30 candle**:
+     - `H1` = High
+     - `L1` = Low
+     - `C1` = Close
+     
+     This tells us how price reacts to the Base Zone.
+     
+     ---
+     
+     ## 📈 3️⃣ Trading Conditions
+     
+     ### 🔹 Condition 1 – Normal Breakout
+     If price opens inside Base Zone and  
+     **closes above Base High → Buy CALL**
+     
+     ---
+     
+     ### 🔹 Condition 2 – Gap Down
+     If market opens **below Base Low**
+     - Break below L1 → Buy PUT  
+     - If price later recovers above Base High → Flip to CALL
+     
+     ---
+     
+     ### 🔹 Condition 3 – Gap Up
+     If market opens **above Base High**
+     - Break above H1 → Buy CALL  
+     - If price later falls below Base Low → Flip to PUT
+     
+     ---
+     
+     ### 🔹 Condition 4 – Breakdown
+     If market opens inside Base Zone and  
+     **closes below Base Low → Buy PUT**
+     
+     ---
+     
+     ## 🛑 4️⃣ Smart Stop Loss (Swing Based)
+     Stop loss is not fixed.
+     
+     It uses:
+     > **Last 10 candles swing high & swing low**
+     
+     • CALL → Stoploss = recent swing low  
+     • PUT → Stoploss = recent swing high  
+     
+     And it **trails automatically** as price moves.
+     
+     ---
+     
+     ## ⏳ 5️⃣ Time Exit
+     If neither stoploss nor trailing SL hits:
+     > Exit automatically after **16 minutes**
+     
+     This avoids chop and theta decay.
+     
+     ---
+     
+     ## 💰 6️⃣ What P&L Is Based On
+     Your function uses: 
+     These are **NIFTY spot prices**.
+
+     Option P&L is **mapped from spot movement**.
+     
+     ---
+     
+     ## 🧠 7️⃣ Why This Works
+     This captures:
+     - Gap traps
+     - Institutional breakout
+     - Trend continuation
+     - Smart trailing exits
+     
+     It avoids:
+     - Random trades
+     - Over-trading
+     - Long holding during chop
+     
+     ---
+     
+     ### ✅ In simple words:
+     > This is a **professional gap-and-base breakout strategy** with **dynamic trailing SL and time-based exits** — built for intraday NIFTY options trading.
+     """)
     if not is_kite_connected(kite):
         st.warning("Please login first to access LIVE trade.")
         st.stop()     # Stop page execution safely

@@ -9261,11 +9261,11 @@ elif MENU =="LIVE TRADE 3":
             keys_to_show = [
                    "trade_status",
                    "signal_time",
-                   "entry_price",
+                   "signal_price",
                    "entry_time",
                    "exit_time",
                    "order_id",
-                   "tradingsymbol"
+                   "symbol"
                ]
                
             for k in keys_to_show:

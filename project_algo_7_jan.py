@@ -7779,7 +7779,7 @@ elif MENU =="Live Trade":
      #-----------------------------------------Display PARA-------------------------------------------
          if st.session_state.param_rows:
                   df = pd.DataFrame(st.session_state.param_rows)
-                  st.table(df)
+                  #st.table(df)
          else:
                   st.write("No parameters added yet.")
     #------------------------------------------------------------------------------------------------

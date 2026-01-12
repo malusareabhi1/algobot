@@ -9345,7 +9345,7 @@ elif MENU =="LIVE TRADE 3":
                    st.info("No active trade found.")
 
 #--------------------------------------Exit Logix=-----------------------------------------------------------        
-
+            pos = False 
             import time   
             last_order = get_last_buy_order(kite)
             #st.write("Last Order",last_order)   

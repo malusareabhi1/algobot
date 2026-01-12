@@ -8969,7 +8969,7 @@ elif MENU =="LIVE TRADE 3":
             #signal_time = df["Datetime"].iloc[-1].time()   # last candle time
             option_type = signal["option_type"]     # CALL / PUT
             #st.write("Option type ",option_type)
-            spot = signal["spot_price"]
+            spot = last_signal["spot_price"]
             #st.write("Option spot ",spot)
             try:
                 nearest_itm = find_nearest_itm_option(kite, spot, option_type)
@@ -9005,15 +9005,15 @@ elif MENU =="LIVE TRADE 3":
           #------------------------------------------PAPER TRADE-------------------------------------------------
             if signal is not None:
 
-              signal_time = signal["signal_time"]
+              signal_time = last_signal["signal_time"]
           
               # 🔒 ENTRY LOCK — THIS PREVENTS RE-ENTRY ON REFRESH
               if st.session_state.last_executed_signal_time == signal_time:
                   pass  # already traded this signal
           
               else:
-                  option_type = signal["option_type"]
-                  spot = signal["spot_price"]
+                  option_type = last_signal["option_type"]
+                  spot = last_signal["spot_price"]
           
                   nearest_itm = find_nearest_itm_option(kite, spot, option_type)
                   trending_symbol = nearest_itm["tradingsymbol"]

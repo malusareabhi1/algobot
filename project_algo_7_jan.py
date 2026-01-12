@@ -7880,15 +7880,15 @@ elif MENU =="Live Trade":
 
 
 #------------------------------------ORDERS--------------------------------------------
-            show_kite_orders(kite)
+        show_kite_orders(kite)
          #===========================================OPEN POSITION--------------------------------------
-            st.divider()
+        st.divider()
 
-            open_pnl = show_open_positions(kite)
-            closed_pnl = show_closed_positions(kite)
+        open_pnl = show_open_positions(kite)
+        closed_pnl = show_closed_positions(kite)
                
-            st.divider()
-            st.metric(
+        st.divider()
+        st.metric(
                    "💰 TOTAL DAY P&L",
                    f"₹ {open_pnl + closed_pnl:,.2f}"
              )

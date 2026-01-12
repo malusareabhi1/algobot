@@ -7549,7 +7549,7 @@ elif MENU =="Live Trade":
          option_type=option_type
          )
      
-        if greeks:
+         if greeks:
               st.subheader("Greeks Values")
           
               col1, col2, col3, col4, col5 = st.columns(5)

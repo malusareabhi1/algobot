@@ -6987,7 +6987,7 @@ elif MENU =="Live Trade":
          else:
              st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
      
-         st.title("Nifty 15-min Chart")
+         #st.title("Nifty 15-min Chart")
          
          # Select date input (default today)
          selected_date = st.date_input("Select date", value=datetime.today())
@@ -7133,13 +7133,33 @@ elif MENU =="Live Trade":
 
     with col3:
         st.subheader("Signal Log")
-        signal_df = pd.DataFrame({
-            "Time": ["09:35", "09:50"],
-            "Signal": ["BUY CALL", "BUY PUT"],
-            "Strike": [25200, 25100],
-            "Status": ["Triggered", "Waiting"]
-        })
-        st.dataframe(signal_df, use_container_width=True)
+        df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
+        signal = trading_signal_all_conditions(df_plot)
+        #st.write("DEBUG signal:", signal)
+        #st.write("Type:", type(signal))
+
+        if signal and isinstance(signal, list):
+              last_signal = signal[-1]
+              st.success(f"✅ SIGNAL GENERATED: {last_signal['message']}")
+ 
+        if signal is None:
+            st.warning("⚠ No signal yet (conditions not met).")
+        else:
+            #st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
+            last_signal = signal[-1]  
+            df_sig1 = pd.DataFrame([signal])
+            signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
+            last_signal["signal_time"] = signal_time
+            signal_time1=last_signal["signal_time"] 
+
+             
+ 
+                
+                # Display as table
+            #st.table(df_sig1) 
+            #st.write(df_sig1) 
+            st.subheader("📊 Signal Log")
+            st.write(df_sig1) 
 
     with col4:
         st.subheader("Option Log")

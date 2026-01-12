@@ -7589,6 +7589,7 @@ elif MENU =="Live Trade":
                    lot_qty = 6    
             if vix_now < 10 :
                    lot_qty = 0 
+                 
             add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK")
      #-----------------------------------------Display PARA-------------------------------------------
             if st.session_state.param_rows:
@@ -7671,6 +7672,198 @@ elif MENU =="Live Trade":
          hide_index=True
      )
 
+         #---------------------------------tIME-----------------------------------------------
+            import pytz
+            
+    # IST timezone
+            ist = pytz.timezone("Asia/Kolkata")
+            now_dt = datetime.now(ist)     # full datetime object
+            now = now_dt.time()            # extract time only for comparisons
+
+            tz = pytz.timezone("Asia/Kolkata")
+            now = datetime.now(tz)
+     #----------------------------------FUND-----------------------------------------------------
+            #st.divider()
+
+            funds = get_fund_status(kite)
+
+            #st.subheader("💰 Zerodha Fund Status")
+    
+            if "error" in funds:
+                st.error(funds["error"])
+            else:
+                  #st.write(f"**Net Balance:** ₹{funds['net']}")
+                  #st.write(f"**Cash:** ₹{funds['cash']}")
+                  #st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
+                  #st.write(f"**Collateral:** ₹{funds['collateral']}")
+                  #st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
+                  #cash_balance = 73500
+                  lots = get_lot_size(funds['cash'])
+                  #st.write("Lot Size:", lots)
+                  qty=65*lots
+                  #st.divider()
+
+   
+    
+    #------------------------------------PLACING ORDERS--------------------------------------------
+             #st.write(f"Placing order for:", trending_symbol)
+            if(position_size=='none'):
+                  position_size=1;
+        #st.write(f"Quantity: {qty}, LTP: {ltp}")
+        #st.write(f"Quantity  order for:", qty)        
+        #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
+        # Condition 1: Current time >= signal candle time
+        # Trading window
+            start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
+            end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+    #st.write("start_time", start_time)
+    #st.write("end_time", end_time)
+    #st.write("Now Time", now)
+    #st.write("signal_time",signal_time)
+    
+    
+    #-------------------------------------------------------------------------------
+
+        # Convert to Python datetime (with timezone if needed)
+            signal_time = pd.to_datetime(signal_time).to_pydatetime()
+   
+    # Optional: ensure same timezone as now
+    #import pytz
+            tz = pytz.timezone("Asia/Kolkata")
+            signal_time = signal_time.replace(tzinfo=tz)
+    #    st.write("signal_time",signal_time)
+    #st.write("Now Time", now)
+    #--------------------------------------------------------------------------------
+     #-----------------------Add PARA----------------------------------------------
+    # Define IST timezone
+            ist = pytz.timezone("Asia/Kolkata")
+    
+    # Convert signal_time to IST
+            signal_time_ist = signal_time.astimezone(ist)
+            import datetime as dt
+
+            start = dt.time(9, 30)
+            end   = dt.time(14, 30)
+    
+            sig_t = signal_time_ist.time()
+    
+            result = "Pass" if start <= sig_t <= end else "Fail"
+    
+            add_param_row("Signal Time", str(signal_time_ist.time()),"09:30 - 14:30",result)
+     #------------------------------------ADD PCR------------------------------------------ 
+            pcr_value = get_nifty_pcr(kite)
+            result = "Pass" if 0.80 <= pcr_value <= 1.30 else "Fail"
+            pcr_result= result
+            add_param_row("PCR", round(pcr_value, 2), "0.80 - 1.30", result)
+
+#-------------------------------------lot ty------------------------------------------------
+     # Default lot size
+            qty = 1*65
+            
+                 
+     
+     # Apply rule
+            if iv_result == "Fail" or iv_rank_result == "Fail":
+                   lot_qty = 2
+            if iv_result == "Pass" and iv_rank_result == "Fail" and vix_result=="pass" and pcr_result=="pass":
+                   lot_qty = 6    
+            if vix_now < 10 :
+                   lot_qty = 1 
+            if 10< vix_now < 15 :
+                   lot_qty = 2
+            if 15< vix_now < 20 :
+                   lot_qty = 4
+            if vix_now > 20 :
+                   lot_qty = 1     
+            add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK")
+     #-----------------------------------------Display PARA-------------------------------------------
+            if st.session_state.param_rows:
+                  df = pd.DataFrame(st.session_state.param_rows)
+                  st.table(df)
+            else:
+                  st.write("No parameters added yet.")
+    #------------------------------------------------------------------------------------------------
+            qty=qty*lot_qty
+            #qty=0
+            #st.subheader("Session State Debug")
+            #st.write(st.session_state)
+            #st.subheader("Session State (Detailed)")
+            #for key, value in st.session_state.items():
+                #st.write(f"{key} :", value)
+
+            st.subheader("Trade State")
+            keys_to_show = [
+                   "trade_status",
+                   "signal_time",
+                   "signal_price",
+                   "entry_time",
+                   "exit_time",
+                   "order_id",
+                   "symbol"
+               ]
+               
+            for k in keys_to_show:
+                   if k in st.session_state:
+                       st.write(f"{k} :", st.session_state[k])
+
+ 
+ 
+                # Check 1: Only run if current time is within trading window
+            if is_valid_signal_time(entry_time):
+                 st.warning("Signal time  match today's date .") 
+                 if start_time <= now <= end_time:
+                 
+                 # Check 2: Signal time reached
+                    #if now >= entry_time:
+                    if abs((now - entry_time).total_seconds()) < 50:  
+                         st.info("Execution window In (30 seconds).") 
+                         st.write("entry_time-",entry_time)
+                         st.write("Now Time-", now)
+                      # Check 3: Order placed only once
+                         if lot_qty>0: 
+                              if has_open_position(kite):
+
+                                  st.warning("⚠️ Open position exists. New trade not allowed.")
+                                  
+                              else:
+                                    if not st.session_state.order_executed:
+                                        try:
+                                            order_id = kite.place_order(
+                                                    tradingsymbol=trending_symbol,
+                                                    exchange=kite.EXCHANGE_NFO,
+                                                    transaction_type=kite.TRANSACTION_TYPE_BUY,
+                                                    quantity=qty,
+                                                    order_type=kite.ORDER_TYPE_MARKET,
+                                                    variety=kite.VARIETY_REGULAR,
+                                                    product=kite.PRODUCT_MIS
+                                                )
+                                
+                                            st.session_state.order_executed = True   # Mark executed
+                                            st.session_state.order_executed = True
+                                            st.session_state.last_order_id = order_id
+                                   
+                                           # ✅ Mark trade active
+                                            st.session_state.trade_active = True
+                                            st.session_state.entry_price = ltp
+                                            st.session_state.entry_time = datetime.now()
+                                            st.session_state.qty = qty
+                                            st.session_state.tradingsymbol = trending_symbol 
+                                            st.success(f"Order Placed Successfully! Order ID: {order_id}")
+                                            st.session_state["last_order_id"] = order_id
+                                
+                                        except Exception as e:
+                                            st.error(f"Order Failed: {e}")
+                                        
+                         else:
+                               st.info("Trade Not Allowed Qty=0.")  
+                    else:
+                         st.info("Order already executed for this signal.")
+                 
+                 else:
+                       st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
+            else:
+                   st.warning("Signal time does not match today's date or is outside trading hours. Order not placed.")     
+              
     st.divider()
 
     # ===== ROW 4 =====

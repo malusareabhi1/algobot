@@ -8923,8 +8923,8 @@ elif MENU =="LIVE TRADE 3":
  
                 
                 # Display as table
-            st.table(df_sig1) 
-             
+            #st.table(df_sig1) 
+            st.write(df_sig1) 
             entry_time = last_signal['entry_time']
             #st.write("entry_time",entry_time) 
             #st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS

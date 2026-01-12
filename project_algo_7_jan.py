@@ -7164,7 +7164,7 @@ elif MENU =="Live Trade":
    
     with col4:
         st.subheader("Option Log")
-        entry_time = last_signal['entry_time']
+            entry_time = last_signal['entry_time']
             #st.write("entry_time",entry_time) 
             #st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS
             signal_time=entry_time.strftime("%H:%M:%S")
@@ -7172,65 +7172,65 @@ elif MENU =="Live Trade":
             #            st.write(signal)
 #--------------------------------------------------------------------------------
 
-        def generate_signals_stepwise(df):
-            all_signals = []
-            
-            # We run strategy for each candle progressively
-            for i in range(40, len(df)):   # start after enough candles
-                sub_df = df.iloc[:i].copy()
-                sig = trading_signal_all_conditions(sub_df)
-                if sig is not None:
-                    all_signals.append((sub_df.iloc[-1]["Datetime"], sig))
+            def generate_signals_stepwise(df):
+                 all_signals = []
+                 
+                 # We run strategy for each candle progressively
+                 for i in range(40, len(df)):   # start after enough candles
+                     sub_df = df.iloc[:i].copy()
+                     sig = trading_signal_all_conditions(sub_df)
+                     if sig is not None:
+                         all_signals.append((sub_df.iloc[-1]["Datetime"], sig))
+             
+                 return all_signals
+     #-------------------------------------Total signals-------------------------------------------
+     
+            step_signals = generate_signals_stepwise(df_plot)
+            if step_signals:
+                     #st.info(f"Total signals detected so far: {len(step_signals)}")
+                 
+                     latest_time, latest_sig = step_signals[-1]
+                     
+                     st.success(f"🟢 Latest Candle Signal ({latest_time}):")
+                     #st.write(latest_sig)
+                     # Convert to DataFrame
+                     df_sig = pd.DataFrame([latest_sig])
+                     
+                     # Display as table
+                     #st.table(df_sig)
+            else:
+                     st.warning("No signal triggered in any candle yet.")
         
-            return all_signals
-#-------------------------------------Total signals-------------------------------------------
-
-        step_signals = generate_signals_stepwise(df_plot)
-        if step_signals:
-                #st.info(f"Total signals detected so far: {len(step_signals)}")
-            
-                latest_time, latest_sig = step_signals[-1]
-                
-                st.success(f"🟢 Latest Candle Signal ({latest_time}):")
-                #st.write(latest_sig)
-                # Convert to DataFrame
-                df_sig = pd.DataFrame([latest_sig])
-                
-                # Display as table
-                #st.table(df_sig)
-        else:
-                st.warning("No signal triggered in any candle yet.")
-   
-
-#-----------------------------------Nearest ITM Option ---------------------------------------------
-
-        if signal is not None:
-            #signal_time = df["Datetime"].iloc[-1].time()   # last candle time
-            option_type = last_signal["option_type"]     # CALL / PUT
-            #st.write("Option type ",option_type)
-            spot = last_signal["spot_price"]
-            #st.write("Option spot ",spot)
-            try:
-                nearest_itm = find_nearest_itm_option(kite, spot, option_type)
-                
-                st.success("Nearest ITM Option Found")
-                #                st.write(nearest_itm)
-                nearest_itm1 = pd.DataFrame([nearest_itm])
-                
-                # Display as table
-                st.table(nearest_itm1)
-                trending_symbol=nearest_itm['tradingsymbol']
-                #st.write("tradingsymbol-",trending_symbol)
-             #====================================================FLAG SIGNAL================================
-                st.session_state.trade_status = "SIGNAL"
-                st.session_state.signal_time = signal_time
-                st.session_state.signal_price = nearest_itm['ltp']   # LTP at signal candle
-                st.session_state.symbol = trending_symbol 
-
-             #==================================================================================================
-        
-            except Exception as e:
-                st.error(f"Failed to fetch option: {e}")
+     
+     #-----------------------------------Nearest ITM Option ---------------------------------------------
+     
+            if signal is not None:
+                 #signal_time = df["Datetime"].iloc[-1].time()   # last candle time
+                 option_type = last_signal["option_type"]     # CALL / PUT
+                 #st.write("Option type ",option_type)
+                 spot = last_signal["spot_price"]
+                 #st.write("Option spot ",spot)
+                 try:
+                     nearest_itm = find_nearest_itm_option(kite, spot, option_type)
+                     
+                     st.success("Nearest ITM Option Found")
+                     #                st.write(nearest_itm)
+                     nearest_itm1 = pd.DataFrame([nearest_itm])
+                     
+                     # Display as table
+                     st.table(nearest_itm1)
+                     trending_symbol=nearest_itm['tradingsymbol']
+                     #st.write("tradingsymbol-",trending_symbol)
+                  #====================================================FLAG SIGNAL================================
+                     st.session_state.trade_status = "SIGNAL"
+                     st.session_state.signal_time = signal_time
+                     st.session_state.signal_price = nearest_itm['ltp']   # LTP at signal candle
+                     st.session_state.symbol = trending_symbol 
+     
+                  #==================================================================================================
+             
+                 except Exception as e:
+                     st.error(f"Failed to fetch option: {e}")
 
 
     st.divider()

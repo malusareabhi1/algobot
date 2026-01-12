@@ -7549,7 +7549,7 @@ elif MENU =="Live Trade":
          S=spot_price,
          K=strike,
          T=time_to_expiry,
-         r=risk_free_rate,
+         r=r,
          sigma=iv,
          option_type=option_type
          )

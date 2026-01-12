@@ -6958,13 +6958,16 @@ elif MENU =="Live Trade":
         #st.write(funds) 
         cash = (funds['cash'])
         cash = (funds['net'])  
+
+        st.subheader("Connection Status") 
         if is_kite_connected(kite):
              st.success("Kite connection active")
         else:
              st.error("Kite session expired. Please login again.") 
-        st.subheader("Connection Status")
+        st.subheader("WebSocket Status")
         #st.success("Kite Connected")
         st.info("WebSocket: Running")
+        st.subheader("FUND Status")
         st.metric("Funds ₹.", cash)
 
     with col2:

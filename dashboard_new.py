@@ -106,7 +106,7 @@ with col1:
 with col2:
     st.markdown('<div class="block">', unsafe_allow_html=True)
     st.subheader("NIFTY 5 / 15 Min Chart")
-
+    fig = go.Figure()
     fig.update_layout(
         template="plotly_dark",
         height=350,

@@ -39,6 +39,34 @@ if "paper_trades" not in st.session_state:
 
 if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
+#==================================================GREEKS========================================
+
+import numpy as np
+from scipy.stats import norm
+
+def option_greeks(S, K, T, r, sigma, option_type="CE"):
+    if T <= 0 or sigma <= 0:
+        return None
+
+    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+
+    greeks = {}
+
+    if option_type == "CE":
+        greeks["Delta"] = norm.cdf(d1)
+        greeks["Theta"] = (-S * norm.pdf(d1) * sigma / (2 * np.sqrt(T))
+                            - r * K * np.exp(-r * T) * norm.cdf(d2)) / 365
+    else:
+        greeks["Delta"] = norm.cdf(d1) - 1
+        greeks["Theta"] = (-S * norm.pdf(d1) * sigma / (2 * np.sqrt(T))
+                            + r * K * np.exp(-r * T) * norm.cdf(-d2)) / 365
+
+    greeks["Gamma"] = norm.pdf(d1) / (S * sigma * np.sqrt(T))
+    greeks["Vega"] = (S * norm.pdf(d1) * np.sqrt(T)) / 100
+    greeks["IV"] = sigma * 100
+
+    return greeks
 
 #================================================================================================
 
@@ -7511,12 +7539,25 @@ elif MENU =="Live Trade":
 #==============================================================================================================================
 
     with col6:
-        st.subheader("Greeks Values")
-        greeks_df = pd.DataFrame({
-            "Greek": ["Delta", "Gamma", "Theta", "Vega", "IV"],
-            "Value": [0.52, 0.08, -12.5, 4.2, 18.6]
-        })
-        st.dataframe(greeks_df, use_container_width=True)
+         st.subheader("Greeks Values")
+         greeks = option_greeks(
+         S=spot_price,
+         K=strike,
+         T=T,
+         r=risk_free_rate,
+         sigma=iv,
+         option_type=option_type
+         )
+     
+        if greeks:
+              st.subheader("Greeks Values")
+          
+              col1, col2, col3, col4, col5 = st.columns(5)
+              col1.metric("Delta", round(greeks["Delta"], 3))
+              col2.metric("Gamma", round(greeks["Gamma"], 4))
+              col3.metric("Theta", round(greeks["Theta"], 2))
+              col4.metric("Vega", round(greeks["Vega"], 2))
+              col5.metric("IV %", round(greeks["IV"], 2))
 
     st.divider()
 

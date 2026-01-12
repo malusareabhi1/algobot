@@ -39,6 +39,37 @@ if "paper_trades" not in st.session_state:
 
 if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
+#=================================================SAFE GREEK =================================================
+
+def safe_option_greeks(S, K, T, r, sigma, option_type="CALL"):
+
+    T = max(T, 1/365)
+    sigma = max(sigma, 0.05)
+
+    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+
+    if option_type == "CALL":
+        delta = norm.cdf(d1)
+        theta = (-S * norm.pdf(d1) * sigma / (2 * np.sqrt(T))
+                 - r * K * np.exp(-r * T) * norm.cdf(d2)) / 365
+    else:
+        delta = norm.cdf(d1) - 1
+        theta = (-S * norm.pdf(d1) * sigma / (2 * np.sqrt(T))
+                 + r * K * np.exp(-r * T) * norm.cdf(-d2)) / 365
+
+    gamma = norm.pdf(d1) / (S * sigma * np.sqrt(T))
+    vega = S * norm.pdf(d1) * np.sqrt(T) / 100
+
+    return {
+        "Delta": round(delta, 4),
+        "Gamma": round(gamma, 6),
+        "Theta": round(theta, 2),
+        "Vega": round(vega, 2),
+        "IV": round(sigma * 100, 2)
+    }
+
+
 #==================================================GREEKS========================================
 
 import numpy as np
@@ -7543,16 +7574,18 @@ elif MENU =="Live Trade":
          time_to_expiry = days_to_exp / 365 
          r=0.07
             #st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
-         iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
+         #iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
+         iv=new_iv_result
          st.subheader("Greeks Values")
-         greeks = option_greeks(
-         S=spot_price,
-         K=strike,
-         T=time_to_expiry,
-         r=r,
-         sigma=iv,
+         #greeks = option_greeks(S=spot_price,K=strike,T=time_to_expiry,r=r,sigma=iv,option_type=option_type)
+         S=spot_price
+         K=strike
+         T=time_to_expiry
+         r=r
+         sigma=iv
          option_type=option_type
-         )
+         
+         greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
      
          if greeks:
               #st.subheader("Greeks Values")

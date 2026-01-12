@@ -6946,12 +6946,9 @@ elif MENU =="Live Trade":
         except:
             return False
 
-    if is_kite_connected(kite):
-        st.success("Kite connection active")
-    else:
-        st.error("Kite session expired. Please login again.")
+    
 
-    st.title("Algo Trading Dashboard")
+    #st.title("Algo Trading Dashboard")
 
     # ===== ROW 1 =====
     col1, col2 = st.columns([1, 3])
@@ -6961,8 +6958,12 @@ elif MENU =="Live Trade":
         #st.write(funds) 
         cash = (funds['cash'])
         cash = (funds['net'])  
+        if is_kite_connected(kite):
+             st.success("Kite connection active")
+        else:
+             st.error("Kite session expired. Please login again.") 
         st.subheader("Connection Status")
-        st.success("Kite Connected")
+        #st.success("Kite Connected")
         st.info("WebSocket: Running")
         st.metric("Funds ₹.", cash)
 

@@ -2687,7 +2687,7 @@ def nifty_320_breakout_strategy(df, quantity=65, return_all_signals=False):
 
 #============================================================================================================
 #----------------------------------------------------------------------------------------
-def trading_signal_all_conditions(df, quantity=10*65, return_all_signals=False):
+def trading_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
         """
         Evaluate trading conditions based on Base Zone strategy with:
         - CALL stop loss = recent swing low (last 10 candles)

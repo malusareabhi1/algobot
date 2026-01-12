@@ -8926,7 +8926,7 @@ elif MENU =="LIVE TRADE 3":
             #st.table(df_sig1) 
             #st.write(df_sig1) 
             st.subheader("📊 Signal Log")
-            st.dataframe(df_sig1, use_container_width=True) 
+            st.write(df_sig1, use_container_width=True) 
             entry_time = last_signal['entry_time']
             #st.write("entry_time",entry_time) 
             #st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS

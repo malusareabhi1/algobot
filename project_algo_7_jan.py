@@ -6957,10 +6957,14 @@ elif MENU =="Live Trade":
     col1, col2 = st.columns([1, 3])
 
     with col1:
+        funds = get_fund_status(kite)
+        #st.write(funds) 
+        cash = (funds['cash'])
+        cash = (funds['net'])  
         st.subheader("Connection Status")
         st.success("Kite Connected")
         st.info("WebSocket: Running")
-        st.metric("Funds", "₹1,02,450")
+        st.metric("Funds ₹.", cash)
 
     with col2:
         st.subheader("NIFTY 5 / 15 Min Chart")

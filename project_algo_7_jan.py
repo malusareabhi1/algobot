@@ -8905,10 +8905,14 @@ elif MENU =="LIVE TRADE 3":
         st.write("DEBUG signal:", signal)
         st.write("Type:", type(signal))
 
+        if signal and isinstance(signal, list):
+              last_signal = signal[-1]
+              st.success(f"✅ SIGNAL GENERATED: {last_signal['message']}")
+ 
         if signal is None:
             st.warning("⚠ No signal yet (conditions not met).")
         else:
-            st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
+            #st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
             df_sig1 = pd.DataFrame([signal])
             signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
             signal["signal_time"] = signal_time

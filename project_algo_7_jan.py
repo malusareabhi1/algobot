@@ -9258,7 +9258,7 @@ elif MENU =="LIVE TRADE 3":
                 #st.write(f"{key} :", value)
 
              st.subheader("Trade State")
-             keys_to_show = [
+            keys_to_show = [
                    "trade_status",
                    "signal_time",
                    "entry_price",
@@ -9268,7 +9268,7 @@ elif MENU =="LIVE TRADE 3":
                    "tradingsymbol"
                ]
                
-             for k in keys_to_show:
+            for k in keys_to_show:
                    if k in st.session_state:
                        st.write(f"{k} :", st.session_state[k])
 

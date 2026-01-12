@@ -7617,15 +7617,15 @@ elif MENU =="Live Trade":
          
          greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
      
-         if greeks:
+         #if greeks:
               #st.subheader("Greeks Values")
           
-              col1, col2, col3, col4, col5 = st.columns(5)
-              col1.metric("Delta", round(greeks["Delta"], 3))
-              col2.metric("Gamma", round(greeks["Gamma"], 4))
-              col3.metric("Theta", round(greeks["Theta"], 2))
-              col4.metric("Vega", round(greeks["Vega"], 2))
-              col5.metric("IV %", round(greeks["IV"], 2))
+              #col1, col2, col3, col4, col5 = st.columns(5)
+              #col1.metric("Delta", round(greeks["Delta"], 3))
+              #col2.metric("Gamma", round(greeks["Gamma"], 4))
+              #col3.metric("Theta", round(greeks["Theta"], 2))
+              #col4.metric("Vega", round(greeks["Vega"], 2))
+              #col5.metric("IV %", round(greeks["IV"], 2))
          greeks_param_df = pd.DataFrame([
     {
         "Parameter": "Delta",

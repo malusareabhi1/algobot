@@ -7240,14 +7240,274 @@ elif MENU =="Live Trade":
     col5, col6 = st.columns(2)
 
     with col5:
-        st.subheader("Parameter Values")
-        st.write({
-            "Strategy": "Doctor Strategy 1.0",
-            "Timeframe": "5 Min",
-            "SL %": "10%",
-            "Target %": "15%",
-            "Trailing SL": "Enabled"
-        })
+            st.subheader("Parameter Values")
+            option_dict = get_live_option_details(kite, trending_symbol)
+            spot_price=26046.00 
+            ltp = option_dict.get("ltp")
+            strike = option_dict.get("strike")
+            expiry = option_dict.get("expiry")
+            is_call = option_dict.get("option_type") == "CALL"
+          #------------------------------------------PAPER TRADE-------------------------------------------------
+            if signal is not None:
+
+              signal_time = last_signal["signal_time"]
+          
+              # 🔒 ENTRY LOCK — THIS PREVENTS RE-ENTRY ON REFRESH
+              if st.session_state.last_executed_signal_time == signal_time:
+                  pass  # already traded this signal
+          
+              else:
+                  option_type = last_signal["option_type"]
+                  spot = last_signal["spot_price"]
+          
+                  nearest_itm = find_nearest_itm_option(kite, spot, option_type)
+                  trending_symbol = nearest_itm["tradingsymbol"]
+                  option_symbol = f"NFO:{trending_symbol}"
+          
+                  entry_price = kite.ltp(option_symbol)[option_symbol]["last_price"]
+          
+                  
+                  trade = {
+                        "signal_time": signal_time,
+                        "entry_time": pd.Timestamp.now(),
+                        "symbol": trending_symbol,
+                        "option_type": option_type,
+                        "entry_price": entry_price,
+                        "quantity": 75,
+                        "remaining_qty": 75,
+                        "highest_price": entry_price,
+                        "partial_exit_done": False,
+                        "final_exit_done": False,
+                        "status": "OPEN"
+                    }
+          
+                  st.session_state.paper_trades.append(trade)
+          
+                  # 🔐 LOCK THE SIGNAL
+                  st.session_state.last_executed_signal_time = signal_time
+          
+                  #st.success(f"Paper trade entered @ {entry_price}")
+
+            #monitor_paper_trades(kite)
+            #for trade in st.session_state.paper_trades:
+              #normalize_trade(trade)
+              #manage_exit_papertrade(kite, trade)
+
+            st.write("Moniter")
+             
+
+ 
+   
+          #---------------------------------------PAPER TRADE----------------------------------------------------   
+              # Compute time to expiry (in years)
+            days_to_exp = days_to_expiry(expiry)
+            time_to_expiry = days_to_exp / 365 
+            r=0.07
+            #st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
+            iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
+            #st.write("IV  FOr (Option):CE")
+            #st.write("IV (decimal):", iv)
+            #st.write("IV (%):", iv * 100)    
+            result = "Pass" if (iv is not None and 0.10 <= iv <= 0.35) else "Fail"
+ 
+            #result = "Pass" if 0.10 <= iv <= 0.35 else "Fail"
+            iv_result = result    
+            #add_param_row("IV", round(iv, 2), "0.10 - 0.35", result)
+             
+
+#-----------------------------------IV Compute---------------------------------------------
+
+        #spot_price = get_ltp(kite, "NSE:NIFTY 50")["ltp"]
+        
+         #iv_percent = compute_option_iv(nearest_itm, spot)
+        
+         #st.write("IV:", iv_percent)    
+         
+         #get_live_iv_nifty_option(kite, option_token: int, index_symbol="NSE:NIFTY 50"):        
+            #st.write(nearest_itm)  
+
+#----------------------------------IV----------------------------------------------
+
+    
+        
+            iv_info = get_iv_rank0(kite, nearest_itm, lookback_days=250)
+       
+            #st.write("New Way Iv ",iv)  
+            # Fix missing values
+            if iv_info["iv"] is None:
+                 iv_info["iv"] = 0
+     
+            if iv_info["iv_rank"] is None:
+                iv_info["iv_rank"] = 0
+
+         ##st.write("Current IV:", iv_info["iv"], "%")
+         #st.write("IV Rank:", iv_info["iv_rank"], "%")
+#-----------------------Add PARA----------------------------------------------
+    # IV
+            result = "Pass" if 0.10 <= iv_info["iv"] <= 0.35 else "Fail"
+            iv_result = result    
+            #add_param_row("IV", round(iv_info["iv"], 2), "0.10 - 0.35", result)
+
+    # IV Rank
+            result = "Pass" if 0.20 <= iv_info["iv_rank"] <= 0.70 else "Fail"
+            iv_rank_result  = result    
+            #add_param_row("IV Rank", round(iv_info["iv_rank"], 2), "0.20 - 0.70", result)
+#--------------------------------------------------Getting New IV-----------& adding to para----------------------------
+            #result = compute_option_iv_details(option, spot)
+     
+            #st.write(result)  
+            option = get_live_option_details(kite, trending_symbol)
+     
+            #st.write(option)
+     
+     
+            spot = option["strike"]
+            #st.write("Spot",spot) 
+            #spot = 25900.00  # live NIFTY spot
+     
+            result = compute_option_iv_details(option, spot)
+            #st.write("IV new",result["iv"]) 
+            new_iv_result= result["iv"]
+            result = "Pass" if 0.10 <= new_iv_result <= 0.35 else "Fail" 
+            add_param_row("IV ", round(new_iv_result, 2), "0.10 - 0.35", result) 
+#-------------------------------------------------------------------------
+            if(iv_info["iv"]=='None'):
+             # Safely extract values
+                  iv_value = iv_info.get("iv") or 0
+                  iv_rank_value = iv_info.get("iv_rank") or 0
+             
+                  st.write("After None Current IV:", iv_value, "%")
+                  st.write("After None IV Rank:", iv_rank_value, "%")
+    
+        
+
+#--------------------------------VIX------------------------------------------------
+         #vix_now =fetch_vix_from_fyers()
+         
+            vix_now = fetch_india_vix_kite(kite)
+         #st.write("India VIX: kite", vix_now)
+         #st.write("India VIX:", vix_now)
+ #-----------------------Add PARA----------------------------------------------
+    # VIX
+            result = "Pass" if vix_now > 10 else "Fail"
+            vix_result  = result     
+            add_param_row("VIX", round(vix_now, 2), "> 10", result)
+
+ #------------------------------------------------------------------------------   
+    # Apply IV + VIX Filter
+    # -------------------------
+        #allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_now)
+    # Safely extract values
+            iv_value = iv_info.get("iv") or 0
+            iv_rank_value = iv_info.get("iv_rank") or 0
+            allowed, position_size = combined_filter(iv_value, iv_rank_value, vix_now)
+            #st.write("Allowed to Trade?", allowed)
+            #st.write("Position Size:", position_size)
+    #-----------------------------------------------------------------------------------------
+    
+    #---------------------------------tIME-----------------------------------------------
+            import pytz
+            
+    # IST timezone
+            ist = pytz.timezone("Asia/Kolkata")
+            now_dt = datetime.now(ist)     # full datetime object
+            now = now_dt.time()            # extract time only for comparisons
+
+            tz = pytz.timezone("Asia/Kolkata")
+            now = datetime.now(tz)
+     #----------------------------------FUND-----------------------------------------------------
+            #st.divider()
+
+            funds = get_fund_status(kite)
+
+            #st.subheader("💰 Zerodha Fund Status")
+    
+            if "error" in funds:
+                st.error(funds["error"])
+            else:
+                  #st.write(f"**Net Balance:** ₹{funds['net']}")
+                  #st.write(f"**Cash:** ₹{funds['cash']}")
+                  #st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
+                  #st.write(f"**Collateral:** ₹{funds['collateral']}")
+                  #st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
+                  #cash_balance = 73500
+                  lots = get_lot_size(funds['cash'])
+                  #st.write("Lot Size:", lots)
+                  qty=65*lots
+                  #st.divider()
+
+   
+    
+    #------------------------------------PLACING ORDERS--------------------------------------------
+             #st.write(f"Placing order for:", trending_symbol)
+            if(position_size=='none'):
+                  position_size=1;
+        #st.write(f"Quantity: {qty}, LTP: {ltp}")
+        #st.write(f"Quantity  order for:", qty)        
+        #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
+        # Condition 1: Current time >= signal candle time
+        # Trading window
+            start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
+            end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+    #st.write("start_time", start_time)
+    #st.write("end_time", end_time)
+    #st.write("Now Time", now)
+    #st.write("signal_time",signal_time)
+    
+    
+    #-------------------------------------------------------------------------------
+
+        # Convert to Python datetime (with timezone if needed)
+            signal_time = pd.to_datetime(signal_time).to_pydatetime()
+   
+    # Optional: ensure same timezone as now
+    #import pytz
+            tz = pytz.timezone("Asia/Kolkata")
+            signal_time = signal_time.replace(tzinfo=tz)
+    #    st.write("signal_time",signal_time)
+    #st.write("Now Time", now)
+    #--------------------------------------------------------------------------------
+     #-----------------------Add PARA----------------------------------------------
+    # Define IST timezone
+            ist = pytz.timezone("Asia/Kolkata")
+    
+    # Convert signal_time to IST
+            signal_time_ist = signal_time.astimezone(ist)
+            import datetime as dt
+
+            start = dt.time(9, 30)
+            end   = dt.time(14, 30)
+    
+            sig_t = signal_time_ist.time()
+    
+            result = "Pass" if start <= sig_t <= end else "Fail"
+    
+            add_param_row("Signal Time", str(signal_time_ist.time()),"09:30 - 14:30",result)
+     #------------------------------------ADD PCR------------------------------------------ 
+            pcr_value = get_nifty_pcr(kite)
+            result = "Pass" if 0.80 <= pcr_value <= 1.30 else "Fail"
+            pcr_result= result
+            add_param_row("PCR", round(pcr_value, 2), "0.80 - 1.30", result)
+
+#-------------------------------------lot ty------------------------------------------------
+     # Default lot size
+            qty = 1*65
+     
+     # Apply rule
+            if iv_result == "Fail" or iv_rank_result == "Fail":
+                   lot_qty = 2
+            if iv_result == "Pass" and iv_rank_result == "Fail" and vix_result=="pass" and pcr_result=="pass":
+                   lot_qty = 6    
+            if vix_now < 10 :
+                   lot_qty = 0 
+            add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK")
+     #-----------------------------------------Display PARA-------------------------------------------
+            if st.session_state.param_rows:
+                  df = pd.DataFrame(st.session_state.param_rows)
+                  st.table(df)
+            else:
+                  st.write("No parameters added yet.")
+    #------------------------------------------------------------------------------------------------
 #==============================================================================================================================
 
     with col6:

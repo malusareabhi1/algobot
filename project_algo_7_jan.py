@@ -2696,6 +2696,7 @@ def trading_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
         - Time exit after 16 minutes if neither SL nor trailing SL hit
         - Single active trade per day
         """
+        trade_taken = False
 
         signals = []
         spot_price = df['Close_^NSEI'].iloc[-1]
@@ -2860,6 +2861,7 @@ def trading_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
             }
             sig = monitor_trade(sig)
             signals.append(sig)
+            trade_taken = True 
             if not return_all_signals:
                 return sig
     
@@ -2882,6 +2884,7 @@ def trading_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
                     }
                     sig = monitor_trade(sig)
                     signals.append(sig)
+                    trade_taken = True 
                     if not return_all_signals:
                         return sig
     
@@ -2901,6 +2904,7 @@ def trading_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
                     }
                     sig_flip = monitor_trade(sig_flip)
                     signals.append(sig_flip)
+                    trade_taken = True 
                     if not return_all_signals:
                         return sig_flip
     
@@ -2922,6 +2926,7 @@ def trading_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
                     }
                     sig = monitor_trade(sig)
                     signals.append(sig)
+                    trade_taken = True 
                     if not return_all_signals:
                         return sig
     
@@ -2941,6 +2946,7 @@ def trading_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
                     }
                     sig_flip = monitor_trade(sig_flip)
                     signals.append(sig_flip)
+                    trade_taken = True 
                     if not return_all_signals:
                         return sig_flip
     
@@ -2960,6 +2966,7 @@ def trading_signal_all_conditions(df, quantity=10*65, return_all_signals=True):
             }
             sig = monitor_trade(sig)
             signals.append(sig)
+            trade_taken = True 
             if not return_all_signals:
                 return sig
     

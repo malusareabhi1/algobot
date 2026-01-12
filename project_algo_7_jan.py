@@ -8967,7 +8967,7 @@ elif MENU =="LIVE TRADE 3":
 
         if signal is not None:
             #signal_time = df["Datetime"].iloc[-1].time()   # last candle time
-            option_type = signal["option_type"]     # CALL / PUT
+            option_type = last_signal["option_type"]     # CALL / PUT
             #st.write("Option type ",option_type)
             spot = last_signal["spot_price"]
             #st.write("Option spot ",spot)

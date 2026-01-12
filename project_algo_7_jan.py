@@ -9242,8 +9242,12 @@ elif MENU =="LIVE TRADE 3":
     #------------------------------------------------------------------------------------------------
             qty=qty*lot_qty
             #qty=0
-            st.subheader("Session State Debug")
-            st.write(st.session_state)
+            #st.subheader("Session State Debug")
+            #st.write(st.session_state)
+            st.subheader("Session State (Detailed)")
+            for key, value in st.session_state.items():
+                st.write(f"{key} :", value)
+ 
  
                 # Check 1: Only run if current time is within trading window
             if is_valid_signal_time(entry_time):

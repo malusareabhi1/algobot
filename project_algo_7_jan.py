@@ -39,6 +39,18 @@ if "paper_trades" not in st.session_state:
 
 if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
+
+#================================================================================================
+
+def parse_signal_json(cell):
+    if pd.isna(cell):
+        return None
+    try:
+        return json.loads(cell)
+    except Exception:
+        return None
+
+
 #=================================================================================================
 
 def get_last_buy_order(kite):
@@ -8926,7 +8938,22 @@ elif MENU =="LIVE TRADE 3":
             #st.table(df_sig1) 
             #st.write(df_sig1) 
             st.subheader("📊 Signal Log")
-            st.write(df_sig1) 
+            #st.write(df_sig1) 
+#======================================================================================================================
+
+
+            row = signal.iloc[0]   # row 0 from your screenshot
+
+            signalsz = []
+          
+            for col in signal.columns:
+                   parsed = parse_signal_json(row[col])
+                   if parsed:
+                       signalsz.append(parsed)
+            st.write(signalsz)  
+#========================================================================================================================             
+
+             
             entry_time = last_signal['entry_time']
             #st.write("entry_time",entry_time) 
             #st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS

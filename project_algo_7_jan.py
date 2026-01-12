@@ -7248,6 +7248,56 @@ elif MENU =="Live Trade":
             #st.write(df_sig1) 
             st.subheader("📊 Signal Log")
             st.write(df_sig1) 
+
+     #=============================================================================================
+        st.subheader("📊 Signal Log")
+
+        df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
+        signal = trading_signal_all_conditions(df_plot)
+          
+        if not signal:
+              st.warning("⚠ No signal yet (conditions not met).")
+        else:
+              # signal is a list of dicts
+              df_sig = pd.DataFrame(signal)
+          
+              # Convert timestamps if present
+        if "entry_time" in df_sig.columns:
+                  df_sig["entry_time"] = pd.to_datetime(df_sig["entry_time"], unit="ms")
+          
+        if "signal_time" in df_sig.columns:
+                  df_sig["signal_time"] = pd.to_datetime(df_sig["signal_time"], unit="ms")
+          
+        if "expiry" in df_sig.columns:
+                  df_sig["expiry"] = pd.to_datetime(df_sig["expiry"], unit="ms").dt.date
+          
+              # Reorder columns (optional but recommended)
+        preferred_cols = [
+                  "signal_time",
+                  "option_type",
+                  "condition",
+                  "buy_price",
+                  "exit_price",
+                  "stoploss",
+                  "quantity",
+                  "spot_price",
+                  "status",
+                  "message"
+              ]
+          
+        existing_cols = [c for c in preferred_cols if c in df_sig.columns]
+        df_sig = df_sig[existing_cols]
+          
+        st.dataframe(
+                  df_sig,
+                  use_container_width=True,
+                  hide_index=True
+              )
+          
+              # Show latest signal clearly
+        last_signal = signal[-1]
+        st.success(f"✅ LAST SIGNAL: {last_signal['message']}")
+                           
 #==============================================================================================================================
    
     with col4:

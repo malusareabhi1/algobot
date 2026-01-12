@@ -7651,7 +7651,7 @@ elif MENU =="Live Trade":
     },
     {
         "Parameter": "IV %",
-        "Value": greeks["IV %"],
+        "Value": greeks["IV"],
         "Range": "10 – 35",
         "Result": evaluate(greeks["IV %"], 10, 35)
     }

@@ -47,7 +47,7 @@ from scipy.stats import norm
 def option_greeks(S, K, T, r, sigma, option_type="CE"):
     if T <= 0 or sigma <= 0:
         return None
-
+    st.write("S, K, T, r, sigma, option_type",S, K, T, r, sigma, option_type)
     d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
 
@@ -7555,7 +7555,7 @@ elif MENU =="Live Trade":
          )
      
          if greeks:
-              st.subheader("Greeks Values")
+              #st.subheader("Greeks Values")
           
               col1, col2, col3, col4, col5 = st.columns(5)
               col1.metric("Delta", round(greeks["Delta"], 3))

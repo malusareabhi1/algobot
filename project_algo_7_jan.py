@@ -41,6 +41,66 @@ if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
 #=================================================SAFE GREEK =================================================
 
+def evaluate(value, min_val=None, max_val=None):
+    if min_val is not None and value < min_val:
+        return "Fail"
+    if max_val is not None and value > max_val:
+        return "Fail"
+    return "Pass"
+
+#=================================================SAFE GREEK =================================================
+
+greeks_param_df = pd.DataFrame([
+    {
+        "Parameter": "Delta",
+        "Value": greeks["Delta"],
+        "Range": "0.30 – 0.85",
+        "Result": evaluate(greeks["Delta"], 0.30, 0.85)
+    },
+    {
+        "Parameter": "Gamma",
+        "Value": greeks["Gamma"],
+        "Range": "≥ 0.0005",
+        "Result": evaluate(greeks["Gamma"], 0.0005, None)
+    },
+    {
+        "Parameter": "Theta",
+        "Value": greeks["Theta"],
+        "Range": "≥ -80",
+        "Result": evaluate(greeks["Theta"], -80, None)
+    },
+    {
+        "Parameter": "Vega",
+        "Value": greeks["Vega"],
+        "Range": "≥ 3.0",
+        "Result": evaluate(greeks["Vega"], 3.0, None)
+    },
+    {
+        "Parameter": "IV %",
+        "Value": greeks["IV %"],
+        "Range": "10 – 35",
+        "Result": evaluate(greeks["IV %"], 10, 35)
+    }
+])
+
+
+#=================================================SAFE GREEK =================================================
+
+
+#=================================================SAFE GREEK =================================================
+
+
+#=================================================SAFE GREEK =================================================
+
+
+#=================================================SAFE GREEK =================================================
+
+
+#=================================================SAFE GREEK =================================================
+
+
+#=================================================SAFE GREEK =================================================
+
 def safe_option_greeks(S, K, T, r, sigma, option_type="CALL"):
 
     T = max(T, 1/365)
@@ -7596,6 +7656,18 @@ elif MENU =="Live Trade":
               col3.metric("Theta", round(greeks["Theta"], 2))
               col4.metric("Vega", round(greeks["Vega"], 2))
               col5.metric("IV %", round(greeks["IV"], 2))
+
+         st.dataframe(
+         greeks_param_df.style.applymap(
+            lambda x: "color: green; font-weight: bold"
+            if x == "Pass"
+            else "color: red; font-weight: bold"
+            if x == "Fail"
+            else ""
+         ),
+         use_container_width=True,
+         hide_index=True
+     )
 
     st.divider()
 

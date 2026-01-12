@@ -1653,7 +1653,8 @@ def compute_iv(ltp, spot, strike, time_to_expiry, is_call=True):
 
 #from py_vollib_vectorized import vectorized_implied_volatility_black
 
-RISK_FREE_RATE = 0.07      # adjust if you want
+RISK_FREE_RATE = 0.07      # adjust if you want 0.065 0r 0.07
+RISK_FREE_RATE =  0.065
 MIN_TIME_TO_EXPIRY = 1/365 # 1 day minimum to avoid zero T
 
 def get_live_iv_nifty_option(kite, option_token: int, index_symbol="NSE:NIFTY 50"):

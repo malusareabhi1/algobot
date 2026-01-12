@@ -8904,6 +8904,8 @@ elif MENU =="LIVE TRADE 3":
             signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
             signal["signal_time"] = signal_time
             signal_time1=signal["signal_time"] 
+
+             
  
                 
                 # Display as table
@@ -8966,6 +8968,13 @@ elif MENU =="LIVE TRADE 3":
                 st.table(nearest_itm1)
                 trending_symbol=nearest_itm['tradingsymbol']
                 #st.write("tradingsymbol-",trending_symbol)
+             #====================================================FLAG SIGNAL================================
+                st.session_state.trade_status = "SIGNAL"
+                st.session_state.signal_time = signal_time
+                st.session_state.signal_price = nearest_itm['ltp']   # LTP at signal candle
+                st.session_state.symbol = trending_symbol 
+
+             #==================================================================================================
         
             except Exception as e:
                 st.error(f"Failed to fetch option: {e}")

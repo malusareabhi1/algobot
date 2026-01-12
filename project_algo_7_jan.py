@@ -7791,7 +7791,7 @@ elif MENU =="Live Trade":
             #for key, value in st.session_state.items():
                 #st.write(f"{key} :", value)
 
-         st.subheader("Trade State")
+         #st.subheader("Trade State")
          keys_to_show = [
                    "trade_status",
                    "signal_time",
@@ -7872,26 +7872,79 @@ elif MENU =="Live Trade":
 
     with col7:
         st.subheader("Order Book")
-        order_df = pd.DataFrame({
-            "Order ID": [101, 102],
-            "Type": ["BUY", "SELL"],
-            "Qty": [50, 50],
-            "Price": [120.5, 135.0],
-            "Status": ["COMPLETE", "OPEN"]
-        })
-        st.dataframe(order_df, use_container_width=True)
+        if "last_order_id" in st.session_state:
+                  order_id = st.session_state["last_order_id"]
+                  order = kite.order_history(order_id)[-1]
+                  st.write("### 🔄 Live Order Update")
+                  #st.write(order)
+
+
+#------------------------------------ORDERS--------------------------------------------
+            show_kite_orders(kite)
+         #===========================================OPEN POSITION--------------------------------------
+            st.divider()
+
+            open_pnl = show_open_positions(kite)
+            closed_pnl = show_closed_positions(kite)
+               
+            st.divider()
+            st.metric(
+                   "💰 TOTAL DAY P&L",
+                   f"₹ {open_pnl + closed_pnl:,.2f}"
+             )
+
 #==============================================================================================================================
 
     with col8:
         st.subheader("Monitoring Trade / Positions")
-        pos_df = pd.DataFrame({
-            "Symbol": ["NIFTY25200CE"],
-            "Qty": [50],
-            "Entry": [120.5],
-            "LTP": [135.0],
-            "PnL": [1450]
-        })
-        st.dataframe(pos_df, use_container_width=True)
+        if "trade_active" not in st.session_state:
+                   st.session_state.trade_active = False
+                   st.session_state.entry_price = 0.0
+                   st.session_state.entry_time = None
+                   st.session_state.highest_price = 0.0
+                   st.session_state.partial_exit_done = False
+                   st.session_state.final_exit_done = False
+ 
+#--------------------------------------Manage Order--------------------------------------------------------
+
+        last_order1 = get_last_active_order(kite)
+
+        st.subheader("🟢 Active Trade")
+               
+        if last_order1:
+                   #st.write({"Symbol": last_order["tradingsymbol"],"Qty": last_order["quantity"],"Entry Price": last_order["average_price"],"Order Time": last_order["order_timestamp"] })
+                   st.write("Last Order")
+        else:
+                   st.info("No active trade found.")
+
+#--------------------------------------Exit Logix=-----------------------------------------------------------        
+        pos = False 
+        import time   
+        last_order = get_last_buy_order(kite)
+            #st.write("Last Order",last_order)   
+        if last_order:
+              pos = get_open_position_for_symbol(
+                  kite,
+                  last_order["tradingsymbol"]
+              )
+              #st.write("POS",pos)
+        else:
+                 st.write("No Open Position Active")
+          
+        if pos:
+                  st.subheader("🟢 Active Position")
+                  st.table(pd.DataFrame([{
+                      "Symbol": pos["tradingsymbol"],
+                      "Qty": pos["quantity"],
+                      "Avg Price": pos["average_price"],
+                      "PnL": pos["pnl"]
+                  }]))
+          
+                 
+
+        while True:
+                        monitor_and_exit_last_position(kite)
+                        time.sleep(5)
   #==============================================================================================================================
         
           

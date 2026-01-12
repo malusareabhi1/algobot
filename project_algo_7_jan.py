@@ -7391,6 +7391,7 @@ elif MENU =="Live Trade":
             days_to_exp = days_to_expiry(expiry)
             time_to_expiry = days_to_exp / 365 
             r=0.07
+            r= 0.065  
             #st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
             iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
             #st.write("IV  FOr (Option):CE")

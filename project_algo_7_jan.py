@@ -8687,11 +8687,11 @@ elif MENU =="LIVE TRADE 3":
         st.stop()     # Stop page execution safely
      # --- --------------------------------------------------------------------------------        
     # --- HARD BLOCK: Do not trade if position already exists ---
-    if has_open_position(kite):
-         st.info("Open position exists → New signal ignored")
+    #if has_open_position(kite):
+         #st.info("Open position exists → New signal ignored")
          #return
-    else:
-         st.info("Open Not position exists →")
+    #else:
+         #st.info("Not Open  position exists →")
       # --- --------------------------------------------------------------------------------    
     #st.success("You are logged in.")
      

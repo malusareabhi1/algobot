@@ -7802,9 +7802,9 @@ elif MENU =="Live Trade":
                    "symbol"
                ]
                
-         for k in keys_to_show:
-                   if k in st.session_state:
-                       st.write(f"{k} :", st.session_state[k])
+         #for k in keys_to_show:
+                   #if k in st.session_state:
+                       #st.write(f"{k} :", st.session_state[k])
 
  
  

@@ -8902,6 +8902,8 @@ elif MENU =="LIVE TRADE 3":
         #----------------------------------------------------------------------
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
         signal = trading_signal_all_conditions(df_plot)
+        st.write("DEBUG signal:", signal)
+        st.write("Type:", type(signal))
 
         if signal is None:
             st.warning("⚠ No signal yet (conditions not met).")

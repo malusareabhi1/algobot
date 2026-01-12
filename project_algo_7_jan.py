@@ -7548,7 +7548,7 @@ elif MENU =="Live Trade":
          greeks = option_greeks(
          S=spot_price,
          K=strike,
-         T=T,
+         T=time_to_expiry,
          r=risk_free_rate,
          sigma=iv,
          option_type=option_type

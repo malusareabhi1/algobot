@@ -197,6 +197,6 @@ with col8:
 # -----------------------------
 # OTHER MENU PAGES (PLACEHOLDERS)
 # -----------------------------
-else:
-    st.title(menu)
-    st.info("Page under construction")
+#else:
+   # st.title(menu)
+    #t.info("Page under construction")

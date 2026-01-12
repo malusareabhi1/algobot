@@ -8938,19 +8938,11 @@ elif MENU =="LIVE TRADE 3":
             #st.table(df_sig1) 
             #st.write(df_sig1) 
             st.subheader("📊 Signal Log")
-            #st.write(df_sig1) 
+            st.write(df_sig1) 
 #======================================================================================================================
 
 
-            row = signal.iloc[0]   # row 0 from your screenshot
-
-            signalsz = []
-          
-            for col in signal.columns:
-                   parsed = parse_signal_json(row[col])
-                   if parsed:
-                       signalsz.append(parsed)
-            st.write(signalsz)  
+            
 #========================================================================================================================             
 
              

@@ -9253,9 +9253,25 @@ elif MENU =="LIVE TRADE 3":
             #qty=0
             #st.subheader("Session State Debug")
             #st.write(st.session_state)
-            st.subheader("Session State (Detailed)")
-            for key, value in st.session_state.items():
-                st.write(f"{key} :", value)
+            #st.subheader("Session State (Detailed)")
+            #for key, value in st.session_state.items():
+                #st.write(f"{key} :", value)
+
+             st.subheader("Trade State")
+             keys_to_show = [
+                   "trade_status",
+                   "signal_time",
+                   "entry_price",
+                   "entry_time",
+                   "exit_time",
+                   "order_id",
+                   "tradingsymbol"
+               ]
+               
+             for k in keys_to_show:
+                   if k in st.session_state:
+                       st.write(f"{k} :", st.session_state[k])
+
  
  
                 # Check 1: Only run if current time is within trading window

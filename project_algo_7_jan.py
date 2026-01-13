@@ -7366,6 +7366,33 @@ elif MENU =="Live Trade":
             #st.write(df_sig1) 
             st.subheader("📊 Signal Log")
             st.write(df_sig1) 
+            #=========================JSON TO TABLE========================
+            # ---- Parse JSON ----
+            records = [json.loads(row) for row in df_sig1]
+          
+            df = pd.DataFrame(records)
+          
+            # ---- Convert epoch ms → IST datetime ----
+            ist = pytz.timezone("Asia/Kolkata")
+          
+            def epoch_to_ist(x):
+              if pd.isna(x):
+                  return None
+              return pd.to_datetime(x, unit="ms", utc=True).tz_convert(ist)
+          
+            for col in ["entry_time", "signal_time", "expiry"]:
+              if col in df.columns:
+                  df[col] = df[col].apply(epoch_to_ist)
+          
+          # ---- Sort by entry time ----
+            df = df.sort_values("entry_time")
+          
+            st.dataframe(
+                   df,
+                   use_container_width=True,
+                   hide_index=True
+               )
+
 
      #=============================================================================================
         
@@ -8804,6 +8831,7 @@ elif MENU == "My Account":
         st.title("My Account")
         st.set_page_config(page_title="Zerodha Dashboard", layout="wide")
         #st.title("📊 Zerodha Orders & Holdings Dashboard")
+     
         if not is_kite_connected(kite):
              st.warning("Please login first to access your account details.")
              st.stop()     # Stop page execution safely

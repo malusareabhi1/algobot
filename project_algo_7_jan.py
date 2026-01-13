@@ -8029,7 +8029,9 @@ elif MENU == "My Account":
                         use_container_width=True,
                         hide_index=True                    
                     )
-                   
+                    if isinstance(st.session_state.get("trades_signals"), pd.DataFrame):
+                        st.subheader("📊 trades_signals Logs")
+                        st.dataframe(st.session_state.trades_signals, use_container_width=True)
                          
                     if isinstance(st.session_state.get("trade_logs"), pd.DataFrame):
                         st.subheader("📊 Trade Logs")

@@ -5412,17 +5412,16 @@ elif MENU == "Backtest":
           
  
 #--------------------------------------Manage Order--------------------------------------------------------
-         st.subheader("📡 Live Paper Trade Monitor")
+         
 
          # trade = st.session_state.paper_trades
          #st.write(st.session_state.paper_trades)
          monitor_paper_trades(kite)   
          if st.session_state.paper_trades:
               #st.subheader("📄 Paper Trade Monitor")
-     
+              st.subheader("📡 Live Paper Trade Monitor")  
               df_paper = pd.DataFrame(st.session_state.paper_trades)
-              df_paper["PnL"] = (df_paper["exit_price"].fillna(df_paper["entry_price"]) 
-                                 - df_paper["entry_price"]) * df_paper["qty"]
+              
           
               st.dataframe(df_paper, use_container_width=True)
          else:

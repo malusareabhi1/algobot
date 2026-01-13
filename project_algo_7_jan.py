@@ -4852,6 +4852,7 @@ elif MENU == "Backtest":
         st.subheader("Signal Log")
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
         signal = trading_signal_all_conditions(df_plot)
+        save_signal_log(signal) 
         #st.write("DEBUG signal:", signal)
         #st.write("Type:", type(signal))
         df_sig1 = pd.DataFrame(signal)

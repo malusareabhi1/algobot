@@ -5273,7 +5273,7 @@ elif MENU == "Backtest":
                                         try:
                                              # ❌ NO REAL ORDER
                                              # ✅ PAPER TRADE ENTRY
-                                             log_paper_trade(
+                                            log_paper_trade(
                                                  symbol=trending_symbol,
                                                  entry_price=ltp,
                                                  qty=qty,

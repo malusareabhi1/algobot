@@ -212,8 +212,74 @@ def log_paper_trade(symbol, entry_price, qty, signal_time, remark):
     else:
         df.to_csv(file_path, index=False)
 
-#=================================================SAFE GREEK =================================================
+#================================================= monitor_and_exit_trade =================================================
 
+if "active_trade" not in st.session_state:
+    st.session_state.active_trade = None   # holds current paper position
+
+if "trade_log" not in st.session_state:
+    st.session_state.trade_log = pd.DataFrame()
+     
+def get_live_option_price(kite, instrument_token):
+    try:
+        quote = kite.ltp([instrument_token])
+        return quote[instrument_token]["last_price"]
+    except Exception:
+        return None
+
+
+
+def monitor_and_exit_paper_trade(kite):
+    trade = st.session_state.active_trade
+
+    if trade is None or trade["status"] != "OPEN":
+        return
+
+    ltp = get_live_option_price(kite, trade["instrument_token"])
+    if ltp is None:
+        return
+
+    entry = trade["entry_price"]
+
+    # --------- EXIT CONDITIONS ---------
+    exit_reason = None
+
+    # 1️⃣ Stop Loss
+    if ltp <= trade["sl"]:
+        exit_reason = "STOP LOSS HIT"
+
+    # 2️⃣ Target
+    elif ltp >= trade["target"]:
+        exit_reason = "TARGET HIT"
+
+    # 3️⃣ Trailing SL update
+    elif ltp > entry:
+        new_trailing_sl = max(trade["trailing_sl"], ltp * 0.95)
+        trade["trailing_sl"] = new_trailing_sl
+
+        if ltp <= trade["trailing_sl"]:
+            exit_reason = "TRAILING SL HIT"
+
+    # 4️⃣ Time-based exit
+    now = datetime.now().time()
+    if now >= time(13, 30):
+        exit_reason = "TIME EXIT"
+
+    # --------- EXECUTE EXIT ---------
+    if exit_reason:
+        trade["exit_price"] = ltp
+        trade["exit_time"] = datetime.now()
+        trade["status"] = "CLOSED"
+        trade["exit_reason"] = exit_reason
+        trade["pnl"] = (ltp - entry) * trade["quantity"]
+
+        # log trade
+        st.session_state.trade_log = pd.concat(
+            [st.session_state.trade_log, pd.DataFrame([trade])],
+            ignore_index=True
+        )
+
+        st.session_state.active_trade = None
 
 #=================================================SAFE GREEK =================================================
 
@@ -5342,8 +5408,8 @@ elif MENU == "Backtest":
 #==============================================================================================================================
 
     with col8:
-        st.subheader("Monitoring Trade / Positions")
-        if "trade_active" not in st.session_state:
+          st.subheader("Monitoring Trade / Positions")
+          if "trade_active" not in st.session_state:
                    st.session_state.trade_active = False
                    st.session_state.entry_price = 0.0
                    st.session_state.entry_time = None
@@ -5352,40 +5418,35 @@ elif MENU == "Backtest":
                    st.session_state.final_exit_done = False
  
 #--------------------------------------Manage Order--------------------------------------------------------
+          st.subheader("📡 Live Paper Trade Monitor")
 
-        last_order1 = get_last_active_order(kite)
-
-        st.subheader("🟢 Active Trade")
-               
-        if last_order1:
-                   #st.write({"Symbol": last_order["tradingsymbol"],"Qty": last_order["quantity"],"Entry Price": last_order["average_price"],"Order Time": last_order["order_timestamp"] })
-                   st.write("Last Order")
-        else:
-                   st.info("No active trade found.")
-
-#--------------------------------------Exit Logix=-----------------------------------------------------------        
-        pos = False 
-        import time   
-        last_order = get_last_buy_order(kite)
-            #st.write("Last Order",last_order)   
-        if last_order:
-              pos = get_open_position_for_symbol(
-                  kite,
-                  last_order["tradingsymbol"]
+          trade = st.session_state.active_trade
+          
+          if trade:
+              ltp = get_live_option_price(kite, trade["instrument_token"])
+          
+              col1, col2, col3 = st.columns(3)
+              col1.metric("Entry Price", trade["entry_price"])
+              col2.metric("Live Price", ltp)
+              col3.metric("PnL", (ltp - trade["entry_price"]) * trade["quantity"])
+          
+              st.info(
+                  f"""
+                  SL: {trade['sl']}
+                  | Target: {trade['target']}
+                  | Trailing SL: {trade['trailing_sl']}
+                  """
               )
-              #st.write("POS",pos)
-        else:
-                 st.write("No Open Position Active")
           
-        if pos:
-                  st.subheader("🟢 Active Position")
-                  st.table(pd.DataFrame([{
-                      "Symbol": pos["tradingsymbol"],
-                      "Qty": pos["quantity"],
-                      "Avg Price": pos["average_price"],
-                      "PnL": pos["pnl"]
-                  }]))
+              monitor_and_exit_trade(kite)
           
+          else:
+              st.warning("No active paper trade")
+
+       
+#--------------------------------------Exit Logix=-----------------------------------------------------------        
+       
+                  
                  
 
        

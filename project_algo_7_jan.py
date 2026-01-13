@@ -4968,6 +4968,14 @@ elif MENU == "Backtest":
                         "partial_exit_done": False,
                         "final_exit_done": False,
                         "status": "OPEN"
+                        # 🔢 GREEKS SNAPSHOT AT ENTRY
+                        "greeks": {
+                            "Delta": greeks["Delta"],
+                            "Gamma": greeks["Gamma"],
+                            "Theta": greeks["Theta"],
+                            "Vega": greeks["Vega"],
+                            "IV": greeks["IV"]
+                        }, 
                     }
           
                   st.session_state.paper_trades.append(trade)
@@ -5272,6 +5280,15 @@ elif MENU == "Backtest":
          use_container_width=True,
          hide_index=True
      )
+         st.session_state.paper_trades.append(trade)
+         trade["greeks_eval"] = {
+              "Delta": evaluate(greeks["Delta"], 0.30, 0.85),
+              "Gamma": evaluate(greeks["Gamma"], 0.0005, None),
+              "Theta": evaluate(greeks["Theta"], -80, None),
+              "Vega": evaluate(greeks["Vega"], 3.0, None),
+              "IV": evaluate(greeks["IV"], 10, 35)
+          }
+
 
          #---------------------------------tIME-----------------------------------------------
          import pytz

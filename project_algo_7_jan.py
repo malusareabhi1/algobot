@@ -5421,7 +5421,7 @@ elif MENU == "Backtest":
           st.subheader("📡 Live Paper Trade Monitor")
 
           trade = st.session_state.active_trade
-          
+          st.write(st.session)
           if trade:
               ltp = get_live_option_price(kite, trade["instrument_token"])
           
@@ -5444,7 +5444,7 @@ elif MENU == "Backtest":
               st.warning("No active paper trade")
 
        
-#--------------------------------------Exit Logix=-----------------------------------------------------------        
+ #--------------------------------------Exit Logix=-----------------------------------------------------------        
        
                   
                  

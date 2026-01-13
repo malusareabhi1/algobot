@@ -364,7 +364,7 @@ def monitor_and_exit_paper_trades(kite):
                 * qty
                 * (1 if option_type == "CALL" else -1)
             )
-          return trade
+        return trade
 
 #=================================================SAFE GREEK =================================================
 

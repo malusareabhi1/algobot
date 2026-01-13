@@ -281,7 +281,85 @@ def monitor_and_exit_paper_trade(kite):
 
         st.session_state.active_trade = None
 
-#=================================================SAFE GREEK =================================================
+#=================================================SAFE exit =================================================
+
+
+from datetime import datetime, timedelta
+import pytz
+
+def monitor_and_exit_paper_trades(kite):
+    ist = pytz.timezone("Asia/Kolkata")
+    now = datetime.now(ist)
+
+    if not st.session_state.paper_trades:
+        return
+
+    for trade in st.session_state.paper_trades:
+
+        # Process only OPEN trades
+        if trade["status"] != "OPEN":
+            continue
+
+        symbol = trade["symbol"]
+        option_type = trade["option_type"]
+        entry_price = trade["entry_price"]
+        qty = trade["qty"]
+        sl = trade["stoploss"]
+        entry_time = trade["entry_time"]
+
+        # --- LIVE PRICE ---
+        try:
+            ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
+        except Exception:
+            continue
+
+        trade["ltp"] = ltp   # MTM tracking
+
+        # -------------------------------
+        # TRAILING SL LOGIC
+        # -------------------------------
+        trail_start = entry_price * 1.007    # +0.7%
+        trail_step = 0.003                   # 0.3%
+
+        if option_type == "CALL" and ltp > trail_start:
+            trade["stoploss"] = max(sl, ltp * (1 - trail_step))
+
+        if option_type == "PUT" and ltp < trail_start:
+            trade["stoploss"] = min(sl, ltp * (1 + trail_step))
+
+        sl = trade["stoploss"]
+
+        # -------------------------------
+        # EXIT CONDITIONS
+        # -------------------------------
+        exit_reason = None
+
+        if option_type == "CALL" and ltp <= sl:
+            exit_reason = "SL HIT"
+
+        if option_type == "PUT" and ltp >= sl:
+            exit_reason = "SL HIT"
+
+        if now >= entry_time + timedelta(minutes=16):
+            exit_reason = "TIME EXIT"
+
+        if now.hour == 15 and now.minute >= 20:
+            exit_reason = "EOD EXIT"
+
+        # -------------------------------
+        # EXIT UPDATE
+        # -------------------------------
+        if exit_reason:
+            trade["exit_price"] = ltp
+            trade["exit_time"] = now
+            trade["status"] = "CLOSED"
+            trade["exit_reason"] = exit_reason
+
+            trade["pnl"] = (
+                (ltp - entry_price)
+                * qty
+                * (1 if option_type == "CALL" else -1)
+            )
 
 
 #=================================================SAFE GREEK =================================================
@@ -5416,14 +5494,14 @@ elif MENU == "Backtest":
 
          # trade = st.session_state.paper_trades
          #st.write(st.session_state.paper_trades)
-         monitor_paper_trades(kite)   
+           
          if st.session_state.paper_trades:
               #st.subheader("📄 Paper Trade Monitor")
               st.subheader("📡 Live Paper Trade Monitor")  
               df_paper = pd.DataFrame(st.session_state.paper_trades)
-              
+              monitor_and_exit_paper_trades(kite) 
           
-              st.dataframe(df_paper, use_container_width=True)
+              #st.dataframe(df_paper, use_container_width=True)
          else:
               st.info("No active paper trades.")
 

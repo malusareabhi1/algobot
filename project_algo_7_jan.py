@@ -5357,7 +5357,7 @@ elif MENU == "Backtest":
                                              )
                                 
                                             st.session_state.order_executed = True   # Mark executed
-                                            st.session_state.order_executed = True
+                                            #st.session_state.order_executed = True
                                             #st.session_state.last_order_id = order_id
                                    
                                            # ✅ Mark trade active
@@ -5409,13 +5409,7 @@ elif MENU == "Backtest":
 
     with col8:
           st.subheader("Monitoring Trade / Positions")
-          if "trade_active" not in st.session_state:
-                   st.session_state.trade_active = False
-                   st.session_state.entry_price = 0.0
-                   st.session_state.entry_time = None
-                   st.session_state.highest_price = 0.0
-                   st.session_state.partial_exit_done = False
-                   st.session_state.final_exit_done = False
+          
  
 #--------------------------------------Manage Order--------------------------------------------------------
           st.subheader("📡 Live Paper Trade Monitor")

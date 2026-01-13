@@ -4977,6 +4977,14 @@ elif MENU == "Backtest":
                             "IV": greeks["IV"]
                         } 
                     }
+                  # ✅ ADD EVAL INSIDE SAME BLOCK
+                  trade["greeks_eval"] = {
+                      "Delta": evaluate(greeks["Delta"], 0.30, 0.85),
+                      "Gamma": evaluate(greeks["Gamma"], 0.0005, None),
+                      "Theta": evaluate(greeks["Theta"], -80, None),
+                      "Vega": evaluate(greeks["Vega"], 3.0, None),
+                      "IV": evaluate(greeks["IV"], 10, 35)
+                  } 
           
                   st.session_state.paper_trades.append(trade)
           

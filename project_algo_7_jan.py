@@ -364,7 +364,7 @@ def monitor_and_exit_paper_trades(kite):
                 * qty
                 * (1 if option_type == "CALL" else -1)
             )
-
+          return trade
 
 #=================================================SAFE GREEK =================================================
 
@@ -5504,9 +5504,9 @@ elif MENU == "Backtest":
               #st.subheader("📄 Paper Trade Monitor")
               st.subheader("📡 Live Paper Trade Monitor")  
               df_paper = pd.DataFrame(st.session_state.paper_trades)
-              monitor_and_exit_paper_trades(kite) 
+              
           
-              #st.dataframe(df_paper, use_container_width=True)
+              st.dataframe(monitor_and_exit_paper_trades(kite) , use_container_width=True)
          else:
               st.info("No active paper trades.")
 

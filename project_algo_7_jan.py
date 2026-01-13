@@ -175,7 +175,16 @@ def monitor_and_exit_last_position(kite, df_15m):
 
 #=================================================paper log =================================================
 
-
+if "trade_log" not in st.session_state:
+    st.session_state.trade_log = pd.DataFrame(columns=[
+        "symbol",
+        "entry_time",
+        "signal_time",
+        "entry_price",
+        "quantity",
+        "status",
+        "remark"
+    ])
 
 def log_paper_trade(symbol, entry_price, qty, signal_time, remark):
     trade = {

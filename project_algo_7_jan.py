@@ -8783,7 +8783,8 @@ elif MENU =="LIVE TRADE 3":
             st.subheader("📊 Signal Log")
             #st.write(df_sig1) 
             st.dataframe(df_sig1, use_container_width=True, hide_index=True)
-            
+            if "trades_signals" not in st.session_state:
+                   st.session_state.trades_signals = []
             st.session_state.trades_signals.append(df_sig1) 
             if isinstance(st.session_state.get("trades_signals"), pd.DataFrame):
                         st.subheader("📊 Signal Logs")

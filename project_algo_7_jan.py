@@ -4967,7 +4967,7 @@ elif MENU == "Backtest":
                         "highest_price": entry_price,
                         "partial_exit_done": False,
                         "final_exit_done": False,
-                        "status": "OPEN"
+                        "status": "OPEN",
                         # 🔢 GREEKS SNAPSHOT AT ENTRY
                         "greeks": {
                             "Delta": greeks["Delta"],
@@ -4975,7 +4975,7 @@ elif MENU == "Backtest":
                             "Theta": greeks["Theta"],
                             "Vega": greeks["Vega"],
                             "IV": greeks["IV"]
-                        }, 
+                        } 
                     }
           
                   st.session_state.paper_trades.append(trade)

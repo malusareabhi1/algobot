@@ -304,7 +304,11 @@ def monitor_and_exit_paper_trades(kite):
         option_type = trade["option_type"]
         entry_price = trade["entry_price"]
         qty = trade["quantity"]
-        sl = trade["stoploss"]
+        #sl = trade["stoploss"]
+        if option_type == "CALL":
+              sl = entry_price * 0.90
+        else:  # PUT
+              sl = entry_price * 1.10 
         entry_time = trade["entry_time"]
 
         # --- LIVE PRICE ---

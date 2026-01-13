@@ -7982,7 +7982,7 @@ elif MENU == "My Account":
                     )
                     if isinstance(st.session_state.get("trade_logs"), pd.DataFrame):
                         st.subheader("📊 Trade Logs")
-                        st.dataframe(st.session_state.trade_logs, use_container_width=True)
+                        st.dataframe(st.session_state.paper_trade, use_container_width=True)
                     st.subheader("📌 Active Trade State")
 
                     trade_keys = [

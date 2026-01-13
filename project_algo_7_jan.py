@@ -5269,7 +5269,7 @@ elif MENU == "Backtest":
                                   st.warning("⚠️ Open position exists. New trade not allowed.")
                                   
                               else:
-                                    if not st.session_state.order_executed:
+                                  if not st.session_state.get("order_executed", False):
                                         try:
                                              # ❌ NO REAL ORDER
                                              # ✅ PAPER TRADE ENTRY

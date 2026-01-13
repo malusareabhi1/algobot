@@ -47,6 +47,17 @@ def evaluate(value, min_val=None, max_val=None):
     if max_val is not None and value > max_val:
         return "Fail"
     return "Pass"
+#====================================================================================================
+
+
+import os
+from datetime import date
+
+LOG_DIR = "logs"
+os.makedirs(LOG_DIR, exist_ok=True)
+
+TODAY = date.today().strftime("%Y-%m-%d")
+
 
 #=================================================SAFE initial SL =================================================
 
@@ -5532,7 +5543,7 @@ elif MENU == "Backtest":
          
 
        
- #--------------------------------------Exit Logix=-----------------------------------------------------------        
+ #--------------------------------------P&L=-----------------------------------------------------------        
        
                   
                  

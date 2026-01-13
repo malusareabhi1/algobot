@@ -326,12 +326,12 @@ def monitor_and_exit_paper_trades(kite):
         trail_step = 0.003                   # 0.3%
 
         if option_type == "CALL" and ltp > trail_start:
-            trade["stoploss"] = max(sl, ltp * (1 - trail_step))
+            sl = max(sl, ltp * (1 - trail_step))
 
         if option_type == "PUT" and ltp < trail_start:
-            trade["stoploss"] = min(sl, ltp * (1 + trail_step))
+           sl = min(sl, ltp * (1 + trail_step))
 
-        sl = trade["stoploss"]
+        #sl = trade["stoploss"]
 
         # -------------------------------
         # EXIT CONDITIONS

@@ -39,6 +39,9 @@ if "paper_trades" not in st.session_state:
 
 if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
+
+if "trades_signals" not in st.session_state:
+                   st.session_state.trades_signals = [] 
 #=====================================================================================================
 
 
@@ -8781,7 +8784,8 @@ elif MENU =="LIVE TRADE 3":
             #st.write(df_sig1) 
             st.subheader("📊 Signal Log")
             #st.write(df_sig1) 
-            st.dataframe(df_sig1, use_container_width=True, hide_index=True) 
+            st.dataframe(df_sig1, use_container_width=True, hide_index=True)
+            
             st.session_state.trades_signals.append(df_sig1) 
 #======================================================================================================================
 

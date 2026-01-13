@@ -6907,14 +6907,7 @@ elif MENU =="Live Trade":
 
     with col8:
         st.subheader("Monitoring Trade / Positions")
-        if "trade_active" not in st.session_state:
-                   st.session_state.trade_active = False
-                   st.session_state.entry_price = 0.0
-                   st.session_state.entry_time = None
-                   st.session_state.highest_price = 0.0
-                   st.session_state.partial_exit_done = False
-                   st.session_state.final_exit_done = False
- 
+        
 #--------------------------------------Manage Order--------------------------------------------------------
 
         last_order1 = get_last_active_order(kite)

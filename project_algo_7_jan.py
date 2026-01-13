@@ -5425,7 +5425,7 @@ elif MENU == "Backtest":
                                  - df_paper["entry_price"]) * df_paper["qty"]
           
               st.dataframe(df_paper, use_container_width=True)
-          else:
+         else:
               st.info("No active paper trades.")
 
          

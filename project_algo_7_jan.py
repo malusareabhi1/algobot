@@ -303,7 +303,7 @@ def monitor_and_exit_paper_trades(kite):
         symbol = trade["symbol"]
         option_type = trade["option_type"]
         entry_price = trade["entry_price"]
-        qty = trade["qty"]
+        qty = trade["quantity"]
         sl = trade["stoploss"]
         entry_time = trade["entry_time"]
 
@@ -4957,8 +4957,8 @@ elif MENU == "Backtest":
                         "symbol": trending_symbol,
                         "option_type": option_type,
                         "entry_price": entry_price,
-                        "quantity": 75,
-                        "remaining_qty": 75,
+                        "quantity": 65,
+                        "remaining_qty": 65,
                         "highest_price": entry_price,
                         "partial_exit_done": False,
                         "final_exit_done": False,

@@ -48,12 +48,130 @@ def evaluate(value, min_val=None, max_val=None):
         return "Fail"
     return "Pass"
 
-#=================================================SAFE GREEK =================================================
+#=================================================SAFE initial SL =================================================
+
+def calculate_initial_sl_from_15min(df_15m):
+    """
+    Initial SL logic:
+    - Default: Low of current 15-min candle
+    - If current candle size > avg size of last 7 trading days:
+        SL = Mean of current candle
+    """
+
+    candles_per_day = 26
+    lookback = 7 * candles_per_day
+
+    if len(df_15m) < lookback + 1:
+        return None, "INSUFFICIENT DATA FOR SL"
+
+    current = df_15m.iloc[-1]
+
+    cur_high = current["high"]
+    cur_low = current["low"]
+
+    cur_size = cur_high - cur_low
+    cur_mean = (cur_high + cur_low) / 2
+
+    recent = df_15m.iloc[-lookback:]
+    avg_7d_size = (recent["high"] - recent["low"]).mean()
+
+    if cur_size > avg_7d_size:
+        return cur_mean, "BIG 15M CANDLE → SL = MEAN"
+    else:
+        return cur_low, "NORMAL 15M CANDLE → SL = LOW"
 
 
+def calculate_initial_sl_15min(df):
+    """
+    df : DataFrame with 15-min candles
+         Must contain columns: ['open', 'high', 'low', 'close']
+         Latest candle should be the current candle
+    """
 
-#=================================================SAFE GREEK =================================================
+    # ---- Current 15-min candle ----
+    current = df.iloc[-1]
+    current_high = current["high"]
+    current_low = current["low"]
 
+    current_candle_size = current_high - current_low
+    current_candle_mean = (current_high + current_low) / 2
+
+    # ---- Last 7 trading days average candle size ----
+    candles_per_day = 26
+    lookback_candles = 7 * candles_per_day
+
+    recent_df = df.iloc[-lookback_candles:]
+
+    avg_candle_size_7d = (recent_df["high"] - recent_df["low"]).mean()
+
+    # ---- Decision Logic ----
+    if current_candle_size > avg_candle_size_7d:
+        initial_sl = current_candle_mean
+        sl_reason = "BIG CANDLE → SL = CANDLE MEAN"
+    else:
+        initial_sl = current_low
+        sl_reason = "NORMAL CANDLE → SL = 15MIN LOW"
+
+    return initial_sl, sl_reason
+
+
+#=================================================SAFE EXIT NEW  =================================================
+
+def monitor_and_exit_last_position(kite, df_15m):
+    pos = get_last_open_position(kite)
+
+    if not pos:
+        st.info("No open position to monitor")
+        return
+
+    symbol = pos["tradingsymbol"]
+    qty = abs(pos["quantity"])
+    entry_price = pos["average_price"]
+
+    ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
+
+    # ---- Time ----
+    ist = pytz.timezone("Asia/Kolkata")
+    now = datetime.now(ist)
+
+    # ---- INITIAL SL FROM 15 MIN LOGIC ----
+    initial_sl, sl_reason = calculate_initial_sl_from_15min(df_15m)
+
+    if initial_sl is None:
+        st.warning(sl_reason)
+        return
+
+    # ---- TRAILING LOGIC ----
+    trail_start = entry_price * 1.007      # trail after +0.7%
+    trail_step = 0.3 / 100                 # 0.3%
+
+    if ltp > trail_start:
+        tsl = max(initial_sl, ltp * (1 - trail_step))
+    else:
+        tsl = initial_sl
+
+    # ---- TARGET ----
+    target = entry_price * 1.02
+
+    # ---- DISPLAY ----
+    st.write("Initial SL:", initial_sl)
+    st.write("SL Logic:", sl_reason)
+    st.write("Trailing SL:", tsl)
+    st.write("Target:", target)
+    st.write("LTP:", ltp)
+
+    # ---- EXIT CONDITIONS ----
+    if ltp <= tsl:
+        reason = "STOP LOSS HIT"
+    elif ltp >= target:
+        reason = "TARGET HIT"
+    elif now.hour == 15 and now.minute >= 20:
+        reason = "EOD EXIT"
+    else:
+        show_live_position(pos, ltp, tsl, target)
+        return
+
+    place_exit_order(kite, symbol, qty, reason)
 
 #=================================================SAFE GREEK =================================================
 
@@ -370,7 +488,7 @@ def get_last_open_position(kite):
 from datetime import datetime, timedelta
 import pytz
 
-def monitor_and_exit_last_position(kite):
+def monitor_and_exit_last_position0(kite):
     pos = get_last_open_position(kite)
 
     if not pos:
@@ -7947,7 +8065,7 @@ elif MENU =="Live Trade":
                  
 
         while True:
-                        monitor_and_exit_last_position(kite)
+                        monitor_and_exit_last_position(kite,df_plot)
                         time.sleep(5)
   #==============================================================================================================================
         

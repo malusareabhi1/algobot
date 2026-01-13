@@ -344,8 +344,8 @@ def monitor_and_exit_paper_trades(kite):
         if option_type == "PUT" and ltp >= sl:
             exit_reason = "SL HIT"
 
-        if now >= entry_time + timedelta(minutes=16):
-            exit_reason = "TIME EXIT"
+        #if now >= entry_time + timedelta(minutes=16):
+            #exit_reason = "TIME EXIT"
 
         if now.hour == 15 and now.minute >= 20:
             exit_reason = "EOD EXIT"

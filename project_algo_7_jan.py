@@ -7338,6 +7338,7 @@ elif MENU =="Live Trade":
     col3, col4 = st.columns(2)
 
     with col3:
+        import json 
         st.subheader("Signal Log")
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
         signal = trading_signal_all_conditions(df_plot)
@@ -7368,7 +7369,7 @@ elif MENU =="Live Trade":
             st.write(df_sig1) 
             #=========================JSON TO TABLE========================
             # ---- Parse JSON ----
-            records = [json.loads(row) for row in df_sig1]
+            records = [json.loads(row) for row in signal]
           
             df = pd.DataFrame(records)
           

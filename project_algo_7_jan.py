@@ -45,12 +45,14 @@ if "last_executed_signal_time" not in st.session_state:
 #====================================================================================================
 
 def save_signal_log(signal: dict):
-    file_path = f"signals_{TODAY}.csv"   # ✅ current working dir
+    if not isinstance(signal, dict):
+        return   # safety guard
 
-    safe_signal = {
-        k: str(v) if hasattr(v, "isoformat") else v
-        for k, v in signal.items()
-    }
+    file_path = f"signals_{TODAY}.csv"
+
+    safe_signal = {}
+    for k, v in signal.items():
+        safe_signal[k] = str(v) if hasattr(v, "isoformat") else v
 
     df = pd.DataFrame([safe_signal])
 

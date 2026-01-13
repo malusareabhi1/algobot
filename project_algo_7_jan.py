@@ -4887,6 +4887,7 @@ elif MENU == "Backtest":
             st.subheader("📊 Signal Log")
             #st.write(df_sig1) 
             st.dataframe(df_sig1, use_container_width=True, hide_index=True) 
+            st.session_state.trades_signals.append(df_sig1) 
             #=========================JSON TO TABLE========================
             
 
@@ -8023,8 +8024,11 @@ elif MENU == "My Account":
                     st.dataframe(
                         df_debug,
                         use_container_width=True,
-                        hide_index=True
+                        hide_index=True                    
                     )
+                    if isinstance(st.session_state.get("trade_signals"), pd.DataFrame):
+                        st.subheader("📊 Signal Logs")
+                        st.dataframe(st.session_state.trade_signals, use_container_width=True)
                     if isinstance(st.session_state.get("trade_logs"), pd.DataFrame):
                         st.subheader("📊 Trade Logs")
                         st.dataframe(st.session_state.paper_trades, use_container_width=True)

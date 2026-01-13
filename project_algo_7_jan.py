@@ -8785,9 +8785,9 @@ elif MENU =="LIVE TRADE 3":
             st.dataframe(df_sig1, use_container_width=True, hide_index=True)
             
             st.session_state.trades_signals.append(df_sig1) 
-            if isinstance(st.session_state.get("trade_signals"), pd.DataFrame):
+            if isinstance(st.session_state.get("trades_signals"), pd.DataFrame):
                         st.subheader("📊 Signal Logs")
-                        st.dataframe(st.session_state.trade_signals, use_container_width=True) 
+                        st.dataframe(st.session_state.trades_signals, use_container_width=True) 
             else:
                  st.write("No signals in session state")
 #======================================================================================================================

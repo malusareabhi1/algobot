@@ -5280,7 +5280,7 @@ elif MENU == "Backtest":
          use_container_width=True,
          hide_index=True
      )
-         st.session_state.paper_trades.append(trade)
+         #st.session_state.paper_trades.append(trade)
          trade["greeks_eval"] = {
               "Delta": evaluate(greeks["Delta"], 0.30, 0.85),
               "Gamma": evaluate(greeks["Gamma"], 0.0005, None),

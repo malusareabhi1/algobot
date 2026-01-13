@@ -173,8 +173,35 @@ def monitor_and_exit_last_position(kite, df_15m):
 
     place_exit_order(kite, symbol, qty, reason)
 
-#=================================================SAFE GREEK =================================================
+#=================================================paper log =================================================
 
+
+
+def log_paper_trade(symbol, entry_price, qty, signal_time, remark):
+    trade = {
+        "symbol": symbol,
+        "entry_time": datetime.now(),
+        "signal_time": signal_time,
+        "entry_price": entry_price,
+        "quantity": qty,
+        "status": "PAPER ENTRY",
+        "remark": remark
+    }
+
+    # ---- Session log ----
+    st.session_state.trade_log = pd.concat(
+        [st.session_state.trade_log, pd.DataFrame([trade])],
+        ignore_index=True
+    )
+
+    # ---- Persistent CSV ----
+    file_path = "paper_trades.csv"
+    df = pd.DataFrame([trade])
+
+    if os.path.exists(file_path):
+        df.to_csv(file_path, mode="a", header=False, index=False)
+    else:
+        df.to_csv(file_path, index=False)
 
 #=================================================SAFE GREEK =================================================
 
@@ -5244,15 +5271,15 @@ elif MENU == "Backtest":
                               else:
                                     if not st.session_state.order_executed:
                                         try:
-                                            order_id = kite.place_order(
-                                                    tradingsymbol=trending_symbol,
-                                                    exchange=kite.EXCHANGE_NFO,
-                                                    transaction_type=kite.TRANSACTION_TYPE_BUY,
-                                                    quantity=qty,
-                                                    order_type=kite.ORDER_TYPE_MARKET,
-                                                    variety=kite.VARIETY_REGULAR,
-                                                    product=kite.PRODUCT_MIS
-                                                )
+                                             # ❌ NO REAL ORDER
+                                             # ✅ PAPER TRADE ENTRY
+                                             log_paper_trade(
+                                                 symbol=trending_symbol,
+                                                 entry_price=ltp,
+                                                 qty=qty,
+                                                 signal_time=entry_time,
+                                                 remark="Signal-based paper entry"
+                                             )
                                 
                                             st.session_state.order_executed = True   # Mark executed
                                             st.session_state.order_executed = True
@@ -5287,12 +5314,13 @@ elif MENU == "Backtest":
 #==============================================================================================================================
 
     with col7:
-        st.subheader("Order Book")
-        if "last_order_id" in st.session_state:
-                  order_id = st.session_state["last_order_id"]
-                  order = kite.order_history(order_id)[-1]
-                  st.write("### 🔄 Live Order Update")
-                  #st.write(order)
+        st.subheader("Paper Order Book")
+        st.subheader("📒 Paper Trade Log")
+        st.dataframe(
+              st.session_state.trade_log,
+              use_container_width=True,
+              hide_index=True
+          )
 
 
 #------------------------------------ORDERS--------------------------------------------

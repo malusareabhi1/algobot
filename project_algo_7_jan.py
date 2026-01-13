@@ -8765,7 +8765,8 @@ elif MENU =="LIVE TRADE 3":
         else:
             #st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
             last_signal = signal[-1]  
-            df_sig1 = pd.DataFrame([signal])
+            #df_sig1 = pd.DataFrame([signal])
+            df_sig1 = pd.DataFrame(signal)  
             signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
             last_signal["signal_time"] = signal_time
             signal_time1=last_signal["signal_time"] 
@@ -8777,7 +8778,9 @@ elif MENU =="LIVE TRADE 3":
             #st.table(df_sig1) 
             #st.write(df_sig1) 
             st.subheader("📊 Signal Log")
-            st.write(df_sig1) 
+            #st.write(df_sig1) 
+            st.dataframe(df_sig1, use_container_width=True, hide_index=True) 
+            st.session_state.trades_signals.append(df_sig1) 
 #======================================================================================================================
 
 

@@ -5415,8 +5415,8 @@ elif MENU == "Backtest":
          st.subheader("📡 Live Paper Trade Monitor")
 
          # trade = st.session_state.paper_trades
-          #st.write(st.session_state.paper_trades)
-          monitor_paper_trades(kite)   
+         #st.write(st.session_state.paper_trades)
+         monitor_paper_trades(kite)   
          if st.session_state.paper_trades:
               #st.subheader("📄 Paper Trade Monitor")
      

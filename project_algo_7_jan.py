@@ -8788,6 +8788,8 @@ elif MENU =="LIVE TRADE 3":
             if isinstance(st.session_state.get("trade_signals"), pd.DataFrame):
                         st.subheader("📊 Signal Logs")
                         st.dataframe(st.session_state.trade_signals, use_container_width=True) 
+            else:
+                 st.write("No signals in session state")
 #======================================================================================================================
 
 

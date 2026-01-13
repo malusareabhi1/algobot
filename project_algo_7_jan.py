@@ -5333,18 +5333,11 @@ elif MENU == "Backtest":
 
 
 #------------------------------------ORDERS--------------------------------------------
-        show_kite_orders(kite)
+       
          #===========================================OPEN POSITION--------------------------------------
         st.divider()
 
-        open_pnl = show_open_positions(kite)
-        closed_pnl = show_closed_positions(kite)
-               
-        st.divider()
-        st.metric(
-                   "💰 TOTAL DAY P&L",
-                   f"₹ {open_pnl + closed_pnl:,.2f}"
-             )
+       
 
 #==============================================================================================================================
 
@@ -5395,9 +5388,7 @@ elif MENU == "Backtest":
           
                  
 
-        while True:
-                        monitor_and_exit_last_position(kite,df_plot)
-                        time.sleep(5)
+       
   #========================================================================================================================== 
     
    

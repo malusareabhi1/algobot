@@ -45,19 +45,23 @@ if "last_executed_signal_time" not in st.session_state:
 #====================================================================================================
 
 def save_signal_log(signal: dict):
-    file_path = f"{LOG_DIR}/signals_{TODAY}.csv"
+    file_path = f"signals_{TODAY}.csv"   # ✅ current working dir
 
-    df = pd.DataFrame([signal])
+    safe_signal = {
+        k: str(v) if hasattr(v, "isoformat") else v
+        for k, v in signal.items()
+    }
+
+    df = pd.DataFrame([safe_signal])
 
     write_header = not os.path.exists(file_path)
     df.to_csv(file_path, mode="a", header=write_header, index=False)
 
 def save_trade_log(trade: dict):
-    file_path = f"{LOG_DIR}/trades_{TODAY}.csv"
+    file_path = f"trades_{TODAY}.csv"    # ✅ current working dir
 
     trade_copy = trade.copy()
 
-    # Ensure datetime columns are string-safe
     for k in ["entry_time", "exit_time", "signal_time"]:
         if k in trade_copy and trade_copy[k] is not None:
             trade_copy[k] = str(trade_copy[k])
@@ -66,8 +70,6 @@ def save_trade_log(trade: dict):
 
     write_header = not os.path.exists(file_path)
     df.to_csv(file_path, mode="a", header=write_header, index=False)
-
-
 #=================================================SAFE GREEK =================================================
 
 def evaluate(value, min_val=None, max_val=None):

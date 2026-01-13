@@ -5415,28 +5415,9 @@ elif MENU == "Backtest":
           st.subheader("📡 Live Paper Trade Monitor")
 
           trade = st.session_state.active_trade
-          st.write(st.session_state)
+          st.write(st.session_state.paper_trades)
 
-          if trade:
-              ltp = get_live_option_price(kite, trade["instrument_token"])
-          
-              col1, col2, col3 = st.columns(3)
-              col1.metric("Entry Price", trade["entry_price"])
-              col2.metric("Live Price", ltp)
-              col3.metric("PnL", (ltp - trade["entry_price"]) * trade["quantity"])
-          
-              st.info(
-                  f"""
-                  SL: {trade['sl']}
-                  | Target: {trade['target']}
-                  | Trailing SL: {trade['trailing_sl']}
-                  """
-              )
-          
-              monitor_and_exit_trade(kite)
-          
-          else:
-              st.warning("No active paper trade")
+         
 
        
  #--------------------------------------Exit Logix=-----------------------------------------------------------        

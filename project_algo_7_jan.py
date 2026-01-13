@@ -39,6 +39,33 @@ if "paper_trades" not in st.session_state:
 
 if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
+
+#====================================================================================================
+
+def save_signal_log(signal: dict):
+    file_path = f"{LOG_DIR}/signals_{TODAY}.csv"
+
+    df = pd.DataFrame([signal])
+
+    write_header = not os.path.exists(file_path)
+    df.to_csv(file_path, mode="a", header=write_header, index=False)
+
+def save_trade_log(trade: dict):
+    file_path = f"{LOG_DIR}/trades_{TODAY}.csv"
+
+    trade_copy = trade.copy()
+
+    # Ensure datetime columns are string-safe
+    for k in ["entry_time", "exit_time", "signal_time"]:
+        if k in trade_copy and trade_copy[k] is not None:
+            trade_copy[k] = str(trade_copy[k])
+
+    df = pd.DataFrame([trade_copy])
+
+    write_header = not os.path.exists(file_path)
+    df.to_csv(file_path, mode="a", header=write_header, index=False)
+
+
 #=================================================SAFE GREEK =================================================
 
 def evaluate(value, min_val=None, max_val=None):
@@ -5509,7 +5536,7 @@ elif MENU == "Backtest":
               use_container_width=True,
               hide_index=True
           )
-
+        save_trade_log(st.session_state.paper_trades)
 
 #------------------------------------ORDERS--------------------------------------------
        

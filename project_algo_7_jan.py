@@ -4782,7 +4782,7 @@ elif MENU == "Backtest":
     with col5:
             st.subheader("Parameter Values")
             option_dict = get_live_option_details(kite, trending_symbol)
-            spot_price=26046.00 
+            spot_price=spot 
             ltp = option_dict.get("ltp")
             strike = option_dict.get("strike")
             expiry = option_dict.get("expiry")

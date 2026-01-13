@@ -46,12 +46,10 @@ os.makedirs(LOG_DIR, exist_ok=True)
 
 today = date.today().strftime("%Y-%m-%d")
 signal_log_file = f"{LOG_DIR}/signals_{today}.csv"
-
 url = "https://github.com/malusareabhi1/algobot/blob/main/.logs/signal.csv"
-
 df = pd.read_csv(url)
 
-print(df.head())
+st.write(df.head())
 #====================================================================================================
 
 def save_signal_log(signal: dict):

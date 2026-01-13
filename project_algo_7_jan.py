@@ -4949,7 +4949,7 @@ elif MENU == "Backtest":
                   option_symbol = f"NFO:{trending_symbol}"
           
                   entry_price = kite.ltp(option_symbol)[option_symbol]["last_price"]
-          
+                  initial_sl = calculate_initial_sl_15min(df_plot)  
                   
                   trade = {
                         "signal_time": signal_time,
@@ -4958,6 +4958,7 @@ elif MENU == "Backtest":
                         "option_type": option_type,
                         "entry_price": entry_price,
                         "quantity": 65,
+                        "stoploss": initial_sl,              # 🔒 FIXED AT ENTRY
                         "remaining_qty": 65,
                         "highest_price": entry_price,
                         "partial_exit_done": False,

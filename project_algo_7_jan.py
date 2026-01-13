@@ -8600,7 +8600,7 @@ elif MENU =="LIVE TRADE 3":
     #iv_value = 0.26
     result = "Fail" if 75000 <= cash <= 25000 else "Pass"
     add_param_row("CASH", cash, "25K - 100K", result)
-
+    st.session_state.capital=cash
 
     #---------------------------------------------------------------------
     ist = pytz.timezone("Asia/Kolkata")

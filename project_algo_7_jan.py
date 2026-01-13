@@ -5392,7 +5392,7 @@ elif MENU == "Backtest":
         st.subheader("Paper Order Book")
         st.subheader("📒 Paper Trade Log")
         st.dataframe(
-              st.session_state.trade_log,
+              st.session_state.paper_trades,
               use_container_width=True,
               hide_index=True
           )

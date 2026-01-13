@@ -4404,6 +4404,964 @@ if MENU == "Home":
 # ------------------------------------------------------------
 elif MENU == "Backtest":
     st.title("Backtest Strategies")
+    st.session_state.param_rows = []
+    if "signal_log" not in st.session_state:
+         st.session_state.signal_log = []
+    #today = latest_time.date()
+    st.title("🔴 LIVE TRADE ")
+    #st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")
+    if not is_kite_connected(kite):
+        st.warning("Please login first to access LIVE trade.")
+        st.stop()     # Stop page execution safely
+
+    #st.success("You are logged in.")
+     
+    st.session_state.param_rows = []
+    from streamlit_autorefresh import st_autorefresh
+    import time             # Python's time module
+    from datetime import time  # datetime.time (conflict!)
+    # Initialize Kite in session_state
+    if "kite" not in st.session_state:
+        st.session_state.kite = None
+    else:
+        kite = st.session_state.get("kite")
+    # --- SESSION STATE INIT ---
+    if "order_executed" not in st.session_state:
+        st.session_state.order_executed = False
+        
+    
+    if "signal_time" not in st.session_state:
+        st.session_state.signal_time = None
+    # Add after data processing:
+    def is_kite_connected(kite):
+        try:
+            kite.profile()
+            return True
+        except:
+            return False
+
+    
+
+    #st.title("Algo Trading Dashboard")
+
+    # ===== ROW 1 =====
+    col1, col2 = st.columns([1, 3])
+
+    with col1:
+        funds = get_fund_status(kite)
+        #st.write(funds) 
+        cash = (funds['cash'])
+        cash = (funds['net'])  
+
+        st.subheader("Connection Status") 
+        if is_kite_connected(kite):
+             st.success("Kite connection active")
+        else:
+             st.error("Kite session expired. Please login again.") 
+        st.subheader("WebSocket Status")
+        #st.success("Kite Connected")
+        st.info("WebSocket: Running")
+        st.subheader("FUND Status")
+        st.metric("Funds ₹.", cash)
+
+    with col2:
+         st.subheader("NIFTY 50 / 15 Min Chart")
+        #---------------------------------------------------------------------
+         ist = pytz.timezone("Asia/Kolkata")
+         now = datetime.now(ist).time()
+         
+         # Market hours condition
+         start = time(9, 15)   # 9:30 AM
+         end = time(15, 25)    # 3:25 PM
+         
+         # Refresh only between 9:30–3:25
+         if start <= now <= end:
+             #st_autorefresh(interval=60000, key="refresh")  # 1 minute refresh
+             st_autorefresh(interval=60000, key="refresh_live3")
+         else:
+             st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
+     
+         #st.title("Nifty 15-min Chart")
+         
+         # Select date input (default today)
+         selected_date = st.date_input("Select date", value=datetime.today())
+         
+         # Calculate date range to download (7 days before selected_date to day after selected_date)
+         start_date = selected_date - timedelta(days=7)
+         end_date = selected_date + timedelta(days=1)
+         
+         # Download data for ^NSEI from start_date to end_date
+         df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="15m")
+         
+         if df.empty:
+             st.warning("No data downloaded for the selected range.")
+             st.stop()
+         df.reset_index(inplace=True)
+         
+         if 'Datetime_' in df.columns:
+             df.rename(columns={'Datetime_': 'Datetime'}, inplace=True)
+         elif 'Date' in df.columns:
+             df.rename(columns={'Date': 'Datetime'}, inplace=True)
+         # Add any other detected name if needed
+         
+         
+         #st.write(df.columns)
+         #st.write(df.head(10))
+         # Flatten columns if MultiIndex
+         if isinstance(df.columns, pd.MultiIndex):
+             df.columns = ['_'.join(col).strip() if isinstance(col, tuple) else col for col in df.columns]
+         
+         # Rename datetime column if needed
+         if 'Datetime' not in df.columns and 'datetime' in df.columns:
+             df.rename(columns={'datetime': 'Datetime'}, inplace=True)
+         #st.write(df.columns)
+         #st.write(df.columns)
+         # Convert to datetime & timezone aware
+         #df['Datetime'] = pd.to_datetime(df['Datetime'])
+         if df['Datetime_'].dt.tz is None:
+             df['Datetime'] = df['Datetime_'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
+         else:
+             df['Datetime'] = df['Datetime_'].dt.tz_convert('Asia/Kolkata')
+         
+         #st.write(df.columns)
+         #st.write(df.head(10))
+         
+         # Filter for last two trading days to plot
+         unique_days = df['Datetime'].dt.date.unique()
+         if len(unique_days) < 2:
+             st.warning("Not enough data for two trading days")
+         else:
+             last_day = unique_days[-2]
+             today = unique_days[-1]
+         
+             df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
+         
+             # Get last day 3PM candle open and close
+             candle_3pm = df_plot[(df_plot['Datetime'].dt.date == last_day) &
+                                  (df_plot['Datetime'].dt.hour == 15) &
+                                  (df_plot['Datetime'].dt.minute == 0)]
+         
+             if not candle_3pm.empty:
+                 open_3pm = candle_3pm.iloc[0]['Open_^NSEI']
+                 close_3pm = candle_3pm.iloc[0]['Close_^NSEI']
+             else:
+                 open_3pm = None
+                 close_3pm = None
+                 st.warning("No 3:00 PM candle found for last trading day.")
+             #-----------------------------Marking 9.15 Candle---------------------------------
+             # Get today's 9:15 AM candle
+             candle_915 = df_plot[(df_plot['Datetime'].dt.date == today) &
+                               (df_plot['Datetime'].dt.hour == 9) &
+                               (df_plot['Datetime'].dt.minute == 15)]
+          
+             if not candle_915.empty:
+                   o_915 = candle_915.iloc[0]['Open_^NSEI']
+                   h_915 = candle_915.iloc[0]['High_^NSEI']
+                   l_915 = candle_915.iloc[0]['Low_^NSEI']
+                   c_915 = candle_915.iloc[0]['Close_^NSEI']
+                   t_915 = candle_915.iloc[0]['Datetime']
+             else:
+                   o_915 = h_915 = l_915 = c_915 = t_915 = None
+                   st.warning("No 9:15 AM candle found for today.")    
+              
+              #---------------------------------------------------------------------------------
+         
+              
+         
+             # Plot candlestick chart
+             fig = go.Figure(data=[go.Candlestick(
+                 x=df_plot['Datetime'],
+                 open=df_plot['Open_^NSEI'],
+                 high=df_plot['High_^NSEI'],
+                 low=df_plot['Low_^NSEI'],
+                 close=df_plot['Close_^NSEI']
+             )])
+             if t_915 is not None:
+                   fig.add_vrect(
+                       x0=t_915,
+                       x1=t_915 + pd.Timedelta(minutes=15),
+                       fillcolor="orange",
+                       opacity=0.25,
+                       layer="below",
+                       line_width=0,
+                       annotation_text="9:15 Candle",
+                       annotation_position="top left"
+                   )
+             
+             
+     
+             if o_915 is not None and c_915 is not None:
+                   fig.add_hline(y=o_915, line_dash="solid", line_color="green",
+                                 annotation_text="9:15 Open")
+                   fig.add_hline(y=c_915, line_dash="solid", line_color="orange",
+                                 annotation_text="9:15 Close") 
+             if open_3pm and close_3pm:
+                 fig.add_hline(y=open_3pm, line_dash="dot", line_color="blue", annotation_text="3PM Open")
+                 fig.add_hline(y=close_3pm, line_dash="dot", line_color="red", annotation_text="3PM Close")
+         
+         
+         
+         
+             # Draw horizontal lines as line segments only between 3PM last day and 3PM next day
+         
+             
+             fig.update_layout(title="Nifty 15-min candles - Last Day & Today", xaxis_rangeslider_visible=False)
+             fig.update_layout(
+             xaxis=dict(
+                 rangebreaks=[
+                     # Hide weekends (Saturday and Sunday)
+                     dict(bounds=["sat", "mon"]),
+                     # Hide hours outside of trading hours (NSE trading hours 9:15 to 15:30)
+                     dict(bounds=[15.5, 9.25], pattern="hour"),
+                 ]
+             )
+         )
+         
+         
+             st.plotly_chart(fig, use_container_width=True)  
+        
+    st.divider()
+#==============================================================================================================================
+    # ===== ROW 2 =====
+    col3, col4 = st.columns(2)
+
+    with col3:
+        import json 
+        st.subheader("Signal Log")
+        df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
+        signal = trading_signal_all_conditions(df_plot)
+        #st.write("DEBUG signal:", signal)
+        #st.write("Type:", type(signal))
+        df_sig1 = pd.DataFrame(signal)
+
+        if signal and isinstance(signal, list):
+              last_signal = signal[-1]
+              st.success(f"✅ SIGNAL GENERATED: {last_signal['message']}")
+ 
+        if signal is None:
+            st.warning("⚠ No signal yet (conditions not met).")
+        else:
+            #st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
+            last_signal = signal[-1]  
+            #df_sig1 = pd.DataFrame([signal])
+            df_sig1 = pd.DataFrame(signal) 
+            signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
+            last_signal["signal_time"] = signal_time
+            signal_time1=last_signal["signal_time"] 
+
+             
+ 
+                
+                # Display as table
+            #st.table(df_sig1) 
+            #st.write(df_sig1) 
+            st.subheader("📊 Signal Log")
+            #st.write(df_sig1) 
+            st.dataframe(df_sig1, use_container_width=True, hide_index=True) 
+            #=========================JSON TO TABLE========================
+            
+
+     #=============================================================================================
+        
+                           
+#==============================================================================================================================
+   
+    with col4:
+            st.subheader("Option Log")
+            entry_time = last_signal['entry_time']
+            #st.write("entry_time",entry_time) 
+            #st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS
+            signal_time=entry_time.strftime("%H:%M:%S")
+            #st.write("Signal Time only:-", signal_time)  # HH:MM:SS
+            #            st.write(signal)
+#--------------------------------------------------------------------------------
+
+            def generate_signals_stepwise(df):
+                 all_signals = []
+                 
+                 # We run strategy for each candle progressively
+                 for i in range(40, len(df)):   # start after enough candles
+                     sub_df = df.iloc[:i].copy()
+                     sig = trading_signal_all_conditions(sub_df)
+                     if sig is not None:
+                         all_signals.append((sub_df.iloc[-1]["Datetime"], sig))
+             
+                 return all_signals
+     #-------------------------------------Total signals-------------------------------------------
+     
+            step_signals = generate_signals_stepwise(df_plot)
+            if step_signals:
+                     #st.info(f"Total signals detected so far: {len(step_signals)}")
+                 
+                     latest_time, latest_sig = step_signals[-1]
+                     
+                     st.success(f"🟢 Latest Candle Signal ({latest_time}):")
+                     #st.write(latest_sig)
+                     # Convert to DataFrame
+                     df_sig = pd.DataFrame([latest_sig])
+                     
+                     # Display as table
+                     #st.table(df_sig)
+            else:
+                     st.warning("No signal triggered in any candle yet.")
+        
+     
+     #-----------------------------------Nearest ITM Option ---------------------------------------------
+     
+            if signal is not None:
+                 #signal_time = df["Datetime"].iloc[-1].time()   # last candle time
+                 option_type = last_signal["option_type"]     # CALL / PUT
+                 #st.write("Option type ",option_type)
+                 spot = last_signal["spot_price"]
+                 #st.write("Option spot ",spot)
+                 try:
+                     nearest_itm = find_nearest_itm_option(kite, spot, option_type)
+                     
+                     st.success("Nearest ITM Option Found")
+                     #                st.write(nearest_itm)
+                     nearest_itm1 = pd.DataFrame([nearest_itm])
+                     
+                     # Display as table
+                     st.table(nearest_itm1)
+                     trending_symbol=nearest_itm['tradingsymbol']
+                     #st.write("tradingsymbol-",trending_symbol)
+                  #====================================================FLAG SIGNAL================================
+                     st.session_state.trade_status = "SIGNAL"
+                     st.session_state.signal_time = signal_time
+                     st.session_state.signal_price = nearest_itm['ltp']   # LTP at signal candle
+                     st.session_state.symbol = trending_symbol 
+     
+                  #==================================================================================================
+             
+                 except Exception as e:
+                     st.error(f"Failed to fetch option: {e}")
+
+
+    st.divider()
+#==============================================================================================================================
+
+    # ===== ROW 3 =====
+    col5, col6 = st.columns(2)
+
+    with col5:
+            st.subheader("Parameter Values")
+            option_dict = get_live_option_details(kite, trending_symbol)
+            spot_price=26046.00 
+            ltp = option_dict.get("ltp")
+            strike = option_dict.get("strike")
+            expiry = option_dict.get("expiry")
+            is_call = option_dict.get("option_type") == "CALL"
+          #------------------------------------------PAPER TRADE-------------------------------------------------
+            if signal is not None:
+
+              signal_time = last_signal["signal_time"]
+          
+              # 🔒 ENTRY LOCK — THIS PREVENTS RE-ENTRY ON REFRESH
+              if st.session_state.last_executed_signal_time == signal_time:
+                  pass  # already traded this signal
+          
+              else:
+                  option_type = last_signal["option_type"]
+                  spot = last_signal["spot_price"]
+          
+                  nearest_itm = find_nearest_itm_option(kite, spot, option_type)
+                  trending_symbol = nearest_itm["tradingsymbol"]
+                  option_symbol = f"NFO:{trending_symbol}"
+          
+                  entry_price = kite.ltp(option_symbol)[option_symbol]["last_price"]
+          
+                  
+                  trade = {
+                        "signal_time": signal_time,
+                        "entry_time": pd.Timestamp.now(),
+                        "symbol": trending_symbol,
+                        "option_type": option_type,
+                        "entry_price": entry_price,
+                        "quantity": 75,
+                        "remaining_qty": 75,
+                        "highest_price": entry_price,
+                        "partial_exit_done": False,
+                        "final_exit_done": False,
+                        "status": "OPEN"
+                    }
+          
+                  st.session_state.paper_trades.append(trade)
+          
+                  # 🔐 LOCK THE SIGNAL
+                  st.session_state.last_executed_signal_time = signal_time
+          
+                  #st.success(f"Paper trade entered @ {entry_price}")
+
+            #monitor_paper_trades(kite)
+            #for trade in st.session_state.paper_trades:
+              #normalize_trade(trade)
+              #manage_exit_papertrade(kite, trade)
+
+            #st.write("Moniter")
+             
+
+ 
+   
+          #---------------------------------------PAPER TRADE----------------------------------------------------   
+              # Compute time to expiry (in years)
+            days_to_exp = days_to_expiry(expiry)
+            time_to_expiry = days_to_exp / 365 
+            r=0.07
+            r= 0.065  
+            #st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
+            iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
+            #st.write("IV  FOr (Option):CE")
+            #st.write("IV (decimal):", iv)
+            #st.write("IV (%):", iv * 100)    
+            result = "Pass" if (iv is not None and 0.10 <= iv <= 0.35) else "Fail"
+ 
+            #result = "Pass" if 0.10 <= iv <= 0.35 else "Fail"
+            iv_result = result    
+            #add_param_row("IV", round(iv, 2), "0.10 - 0.35", result)
+             
+
+#-----------------------------------IV Compute---------------------------------------------
+
+        #spot_price = get_ltp(kite, "NSE:NIFTY 50")["ltp"]
+        
+         #iv_percent = compute_option_iv(nearest_itm, spot)
+        
+         #st.write("IV:", iv_percent)    
+         
+         #get_live_iv_nifty_option(kite, option_token: int, index_symbol="NSE:NIFTY 50"):        
+            #st.write(nearest_itm)  
+
+#----------------------------------IV----------------------------------------------
+
+    
+        
+            iv_info = get_iv_rank0(kite, nearest_itm, lookback_days=250)
+       
+            #st.write("New Way Iv ",iv)  
+            # Fix missing values
+            if iv_info["iv"] is None:
+                 iv_info["iv"] = 0
+     
+            if iv_info["iv_rank"] is None:
+                iv_info["iv_rank"] = 0
+
+         ##st.write("Current IV:", iv_info["iv"], "%")
+         #st.write("IV Rank:", iv_info["iv_rank"], "%")
+#-----------------------Add PARA----------------------------------------------
+    # IV
+            result = "Pass" if 0.10 <= iv_info["iv"] <= 0.35 else "Fail"
+            iv_result = result    
+            #add_param_row("IV", round(iv_info["iv"], 2), "0.10 - 0.35", result)
+
+    # IV Rank
+            result = "Pass" if 0.20 <= iv_info["iv_rank"] <= 0.70 else "Fail"
+            iv_rank_result  = result    
+            #add_param_row("IV Rank", round(iv_info["iv_rank"], 2), "0.20 - 0.70", result)
+#--------------------------------------------------Getting New IV-----------& adding to para----------------------------
+            #result = compute_option_iv_details(option, spot)
+     
+            #st.write(result)  
+            option = get_live_option_details(kite, trending_symbol)
+     
+            #st.write(option)
+     
+     
+            spot = option["strike"]
+            #st.write("Spot",spot) 
+            #spot = 25900.00  # live NIFTY spot
+     
+            result = compute_option_iv_details(option, spot)
+            #st.write("IV new",result["iv"]) 
+            new_iv_result= result["iv"]
+            result = "Pass" if 0.10 <= new_iv_result <= 0.35 else "Fail" 
+            add_param_row("IV ", round(new_iv_result, 2), "0.10 - 0.35", result) 
+#-------------------------------------------------------------------------
+            if(iv_info["iv"]=='None'):
+             # Safely extract values
+                  iv_value = iv_info.get("iv") or 0
+                  iv_rank_value = iv_info.get("iv_rank") or 0
+             
+                  st.write("After None Current IV:", iv_value, "%")
+                  st.write("After None IV Rank:", iv_rank_value, "%")
+    
+        
+
+#--------------------------------VIX------------------------------------------------
+         #vix_now =fetch_vix_from_fyers()
+         
+            vix_now = fetch_india_vix_kite(kite)
+         #st.write("India VIX: kite", vix_now)
+         #st.write("India VIX:", vix_now)
+ #-----------------------Add PARA----------------------------------------------
+    # VIX
+            result = "Pass" if vix_now > 10 else "Fail"
+            vix_result  = result     
+            add_param_row("VIX", round(vix_now, 2), "> 10", result)
+
+ #------------------------------------------------------------------------------   
+    # Apply IV + VIX Filter
+    # -------------------------
+        #allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_now)
+    # Safely extract values
+            iv_value = iv_info.get("iv") or 0
+            iv_rank_value = iv_info.get("iv_rank") or 0
+            allowed, position_size = combined_filter(iv_value, iv_rank_value, vix_now)
+            #st.write("Allowed to Trade?", allowed)
+            #st.write("Position Size:", position_size)
+    #-----------------------------------------------------------------------------------------
+    
+    #---------------------------------tIME-----------------------------------------------
+            import pytz
+            
+    # IST timezone
+            ist = pytz.timezone("Asia/Kolkata")
+            now_dt = datetime.now(ist)     # full datetime object
+            now = now_dt.time()            # extract time only for comparisons
+
+            tz = pytz.timezone("Asia/Kolkata")
+            now = datetime.now(tz)
+     #----------------------------------FUND-----------------------------------------------------
+            #st.divider()
+
+            funds = get_fund_status(kite)
+
+            #st.subheader("💰 Zerodha Fund Status")
+    
+            if "error" in funds:
+                st.error(funds["error"])
+            else:
+                  #st.write(f"**Net Balance:** ₹{funds['net']}")
+                  #st.write(f"**Cash:** ₹{funds['cash']}")
+                  #st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
+                  #st.write(f"**Collateral:** ₹{funds['collateral']}")
+                  #st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
+                  #cash_balance = 73500
+                  lots = get_lot_size(funds['cash'])
+                  #st.write("Lot Size:", lots)
+                  qty=65*lots
+                  #st.divider()
+
+   
+    
+    #------------------------------------PLACING ORDERS--------------------------------------------
+             #st.write(f"Placing order for:", trending_symbol)
+            if(position_size=='none'):
+                  position_size=1;
+        #st.write(f"Quantity: {qty}, LTP: {ltp}")
+        #st.write(f"Quantity  order for:", qty)        
+        #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
+        # Condition 1: Current time >= signal candle time
+        # Trading window
+            start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
+            end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+    #st.write("start_time", start_time)
+    #st.write("end_time", end_time)
+    #st.write("Now Time", now)
+    #st.write("signal_time",signal_time)
+    
+    
+    #-------------------------------------------------------------------------------
+
+        # Convert to Python datetime (with timezone if needed)
+            signal_time = pd.to_datetime(signal_time).to_pydatetime()
+   
+    # Optional: ensure same timezone as now
+    #import pytz
+            tz = pytz.timezone("Asia/Kolkata")
+            signal_time = signal_time.replace(tzinfo=tz)
+    #    st.write("signal_time",signal_time)
+    #st.write("Now Time", now)
+    #--------------------------------------------------------------------------------
+     #-----------------------Add PARA----------------------------------------------
+    # Define IST timezone
+            ist = pytz.timezone("Asia/Kolkata")
+    
+    # Convert signal_time to IST
+            signal_time_ist = signal_time.astimezone(ist)
+            import datetime as dt
+
+            start = dt.time(9, 30)
+            end   = dt.time(14, 30)
+    
+            sig_t = signal_time_ist.time()
+    
+            result = "Pass" if start <= sig_t <= end else "Fail"
+    
+            add_param_row("Signal Time", str(signal_time_ist.time()),"09:30 - 14:30",result)
+     #------------------------------------ADD PCR------------------------------------------ 
+            pcr_value = get_nifty_pcr(kite)
+            result = "Pass" if 0.80 <= pcr_value <= 1.30 else "Fail"
+            pcr_result= result
+            add_param_row("PCR", round(pcr_value, 2), "0.80 - 1.30", result)
+
+#-------------------------------------lot ty------------------------------------------------
+     # Default lot size
+            qty = 1*65
+     
+     # Apply rule
+            if iv_result == "Fail" or iv_rank_result == "Fail":
+                   lot_qty = 2
+            if iv_result == "Pass" and iv_rank_result == "Fail" and vix_result=="pass" and pcr_result=="pass":
+                   lot_qty = 6    
+            if vix_now < 10 :
+                   lot_qty = 0 
+                 
+            add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK")
+     #-----------------------------------------Display PARA-------------------------------------------
+            if st.session_state.param_rows:
+                  df = pd.DataFrame(st.session_state.param_rows)
+                  st.table(df)
+            else:
+                  st.write("No parameters added yet.")
+    #------------------------------------------------------------------------------------------------
+#==============================================================================================================================
+
+    with col6:
+         days_to_exp = days_to_expiry(expiry)
+         time_to_expiry = days_to_exp / 365 
+         r=0.07
+            #st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
+         #iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
+         iv=new_iv_result
+         st.subheader("Greeks Values")
+         #greeks = option_greeks(S=spot_price,K=strike,T=time_to_expiry,r=r,sigma=iv,option_type=option_type)
+         S=spot_price
+         K=strike
+         T=time_to_expiry
+         r=r
+         sigma=iv
+         option_type=option_type
+         
+         greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
+     
+         #if greeks:
+              #st.subheader("Greeks Values")
+          
+              #col1, col2, col3, col4, col5 = st.columns(5)
+              #col1.metric("Delta", round(greeks["Delta"], 3))
+              #col2.metric("Gamma", round(greeks["Gamma"], 4))
+              #col3.metric("Theta", round(greeks["Theta"], 2))
+              #col4.metric("Vega", round(greeks["Vega"], 2))
+              #col5.metric("IV %", round(greeks["IV"], 2))
+         greeks_param_df = pd.DataFrame([
+    {
+        "Parameter": "Delta",
+        "Value": greeks["Delta"],
+        "Range": "0.30 – 0.85",
+        "Result": evaluate(greeks["Delta"], 0.30, 0.85)
+    },
+    {
+        "Parameter": "Gamma",
+        "Value": greeks["Gamma"],
+        "Range": "≥ 0.0005",
+        "Result": evaluate(greeks["Gamma"], 0.0005, None)
+    },
+    {
+        "Parameter": "Theta",
+        "Value": greeks["Theta"],
+        "Range": "≥ -80",
+        "Result": evaluate(greeks["Theta"], -80, None)
+    },
+    {
+        "Parameter": "Vega",
+        "Value": greeks["Vega"],
+        "Range": "≥ 3.0",
+        "Result": evaluate(greeks["Vega"], 3.0, None)
+    },
+    {
+        "Parameter": "IV %",
+        "Value": greeks["IV"],
+        "Range": "10 – 35",
+        "Result": evaluate(greeks["IV"], 10, 35)
+    }
+])
+ 
+         st.dataframe(
+         greeks_param_df.style.applymap(
+            lambda x: "color: green; font-weight: bold"
+            if x == "Pass"
+            else "color: red; font-weight: bold"
+            if x == "Fail"
+            else ""
+         ),
+         use_container_width=True,
+         hide_index=True
+     )
+
+         #---------------------------------tIME-----------------------------------------------
+         import pytz
+            
+    # IST timezone
+         ist = pytz.timezone("Asia/Kolkata")
+         now_dt = datetime.now(ist)     # full datetime object
+         now = now_dt.time()            # extract time only for comparisons
+
+         tz = pytz.timezone("Asia/Kolkata")
+         now = datetime.now(tz)
+     #----------------------------------FUND-----------------------------------------------------
+            #st.divider()
+
+         funds = get_fund_status(kite)
+
+            #st.subheader("💰 Zerodha Fund Status")
+    
+         if "error" in funds:
+                st.error(funds["error"])
+         else:
+                  #st.write(f"**Net Balance:** ₹{funds['net']}")
+                  #st.write(f"**Cash:** ₹{funds['cash']}")
+                  #st.write(f"**Opening Balance:** ₹{funds['opening_balance']}")
+                  #st.write(f"**Collateral:** ₹{funds['collateral']}")
+                  #st.write(f"**Option Premium Used:** ₹{funds['option_premium']}")
+                  #cash_balance = 73500
+                  lots = get_lot_size(funds['cash'])
+                  #st.write("Lot Size:", lots)
+                  qty=65*lots
+                  #st.divider()
+
+   
+    
+    #------------------------------------PLACING ORDERS--------------------------------------------
+             #st.write(f"Placing order for:", trending_symbol)
+         if(position_size=='none'):
+                  position_size=1;
+        #st.write(f"Quantity: {qty}, LTP: {ltp}")
+        #st.write(f"Quantity  order for:", qty)        
+        #if st.button("🚀 PLACE BUY ORDER IN ZERODHA"):
+        # Condition 1: Current time >= signal candle time
+        # Trading window
+         start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
+         end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+    #st.wite("start_time", start_time)
+    #st.write("end_time", end_time)
+    #st.write("Now Time", now)
+    #st.write("signal_time",signal_time)
+    
+    
+    #-------------------------------------------------------------------------------
+
+        # Convert to Python datetime (with timezone if needed)
+         signal_time = pd.to_datetime(signal_time).to_pydatetime()
+   
+    # Optional: ensure same timezone as now
+    #import pytz
+         tz = pytz.timezone("Asia/Kolkata")
+         signal_time = signal_time.replace(tzinfo=tz)
+    #    st.write("signal_time",signal_time)
+    #st.write("Now Time", now)
+    #--------------------------------------------------------------------------------
+     #-----------------------Add PARA----------------------------------------------
+    # Define IST timezone
+         ist = pytz.timezone("Asia/Kolkata")
+    
+    # Convert signal_time to IST
+         signal_time_ist = signal_time.astimezone(ist)
+         import datetime as dt
+
+         start = dt.time(9, 30)
+         end   = dt.time(14, 30)
+    
+         sig_t = signal_time_ist.time()
+    
+         result = "Pass" if start <= sig_t <= end else "Fail"
+    
+         add_param_row("Signal Time", str(signal_time_ist.time()),"09:30 - 14:30",result)
+     #------------------------------------ADD PCR------------------------------------------ 
+         pcr_value = get_nifty_pcr(kite)
+         result = "Pass" if 0.80 <= pcr_value <= 1.30 else "Fail"
+         pcr_result= result
+         add_param_row("PCR", round(pcr_value, 2), "0.80 - 1.30", result)
+
+#-------------------------------------lot ty------------------------------------------------
+     # Default lot size
+         qty = 1*65
+            
+                 
+     
+     # Apply rule
+         if iv_result == "Fail" or iv_rank_result == "Fail":
+                   lot_qty = 2
+         if iv_result == "Pass" and iv_rank_result == "Fail" and vix_result=="pass" and pcr_result=="pass":
+                   lot_qty = 6    
+         if vix_now < 10 :
+                   lot_qty = 1 
+         if 10< vix_now < 15 :
+                   lot_qty = 2
+         if 15< vix_now < 20 :
+                   lot_qty = 4
+         if vix_now > 20 :
+                   lot_qty = 1     
+         add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK")
+     #-----------------------------------------Display PARA-------------------------------------------
+         if st.session_state.param_rows:
+                  df = pd.DataFrame(st.session_state.param_rows)
+                  #st.table(df)
+         else:
+                  st.write("No parameters added yet.")
+    #------------------------------------------------------------------------------------------------
+         qty=qty*lot_qty
+            #qty=0
+            #st.subheader("Session State Debug")
+            #st.write(st.session_state)
+            #st.subheader("Session State (Detailed)")
+            #for key, value in st.session_state.items():
+                #st.write(f"{key} :", value)
+
+         #st.subheader("Trade State")
+         keys_to_show = [
+                   "trade_status",
+                   "signal_time",
+                   "signal_price",
+                   "entry_time",
+                   "exit_time",
+                   "order_id",
+                   "symbol"
+               ]
+               
+         #for k in keys_to_show:
+                   #if k in st.session_state:
+                       #st.write(f"{k} :", st.session_state[k])
+
+ 
+ 
+                # Check 1: Only run if current time is within trading window
+         if is_valid_signal_time(entry_time):
+                 st.warning("Signal time  match today's date .") 
+                 if start_time <= now <= end_time:
+                 
+                 # Check 2: Signal time reached
+                    #if now >= entry_time:
+                    if abs((now - entry_time).total_seconds()) < 50:  
+                         st.info("Execution window In (30 seconds).") 
+                         st.write("entry_time-",entry_time)
+                         st.write("Now Time-", now)
+                      # Check 3: Order placed only once
+                         if lot_qty>0: 
+                              if has_open_position(kite):
+
+                                  st.warning("⚠️ Open position exists. New trade not allowed.")
+                                  
+                              else:
+                                    if not st.session_state.order_executed:
+                                        try:
+                                            order_id = kite.place_order(
+                                                    tradingsymbol=trending_symbol,
+                                                    exchange=kite.EXCHANGE_NFO,
+                                                    transaction_type=kite.TRANSACTION_TYPE_BUY,
+                                                    quantity=qty,
+                                                    order_type=kite.ORDER_TYPE_MARKET,
+                                                    variety=kite.VARIETY_REGULAR,
+                                                    product=kite.PRODUCT_MIS
+                                                )
+                                
+                                            st.session_state.order_executed = True   # Mark executed
+                                            st.session_state.order_executed = True
+                                            st.session_state.last_order_id = order_id
+                                   
+                                           # ✅ Mark trade active
+                                            st.session_state.trade_active = True
+                                            st.session_state.entry_price = ltp
+                                            st.session_state.entry_time = datetime.now()
+                                            st.session_state.qty = qty
+                                            st.session_state.tradingsymbol = trending_symbol 
+                                            st.success(f"Order Placed Successfully! Order ID: {order_id}")
+                                            st.session_state["last_order_id"] = order_id
+                                
+                                        except Exception as e:
+                                            st.error(f"Order Failed: {e}")
+                                        
+                         else:
+                               st.info("Trade Not Allowed Qty=0.")  
+                    else:
+                         st.info("Order already executed for this signal.")
+                 
+                 else:
+                       st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
+         else:
+                   st.warning("Signal time does not match today's date or is outside trading hours. Order not placed.")     
+              
+    st.divider()
+
+    # ===== ROW 4 =====
+    col7, col8 = st.columns(2)
+#==============================================================================================================================
+
+    with col7:
+        st.subheader("Order Book")
+        if "last_order_id" in st.session_state:
+                  order_id = st.session_state["last_order_id"]
+                  order = kite.order_history(order_id)[-1]
+                  st.write("### 🔄 Live Order Update")
+                  #st.write(order)
+
+
+#------------------------------------ORDERS--------------------------------------------
+        show_kite_orders(kite)
+         #===========================================OPEN POSITION--------------------------------------
+        st.divider()
+
+        open_pnl = show_open_positions(kite)
+        closed_pnl = show_closed_positions(kite)
+               
+        st.divider()
+        st.metric(
+                   "💰 TOTAL DAY P&L",
+                   f"₹ {open_pnl + closed_pnl:,.2f}"
+             )
+
+#==============================================================================================================================
+
+    with col8:
+        st.subheader("Monitoring Trade / Positions")
+        if "trade_active" not in st.session_state:
+                   st.session_state.trade_active = False
+                   st.session_state.entry_price = 0.0
+                   st.session_state.entry_time = None
+                   st.session_state.highest_price = 0.0
+                   st.session_state.partial_exit_done = False
+                   st.session_state.final_exit_done = False
+ 
+#--------------------------------------Manage Order--------------------------------------------------------
+
+        last_order1 = get_last_active_order(kite)
+
+        st.subheader("🟢 Active Trade")
+               
+        if last_order1:
+                   #st.write({"Symbol": last_order["tradingsymbol"],"Qty": last_order["quantity"],"Entry Price": last_order["average_price"],"Order Time": last_order["order_timestamp"] })
+                   st.write("Last Order")
+        else:
+                   st.info("No active trade found.")
+
+#--------------------------------------Exit Logix=-----------------------------------------------------------        
+        pos = False 
+        import time   
+        last_order = get_last_buy_order(kite)
+            #st.write("Last Order",last_order)   
+        if last_order:
+              pos = get_open_position_for_symbol(
+                  kite,
+                  last_order["tradingsymbol"]
+              )
+              #st.write("POS",pos)
+        else:
+                 st.write("No Open Position Active")
+          
+        if pos:
+                  st.subheader("🟢 Active Position")
+                  st.table(pd.DataFrame([{
+                      "Symbol": pos["tradingsymbol"],
+                      "Qty": pos["quantity"],
+                      "Avg Price": pos["average_price"],
+                      "PnL": pos["pnl"]
+                  }]))
+          
+                 
+
+        while True:
+                        monitor_and_exit_last_position(kite,df_plot)
+                        time.sleep(5)
+  #========================================================================================================================== 
     
    
     

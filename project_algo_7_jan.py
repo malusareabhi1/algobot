@@ -7344,6 +7344,7 @@ elif MENU =="Live Trade":
         signal = trading_signal_all_conditions(df_plot)
         #st.write("DEBUG signal:", signal)
         #st.write("Type:", type(signal))
+        df_sig1 = pd.DataFrame(signal)
 
         if signal and isinstance(signal, list):
               last_signal = signal[-1]
@@ -7354,7 +7355,8 @@ elif MENU =="Live Trade":
         else:
             #st.success(f"✅ SIGNAL GENERATED: {signal['message']}")
             last_signal = signal[-1]  
-            df_sig1 = pd.DataFrame([signal])
+            #df_sig1 = pd.DataFrame([signal])
+            df_sig1 = pd.DataFrame(signal) 
             signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
             last_signal["signal_time"] = signal_time
             signal_time1=last_signal["signal_time"] 
@@ -7366,7 +7368,8 @@ elif MENU =="Live Trade":
             #st.table(df_sig1) 
             #st.write(df_sig1) 
             st.subheader("📊 Signal Log")
-            st.write(df_sig1) 
+            #st.write(df_sig1) 
+            st.dataframe(df_sig1, use_container_width=True, hide_index=True) 
             #=========================JSON TO TABLE========================
             
 

@@ -8034,7 +8034,7 @@ elif MENU == "My Account":
                         st.subheader("📊 Trade Logs")
                         st.dataframe(st.session_state.paper_trades, use_container_width=True)
                     
-                 st.subheader("📌 Active Trade State")
+                    st.subheader("📌 Active Trade State")
 
                     trade_keys = [
                         "trade_active",

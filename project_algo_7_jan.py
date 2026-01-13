@@ -8029,10 +8029,12 @@ elif MENU == "My Account":
                     if isinstance(st.session_state.get("trade_signals"), pd.DataFrame):
                         st.subheader("📊 Signal Logs")
                         st.dataframe(st.session_state.trade_signals, use_container_width=True)
+                         
                     if isinstance(st.session_state.get("trade_logs"), pd.DataFrame):
                         st.subheader("📊 Trade Logs")
                         st.dataframe(st.session_state.paper_trades, use_container_width=True)
-                    st.subheader("📌 Active Trade State")
+                    
+                 st.subheader("📌 Active Trade State")
 
                     trade_keys = [
                         "trade_active",

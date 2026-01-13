@@ -5358,7 +5358,7 @@ elif MENU == "Backtest":
                                 
                                             st.session_state.order_executed = True   # Mark executed
                                             st.session_state.order_executed = True
-                                            st.session_state.last_order_id = order_id
+                                            #st.session_state.last_order_id = order_id
                                    
                                            # ✅ Mark trade active
                                             st.session_state.trade_active = True
@@ -5366,8 +5366,8 @@ elif MENU == "Backtest":
                                             st.session_state.entry_time = datetime.now()
                                             st.session_state.qty = qty
                                             st.session_state.tradingsymbol = trending_symbol 
-                                            st.success(f"Order Placed Successfully! Order ID: {order_id}")
-                                            st.session_state["last_order_id"] = order_id
+                                            #st.success(f"Order Placed Successfully! Order ID: {order_id}")
+                                            #st.session_state["last_order_id"] = order_id
                                 
                                         except Exception as e:
                                             st.error(f"Order Failed: {e}")

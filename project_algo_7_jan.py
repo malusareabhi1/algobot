@@ -45,6 +45,11 @@ if "trades_signals" not in st.session_state:
 
 if "last_option_entry_price" not in st.session_state:
     st.session_state.last_option_entry_price = None
+
+if "NIFTY_TOKEN" not in st.session_state:
+    st.session_state.NIFTY_TOKEN = 256265
+
+
      #===================================================LAST Price================
 
 def get_option_ltp(tradingsymbol):

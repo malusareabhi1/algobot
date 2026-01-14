@@ -1938,8 +1938,8 @@ def get_option_instrument_details0(tradingsymbol):
          }
 
 def get_option_instrument_details(tradingsymbol):
-    df = instruments_df.copy()
-
+    #df = instruments_df.copy()
+    df = load_kite_instruments()  
     df.columns = df.columns.str.strip().str.lower()
 
     if "tradingsymbol" not in df.columns:

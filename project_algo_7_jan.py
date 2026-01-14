@@ -8956,8 +8956,8 @@ elif MENU =="LIVE TRADE 3":
                         "symbol": trending_symbol,
                         "option_type": option_type,
                         "entry_price": entry_price,
-                        "quantity": 75,
-                        "remaining_qty": 75,
+                        "quantity": 65,
+                        "remaining_qty": 65,
                         "highest_price": entry_price,
                         "partial_exit_done": False,
                         "final_exit_done": False,
@@ -8968,7 +8968,7 @@ elif MENU =="LIVE TRADE 3":
           
                   # 🔐 LOCK THE SIGNAL
                   st.session_state.last_executed_signal_time = signal_time
-          
+                  st.session_state.last_option_entry_price = entry_price  
                   #st.success(f"Paper trade entered @ {entry_price}")
 
             #monitor_paper_trades(kite)
@@ -9237,7 +9237,7 @@ elif MENU =="LIVE TRADE 3":
                  
                  # Check 2: Signal time reached
                     #if now >= entry_time:
-                    st.write("Option & Price= ",trending_symbol, signal_price)  
+                    st.write("Option & Price= ",trending_symbol, st.session_state.last_option_entry_price)  
                     currnt_price=get_option_ltp(trending_symbol)  
                     st.write("Current Price =",currnt_price)  
                     if abs((now - entry_time).total_seconds()) < 60:  

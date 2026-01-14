@@ -4937,6 +4937,7 @@ elif MENU == "Backtest":
    
     with col4:
             st.subheader("Option Log")
+         
             entry_time = last_signal['entry_time']
             #st.write("entry_time",entry_time) 
             #st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS
@@ -6446,7 +6447,7 @@ elif MENU =="Live Trade":
             signal_time=entry_time.strftime("%H:%M:%S")
             #st.write("Signal Time only:-", signal_time)  # HH:MM:SS
             #            st.write(signal)
-#--------------------------------------------------------------------------------
+     #--------------------------------------------------------------------------------
 
             def generate_signals_stepwise(df):
                  all_signals = []
@@ -8928,7 +8929,8 @@ elif MENU =="LIVE TRADE 3":
               # 🔒 ENTRY LOCK — THIS PREVENTS RE-ENTRY ON REFRESH
               if st.session_state.last_executed_signal_time == signal_time:
                   pass  # already traded this signal
-          
+                  st.write("st.session_state.last_executed_signal_time=",st.session_state.last_executed_signal_time)
+                  st.write("Signal time",signal_time)
               else:
                   option_type = last_signal["option_type"]
                   spot = last_signal["spot_price"]

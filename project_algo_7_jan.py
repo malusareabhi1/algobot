@@ -75,7 +75,7 @@ def get_last_n_trading_days(n=7):
 
 def fetch_nifty_daily_last_7_days(kite):
     from_date, to_date = get_last_n_trading_days(7)
-
+    NIFTY_TOKEN = 256265 
     data = kite.historical_data(
         instrument_token=NIFTY_TOKEN,
         from_date=from_date,

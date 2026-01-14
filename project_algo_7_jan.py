@@ -42,6 +42,9 @@ if "last_executed_signal_time" not in st.session_state:
 
 if "trades_signals" not in st.session_state:
                    st.session_state.trades_signals = [] 
+
+if "last_option_entry_price" not in st.session_state:
+    st.session_state.last_option_entry_price = None
      #===================================================LAST Price================
 
 def get_option_ltp(tradingsymbol):

@@ -1938,6 +1938,22 @@ def get_option_instrument_details0(tradingsymbol):
          }
 
 def get_option_instrument_details(tradingsymbol):
+    df = instruments_df.copy()
+
+    df.columns = df.columns.str.strip().str.lower()
+
+    if "tradingsymbol" not in df.columns:
+        raise ValueError(f"'tradingsymbol' column not found. Columns = {df.columns.tolist()}")
+
+    row = df.loc[df["tradingsymbol"] == tradingsymbol]
+
+    if row.empty:
+        raise ValueError(f"Tradingsymbol not found: {tradingsymbol}")
+
+    return row.iloc[0].to_dict()
+
+
+def get_option_instrument_details1(tradingsymbol):
     # force scalar
     if isinstance(tradingsymbol, pd.Series):
         tradingsymbol = tradingsymbol.iloc[0]

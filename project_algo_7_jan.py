@@ -8941,7 +8941,7 @@ elif MENU =="LIVE TRADE 3":
                 #trending_symbol=nearest_itm1["tradingsymbol"]
                 trending_symbol = nearest_itm1["tradingsymbol"].iloc[0]
  
-                st.write("tradingsymbol-",trending_symbol)
+                #st.write("tradingsymbol-",trending_symbol)
              #====================================================FLAG SIGNAL================================
                 st.session_state.trade_status = "SIGNAL"
                 st.session_state.signal_time = signal_time
@@ -8957,7 +8957,7 @@ elif MENU =="LIVE TRADE 3":
 #######################---------------------IV-NEW !-------------------------------------------------
             st.write("trending_symbol ",trending_symbol) 
             option_dict = get_live_option_details(kite, trending_symbol)
-            #st.write(option_dict) 
+            st.write(option_dict) 
             #spot_price=26046.00 
             spot_price=option_dict.get("strike") 
             ltp = option_dict.get("ltp")
@@ -9272,7 +9272,7 @@ elif MENU =="LIVE TRADE 3":
                  
                  # Check 2: Signal time reached
                     #if now >= entry_time:
-                    last_signal_price=st.session_state.last_option_entry_price  
+                    last_signal_price=st.session_state.signal_price  
                     st.write("Option & Price= ", trending_symbol, last_signal_price )  
                     currnt_price=get_option_ltp(trending_symbol)  
                     st.write("Current Price =",currnt_price)  

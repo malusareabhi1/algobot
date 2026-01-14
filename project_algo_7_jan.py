@@ -9276,6 +9276,13 @@ elif MENU =="LIVE TRADE 3":
                     st.write("Option & Price= ", trending_symbol, last_signal_price )  
                     currnt_price=get_option_ltp(trending_symbol)  
                     st.write("Current Price =",currnt_price)  
+
+                    if last_signal_price is None:
+                        st.warning("Signal LTP not available")
+                        return
+                    
+                    price_diff_pct = abs(currnt_price - last_signal_price) / last_signal_price * 100 
+                    st.write("Current Price Difference=",price_diff_pct)    
                     if abs((now - entry_time).total_seconds()) < 60:  
                          st.info("Execution window In (30 seconds).") 
                          st.write("entry_time-",entry_time)

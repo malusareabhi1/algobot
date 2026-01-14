@@ -8829,9 +8829,9 @@ elif MENU =="LIVE TRADE 3":
             st.subheader("📊 Signal Log")
             #st.write(df_sig1) 
             st.dataframe(df_sig1, use_container_width=True, hide_index=True)
-            if "trades_signals" not in st.session_state:
-                   st.session_state.trades_signals = []
-            st.session_state.trades_signals.append(df_sig1) 
+            #if "trades_signals" not in st.session_state:
+                   #st.session_state.trades_signals = []
+            #st.session_state.trades_signals.append(df_sig1) 
             #if isinstance(st.session_state.get("trades_signals"), pd.DataFrame):
                        # st.subheader("📊 Signal Logs")
                        # st.dataframe(st.session_state.trades_signals, use_container_width=True) 
@@ -8930,7 +8930,7 @@ elif MENU =="LIVE TRADE 3":
               if st.session_state.last_executed_signal_time == signal_time:
                   pass  # already traded this signal
                   st.write("st.session_state.last_executed_signal_time=",st.session_state.last_executed_signal_time)
-                  st.write("Signal time",signal_time)
+                  st.write("System generated last_executed Signal time=",signal_time)
               else:
                   option_type = last_signal["option_type"]
                   spot = last_signal["spot_price"]

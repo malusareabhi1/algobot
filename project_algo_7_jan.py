@@ -8922,8 +8922,8 @@ elif MENU =="LIVE TRADE 3":
                 
                 # Display as table
                 st.table(nearest_itm1)
-                trending_symbol=nearest_itm1['tradingsymbol']
-                #st.write("tradingsymbol-",trending_symbol)
+                trending_symbol=nearest_itm1["tradingsymbol"]
+                st.write("tradingsymbol-",trending_symbol)
              #====================================================FLAG SIGNAL================================
                 st.session_state.trade_status = "SIGNAL"
                 st.session_state.signal_time = signal_time

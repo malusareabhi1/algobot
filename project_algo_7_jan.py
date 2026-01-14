@@ -8832,11 +8832,11 @@ elif MENU =="LIVE TRADE 3":
             if "trades_signals" not in st.session_state:
                    st.session_state.trades_signals = []
             st.session_state.trades_signals.append(df_sig1) 
-            if isinstance(st.session_state.get("trades_signals"), pd.DataFrame):
-                        st.subheader("📊 Signal Logs")
-                        st.dataframe(st.session_state.trades_signals, use_container_width=True) 
-            else:
-                 st.write("No signals in session state")
+            #if isinstance(st.session_state.get("trades_signals"), pd.DataFrame):
+                       # st.subheader("📊 Signal Logs")
+                       # st.dataframe(st.session_state.trades_signals, use_container_width=True) 
+           # else:
+                # st.write("No signals in session state")
 #======================================================================================================================
 
 

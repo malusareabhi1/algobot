@@ -9292,7 +9292,7 @@ elif MENU =="LIVE TRADE 3":
                         st.write("entry_time-",entry_time)
                         st.write("Now Time-", now)
                       # Check 3: Order placed only once
-                         if lot_qty>0: 
+                        if lot_qty>0: 
                               if has_open_position(kite):
 
                                   st.warning("⚠️ Open position exists. New trade not allowed.")
@@ -9326,7 +9326,7 @@ elif MENU =="LIVE TRADE 3":
                                         except Exception as e:
                                             st.error(f"Order Failed: {e}")
                                         
-                         else:
+                        else:
                                st.info("Trade Not Allowed Qty=0.")  
                     else:
                          st.info("Order already executed for this signal.")

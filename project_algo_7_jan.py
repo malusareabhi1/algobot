@@ -9278,6 +9278,8 @@ elif MENU =="LIVE TRADE 3":
                  # Check 2: Signal time reached
                     #if now >= entry_time:
                     last_signal_price=st.session_state.signal_price  
+                    last_executed_signal_time=st.session_state.last_executed_signal_time  
+                      
                     st.write("Signal Price= ", last_signal_price )  
                     currnt_price=get_option_ltp(trending_symbol)  
                     st.write("Current Price =",currnt_price)  
@@ -9294,7 +9296,7 @@ elif MENU =="LIVE TRADE 3":
                         st.write("Current:", currnt_price)   
                     #if abs((now - entry_time).total_seconds()) < 60:  
                         st.info("Execution window In .") 
-                        st.write("entry_time-",entry_time)
+                        st.write("entry_time-",last_executed_signal_time)
                         st.write("Now Time-", now)
                       # Check 3: Order placed only once
                         if lot_qty>0: 

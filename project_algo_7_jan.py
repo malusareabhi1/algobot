@@ -61,7 +61,7 @@ def get_option_ltp(tradingsymbol):
 #=============================================LAST 7Days Data ========================================================
 IST = pytz.timezone("Asia/Kolkata")
 
-def get_last_n_trading_days(n=7):
+def get_last_n_trading_days(n=11):
     days = []
     d = datetime.now(IST).date()
 
@@ -74,7 +74,7 @@ def get_last_n_trading_days(n=7):
      
 
 def fetch_nifty_daily_last_7_days(kite):
-    from_date, to_date = get_last_n_trading_days(7)
+    from_date, to_date = get_last_n_trading_days(11)
     NIFTY_TOKEN = 256265 
     data = kite.historical_data(
         instrument_token=NIFTY_TOKEN,

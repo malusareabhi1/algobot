@@ -44,7 +44,7 @@ if "trades_signals" not in st.session_state:
                    st.session_state.trades_signals = [] 
      #===================================================LAST Price================
 
- def get_option_ltp(tradingsymbol):
+def get_option_ltp(tradingsymbol):
         EXCHANGE = "NFO"
         q = kite.ltp(f"{EXCHANGE}:{tradingsymbol}")
         return q[f"{EXCHANGE}:{tradingsymbol}"]["last_price"]

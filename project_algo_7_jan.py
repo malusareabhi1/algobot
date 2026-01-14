@@ -9198,7 +9198,7 @@ elif MENU =="LIVE TRADE 3":
                    lot_qty = 4
             if vix_now > 20 :
                    lot_qty = 1     
-         add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK") 
+            add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK") 
             #st.subheader("Session State Debug")
             #st.write(st.session_state)
             #st.subheader("Session State (Detailed)")

@@ -42,7 +42,43 @@ if "last_executed_signal_time" not in st.session_state:
 
 if "trades_signals" not in st.session_state:
                    st.session_state.trades_signals = [] 
-#=====================================================================================================
+#=============================================LAST 7Days Data ========================================================
+IST = pytz.timezone("Asia/Kolkata")
+
+def get_last_n_trading_days(n=7):
+    days = []
+    d = datetime.now(IST).date()
+
+    while len(days) < n:
+        if d.weekday() < 5:  # Mon–Fri
+            days.append(d)
+        d -= timedelta(days=1)
+
+    return min(days), max(days)
+     
+
+def fetch_nifty_daily_last_7_days(kite):
+    from_date, to_date = get_last_n_trading_days(7)
+
+    data = kite.historical_data(
+        instrument_token=NIFTY_TOKEN,
+        from_date=from_date,
+        to_date=to_date,
+        interval="day"
+    )
+
+    df = pd.DataFrame(data)
+
+    if df.empty:
+        return None
+
+    # Standardize columns
+    df["date"] = pd.to_datetime(df["date"]).dt.tz_localize(None)
+    df.set_index("date", inplace=True)
+
+    df = df[["open", "high", "low", "close", "volume"]]
+
+    return df
 
 
 #====================================================================================================
@@ -7086,10 +7122,17 @@ elif MENU =="Live Trade":
                   }]))
           
                  
+        df_plot1 = fetch_nifty_daily_last_7_days(kite)
 
+        
         while True:
-                        monitor_and_exit_last_position(kite,df_plot)
-                        time.sleep(5)
+                        if df_plot1 is not None and not df_plot1.empty:
+                             monitor_and_exit_last_position(kite, df_plot1)
+                             time.sleep(5)
+                       else:
+                             print("❌ No NIFTY daily data available")
+                        #monitor_and_exit_last_position(kite,df_plot)
+                        
   #==============================================================================================================================
         
           

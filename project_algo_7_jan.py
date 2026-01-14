@@ -9229,7 +9229,7 @@ elif MENU =="LIVE TRADE 3":
                  
                  # Check 2: Signal time reached
                     #if now >= entry_time:
-                    st.write("Option & Price= ",trading_symbol, ltp)  
+                    st.write("Option & Price= ",trending_symbol, ltp)  
                     if abs((now - entry_time).total_seconds()) < 60:  
                          st.info("Execution window In (30 seconds).") 
                          st.write("entry_time-",entry_time)

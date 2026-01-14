@@ -8929,6 +8929,7 @@ elif MENU =="LIVE TRADE 3":
             option_dict = get_live_option_details(kite, trending_symbol)
             st.write(option_dict) 
             #spot_price=26046.00 
+            spot_price=option_dict.get("strike") 
             ltp = option_dict.get("ltp")
             strike = option_dict.get("strike")
             expiry = option_dict.get("expiry")

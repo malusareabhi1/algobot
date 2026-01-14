@@ -8910,7 +8910,7 @@ elif MENU =="LIVE TRADE 3":
                 
                 # Display as table
                 st.table(nearest_itm1)
-                trending_symbol=nearest_itm['tradingsymbol']
+                trending_symbol=nearest_itm1['tradingsymbol']
                 #st.write("tradingsymbol-",trending_symbol)
              #====================================================FLAG SIGNAL================================
                 st.session_state.trade_status = "SIGNAL"
@@ -9744,7 +9744,7 @@ elif MENU =="NIFTY 3:20 PM Intraday Strategy":
 #######################---------------------IV-NEW !-------------------------------------------------
              
             option_dict = get_live_option_details(kite, trending_symbol)
-            spot_price=26046.00 
+            #spot_price=26046.00 
             ltp = option_dict.get("ltp")
             strike = option_dict.get("strike")
             expiry = option_dict.get("expiry")

@@ -9066,7 +9066,7 @@ elif MENU =="LIVE TRADE 3":
     # VIX
             result = "Pass" if vix_now > 10 else "Fail"
             vix_result  = result     
-            add_param_row("VIX", round(vix_now, 2), "> 10", result)
+            add_param_row("VIX", round(vix_now, 2), " > 10", result)
 
  #------------------------------------------------------------------------------   
     # Apply IV + VIX Filter
@@ -9185,6 +9185,20 @@ elif MENU =="LIVE TRADE 3":
     #------------------------------------------------------------------------------------------------
             qty=qty*lot_qty
             #qty=0
+            # Apply rule
+            if iv_result == "Fail" or iv_rank_result == "Fail":
+                   lot_qty = 2
+            if iv_result == "Pass" and iv_rank_result == "Fail" and vix_result=="pass" and pcr_result=="pass":
+                   lot_qty = 6    
+            if vix_now < 10 :
+                   lot_qty = 1 
+            if 10< vix_now < 15 :
+                   lot_qty = 2
+            if 15< vix_now < 20 :
+                   lot_qty = 4
+            if vix_now > 20 :
+                   lot_qty = 1     
+         add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK") 
             #st.subheader("Session State Debug")
             #st.write(st.session_state)
             #st.subheader("Session State (Detailed)")
@@ -9215,7 +9229,7 @@ elif MENU =="LIVE TRADE 3":
                  
                  # Check 2: Signal time reached
                     #if now >= entry_time:
-                    if abs((now - entry_time).total_seconds()) < 50:  
+                    if abs((now - entry_time).total_seconds()) < 60:  
                          st.info("Execution window In (30 seconds).") 
                          st.write("entry_time-",entry_time)
                          st.write("Now Time-", now)

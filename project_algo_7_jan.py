@@ -42,6 +42,14 @@ if "last_executed_signal_time" not in st.session_state:
 
 if "trades_signals" not in st.session_state:
                    st.session_state.trades_signals = [] 
+     #===================================================LAST Price================
+
+ def get_option_ltp(tradingsymbol):
+        EXCHANGE = "NFO"
+        q = kite.ltp(f"{EXCHANGE}:{tradingsymbol}")
+        return q[f"{EXCHANGE}:{tradingsymbol}"]["last_price"]
+
+
 #=============================================LAST 7Days Data ========================================================
 IST = pytz.timezone("Asia/Kolkata")
 
@@ -9230,6 +9238,7 @@ elif MENU =="LIVE TRADE 3":
                  # Check 2: Signal time reached
                     #if now >= entry_time:
                     st.write("Option & Price= ",trending_symbol, ltp)  
+                    st.write("Current Price =",get_option_ltp(trending_symbol))  
                     if abs((now - entry_time).total_seconds()) < 60:  
                          st.info("Execution window In (30 seconds).") 
                          st.write("entry_time-",entry_time)

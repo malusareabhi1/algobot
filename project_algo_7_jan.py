@@ -9221,7 +9221,7 @@ elif MENU =="LIVE TRADE 3":
                        st.write(f"{k} :", st.session_state[k])
 
  
- 
+           
                 # Check 1: Only run if current time is within trading window
             if is_valid_signal_time(entry_time):
                  st.warning("Signal time  match today's date .") 
@@ -9229,6 +9229,7 @@ elif MENU =="LIVE TRADE 3":
                  
                  # Check 2: Signal time reached
                     #if now >= entry_time:
+                    st.write("Option & Price= ",trading_symbol, ltp)  
                     if abs((now - entry_time).total_seconds()) < 60:  
                          st.info("Execution window In (30 seconds).") 
                          st.write("entry_time-",entry_time)
@@ -9253,7 +9254,7 @@ elif MENU =="LIVE TRADE 3":
                                                 )
                                 
                                             st.session_state.order_executed = True   # Mark executed
-                                            st.session_state.order_executed = True
+                                            #st.session_state.order_executed = True
                                             st.session_state.last_order_id = order_id
                                    
                                            # ✅ Mark trade active
@@ -9760,8 +9761,8 @@ elif MENU =="NIFTY 3:20 PM Intraday Strategy":
                         "symbol": trending_symbol,
                         "option_type": option_type,
                         "entry_price": entry_price,
-                        "quantity": 75,
-                        "remaining_qty": 75,
+                        "quantity": 65,
+                        "remaining_qty": 65,
                         "highest_price": entry_price,
                         "partial_exit_done": False,
                         "final_exit_done": False,
@@ -10004,6 +10005,7 @@ elif MENU =="NIFTY 3:20 PM Intraday Strategy":
                  
                  # Check 2: Signal time reached
                     #if now >= entry_time:
+                      
                     if abs((now - entry_time).total_seconds()) < 30:  
                          st.info("Execution window In (30 seconds).") 
                          st.write("entry_time-",entry_time)

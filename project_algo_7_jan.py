@@ -1915,7 +1915,7 @@ def implied_vol_call1(S, K, T, r, C_mkt, tol=1e-6, max_iter=100):
              else:
                  low = mid
          return mid  # best guess if not converged
-def get_option_instrument_details(tradingsymbol):
+def get_option_instrument_details0(tradingsymbol):
          df = load_kite_instruments()
          row = df[df["tradingsymbol"] == tradingsymbol]
      
@@ -1936,7 +1936,19 @@ def get_option_instrument_details(tradingsymbol):
              "exchange": row["exchange"],
              "name": row["name"]
          }
-     
+
+def get_option_instrument_details(tradingsymbol):
+    # force scalar
+    if isinstance(tradingsymbol, pd.Series):
+        tradingsymbol = tradingsymbol.iloc[0]
+
+    row = df[df["tradingsymbol"] == tradingsymbol]
+
+    if row.empty:
+        return None
+
+    return row.iloc[0].to_dict()
+
 def enrich_with_ltp(kite, option_data):
          #st.write("Optiion Data",option_data) 
          symbol = f"NFO:{option_data['tradingsymbol']}"
@@ -8927,7 +8939,7 @@ elif MENU =="LIVE TRADE 3":
 #######################---------------------IV-NEW !-------------------------------------------------
             st.write("trending_symbol ",trending_symbol) 
             option_dict = get_live_option_details(kite, trending_symbol)
-            st.write(option_dict) 
+            #st.write(option_dict) 
             #spot_price=26046.00 
             spot_price=option_dict.get("strike") 
             ltp = option_dict.get("ltp")

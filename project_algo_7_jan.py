@@ -9248,7 +9248,7 @@ elif MENU =="LIVE TRADE 3":
             #for key, value in st.session_state.items():
                 #st.write(f"{key} :", value)
 
-            st.subheader("Trade State")
+            #st.subheader("Trade State")
             keys_to_show = [
                    "trade_status",
                    "signal_time",
@@ -9259,9 +9259,9 @@ elif MENU =="LIVE TRADE 3":
                    "symbol"
                ]
                
-            for k in keys_to_show:
-                   if k in st.session_state:
-                       st.write(f"{k} :", st.session_state[k])
+            #for k in keys_to_show:
+                   #if k in st.session_state:
+                       #st.write(f"{k} :", st.session_state[k])
 
  
            
@@ -9273,7 +9273,7 @@ elif MENU =="LIVE TRADE 3":
                  # Check 2: Signal time reached
                     #if now >= entry_time:
                     last_signal_price=st.session_state.signal_price  
-                    st.write("Option & Price= ", trending_symbol, last_signal_price )  
+                    st.write("Signal Price= ", last_signal_price )  
                     currnt_price=get_option_ltp(trending_symbol)  
                     st.write("Current Price =",currnt_price)  
 
@@ -9287,10 +9287,10 @@ elif MENU =="LIVE TRADE 3":
                         st.warning("Price within  ±3% execution range")
                         st.write("Allowed:", lower, "to", upper)
                         st.write("Current:", currnt_price)   
-                    if abs((now - entry_time).total_seconds()) < 60:  
-                         st.info("Execution window In (30 seconds).") 
-                         st.write("entry_time-",entry_time)
-                         st.write("Now Time-", now)
+                    #if abs((now - entry_time).total_seconds()) < 60:  
+                        st.info("Execution window In .") 
+                        st.write("entry_time-",entry_time)
+                        st.write("Now Time-", now)
                       # Check 3: Order placed only once
                          if lot_qty>0: 
                               if has_open_position(kite):
@@ -9407,10 +9407,16 @@ elif MENU =="LIVE TRADE 3":
           
                  
 
-                  while True:
-                        monitor_and_exit_last_position(kite)
-                        time.sleep(5)
+            df_plot1 = fetch_nifty_daily_last_7_days(kite)
 
+        
+            while True:
+                        if df_plot1 is not None and not df_plot1.empty:
+                             monitor_and_exit_last_position(kite, df_plot1)
+                             time.sleep(5)
+                        else:
+                             print("❌ No NIFTY daily data available")
+                        #monitor_and_exit_last_position(kite,df_plot)
 
            
 

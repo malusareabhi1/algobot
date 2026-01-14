@@ -9277,9 +9277,16 @@ elif MENU =="LIVE TRADE 3":
                     currnt_price=get_option_ltp(trending_symbol)  
                     st.write("Current Price =",currnt_price)  
 
-                                       
+                    lower = last_signal_price * 0.97
+                    upper = last_signal_price * 1.03
+                    
+                                   
                     price_diff_pct = abs(currnt_price - last_signal_price) / last_signal_price * 100 
-                    st.write("Current Price Difference=",price_diff_pct)    
+                    st.write("Current Price Difference=",price_diff_pct)  
+                    if (lower <= currnt_price <= upper):
+                        st.warning("Price within  ±3% execution range")
+                        st.write("Allowed:", lower, "to", upper)
+                        st.write("Current:", currnt_price)   
                     if abs((now - entry_time).total_seconds()) < 60:  
                          st.info("Execution window In (30 seconds).") 
                          st.write("entry_time-",entry_time)

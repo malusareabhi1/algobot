@@ -5442,8 +5442,8 @@ elif MENU == "Backtest":
          sigma=iv
          option_type=option_type
          
-         greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
-     
+         #greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
+         greeks= safe_option_greeks(S, K, expiry, r, sigma, option_type="CALL")
          #if greeks:
               #st.subheader("Greeks Values")
           

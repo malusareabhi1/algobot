@@ -5444,7 +5444,7 @@ elif MENU == "Backtest":
          
          #greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
          expiry_dt = datetime.strptime(expiry, "%Y-%m-%d").replace(hour=15, minute=30)
-         greeks= safe_option_greeks(S, K, expiry, r, sigma, option_type="CALL")
+         greeks= safe_option_greeks(S, K, expiry_dt, r, sigma, option_type="CALL")
          #if greeks:
               #st.subheader("Greeks Values")
           

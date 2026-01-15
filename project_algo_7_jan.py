@@ -6928,8 +6928,8 @@ elif MENU =="Live Trade":
          r=r
          sigma=iv
          option_type=option_type
-         st.write("Expiry value:", expiry)
-         st.write("Expiry type:", type(expiry))
+         #st.write("Expiry value:", expiry)
+         ##st.write("Expiry type:", type(expiry))
          expiry_dt = datetime.strptime(expiry, "%Y-%m-%d").replace(hour=15, minute=30)
  
          #greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")

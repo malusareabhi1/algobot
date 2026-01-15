@@ -7391,7 +7391,7 @@ elif MENU =="Live Trade":
         "Parameter": "Delta",
         "Value": greeks["Delta"],
         "Range": "0.30 – 0.85",
-        "Result": evaluate(greeks["Delta"], 0.30, 0.85)
+        "Result": evaluate(c, 0.30, 0.85)
     },
     {
         "Parameter": "Gamma",
@@ -7418,7 +7418,11 @@ elif MENU =="Live Trade":
         "Result": evaluate(greeks["IV%"], 10, 35)
     }
 ])
- 
+         st.session_state.GREEKdelta=greeks["Delta"]
+         st.session_state.GREEKgamma=greeks["Gamma"]
+         st.session_state.GREEKtheta=greeks["Theta"]
+         st.session_state.GREEKvega=greeks["Vega"]
+         
          st.dataframe(
          greeks_param_df.style.applymap(
             lambda x: "color: green; font-weight: bold"

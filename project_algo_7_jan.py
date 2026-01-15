@@ -7105,12 +7105,29 @@ elif MENU =="Live Trade":
                  
                  # Check 2: Signal time reached
                     #if now >= entry_time:
-                    if abs((now - entry_time).total_seconds()) < 50:  
-                         st.info("Execution window In (30 seconds).") 
-                         st.write("entry_time-",entry_time)
-                         st.write("Now Time-", now)
+                    last_signal_price=st.session_state.signal_price  
+                    last_executed_signal_time=st.session_state.last_executed_signal_time  
+                      
+                    st.write("Signal Price= ", last_signal_price )  
+                    currnt_price=get_option_ltp(trending_symbol)  
+                    st.write("Current Price =",currnt_price)  
+
+                    lower = last_signal_price * 0.97
+                    upper = last_signal_price * 1.03
+                    
+                                   
+                    price_diff_pct = abs(currnt_price - last_signal_price) / last_signal_price * 100 
+                    st.write("Current Price Difference=",price_diff_pct)  
+                    if (lower <= currnt_price <= upper):
+                        st.warning("Price within  ±3% execution range")
+                        st.write("Allowed:", lower, "to", upper)
+                        st.write("Current:", currnt_price)    
+                    #if abs((now - entry_time).total_seconds()) < 50:  
+                        st.info("Execution window In .") 
+                        st.write("entry_time-",last_executed_signal_time)
+                        st.write("Now Time-", now)
                       # Check 3: Order placed only once
-                         if lot_qty>0: 
+                        if lot_qty>0: 
                               if has_open_position(kite):
 
                                   st.warning("⚠️ Open position exists. New trade not allowed.")
@@ -7129,7 +7146,7 @@ elif MENU =="Live Trade":
                                                 )
                                 
                                             st.session_state.order_executed = True   # Mark executed
-                                            st.session_state.order_executed = True
+                                            #st.session_state.order_executed = True
                                             st.session_state.last_order_id = order_id
                                    
                                            # ✅ Mark trade active
@@ -7187,7 +7204,14 @@ elif MENU =="Live Trade":
 
     with col8:
         st.subheader("Monitoring Trade / Positions")
-        
+        #---------------------------------Exit Logic-----------------------------------------------
+        if "trade_active" not in st.session_state:
+                   st.session_state.trade_active = False
+                   st.session_state.entry_price = 0.0
+                   st.session_state.entry_time = None
+                   st.session_state.highest_price = 0.0
+                   st.session_state.partial_exit_done = False
+                   st.session_state.final_exit_done = False
 #--------------------------------------Manage Order--------------------------------------------------------
 
         last_order1 = get_last_active_order(kite)

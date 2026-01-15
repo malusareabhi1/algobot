@@ -7129,9 +7129,7 @@ elif MENU =="Live Trade":
                       # Check 3: Order placed only once
                         if lot_qty>0: 
                               if has_open_position(kite):
-
-                                  st.warning("⚠️ Open position exists. New trade not allowed.")
-                                  
+                                  st.warning("⚠️ Open position exists. New trade not allowed.")                                  
                               else:
                                     if not st.session_state.order_executed:
                                         try:
@@ -7143,12 +7141,10 @@ elif MENU =="Live Trade":
                                                     order_type=kite.ORDER_TYPE_MARKET,
                                                     variety=kite.VARIETY_REGULAR,
                                                     product=kite.PRODUCT_MIS
-                                                )
-                                
+                                                )                                
                                             st.session_state.order_executed = True   # Mark executed
                                             #st.session_state.order_executed = True
-                                            st.session_state.last_order_id = order_id
-                                   
+                                            st.session_state.last_order_id = order_id                                   
                                            # ✅ Mark trade active
                                             st.session_state.trade_active = True
                                             st.session_state.entry_price = ltp
@@ -7159,9 +7155,8 @@ elif MENU =="Live Trade":
                                             st.session_state["last_order_id"] = order_id
                                 
                                         except Exception as e:
-                                            st.error(f"Order Failed: {e}")
-                                        
-                         else:
+                                            st.error(f"Order Failed: {e}")                                        
+                        else:
                                st.info("Trade Not Allowed Qty=0.")  
                     else:
                          st.info("Order already executed for this signal.")

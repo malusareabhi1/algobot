@@ -48,7 +48,187 @@ if "last_option_entry_price" not in st.session_state:
 
 if "NIFTY_TOKEN" not in st.session_state:
     st.session_state.NIFTY_TOKEN = 256265
-#====================================================================================================================
+
+#=========================================New Signals===============================================================
+
+def trading_signal_all_conditions_final(df, quantity=10*65):
+    """
+    Base Zone Re-Cross Strategy (FINAL)
+
+    Rules:
+    - Max 2 trades per day
+    - Trade ONLY when price re-enters Base Zone and breaks again
+    - Single active trade at a time
+    - Trailing SL using last 10 candles swing
+    - NO time exit
+    """
+
+    import numpy as np
+    import pandas as pd
+
+    signals = []
+
+    # =========================
+    # PREPROCESS
+    # =========================
+    df = df.copy()
+    df['Date'] = df['Datetime'].dt.date
+    unique_days = sorted(df['Date'].unique())
+
+    if len(unique_days) < 2:
+        return None
+
+    day0, day1 = unique_days[-2], unique_days[-1]
+
+    # =========================
+    # BASE ZONE (Previous Day 3:00 PM)
+    # =========================
+    candle_3pm = df[
+        (df['Date'] == day0) &
+        (df['Datetime'].dt.hour == 15) &
+        (df['Datetime'].dt.minute == 0)
+    ]
+
+    if candle_3pm.empty:
+        return None
+
+    base_open = candle_3pm.iloc[0]['Open_^NSEI']
+    base_close = candle_3pm.iloc[0]['Close_^NSEI']
+    base_low = min(base_open, base_close)
+    base_high = max(base_open, base_close)
+
+    # =========================
+    # CURRENT DAY DATA
+    # =========================
+    day1_df = df[df['Date'] == day1].sort_values('Datetime')
+
+    expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+
+    # =========================
+    # HELPERS
+    # =========================
+    def is_inside_base(price):
+        return base_low < price < base_high
+
+    def get_recent_swing(ts):
+        recent = day1_df[day1_df['Datetime'] < ts].tail(10)
+        if recent.empty:
+            return np.nan, np.nan
+        return recent['High_^NSEI'].max(), recent['Low_^NSEI'].min()
+
+    def monitor_trade(sig):
+        """
+        Trailing SL only (NO TIME EXIT)
+        """
+        sl = sig['stoploss']
+
+        for _, c in day1_df[day1_df['Datetime'] > sig['entry_time']].iterrows():
+
+            high, low = get_recent_swing(c['Datetime'])
+
+            # ----- CALL -----
+            if sig['option_type'] == 'CALL' and not np.isnan(low):
+                sl = max(sl, low) if not np.isnan(sl) else low
+                sig['stoploss'] = sl
+
+                if c['Low_^NSEI'] <= sl:
+                    sig['exit_price'] = sl
+                    sig['status'] = 'Trailing SL Hit'
+                    return sig
+
+            # ----- PUT -----
+            if sig['option_type'] == 'PUT' and not np.isnan(high):
+                sl = min(sl, high) if not np.isnan(sl) else high
+                sig['stoploss'] = sl
+
+                if c['High_^NSEI'] >= sl:
+                    sig['exit_price'] = sl
+                    sig['status'] = 'Trailing SL Hit'
+                    return sig
+
+        # If SL never hit → exit at last candle (EOD)
+        sig['exit_price'] = day1_df.iloc[-1]['Close_^NSEI']
+        sig['status'] = 'EOD Exit'
+        return sig
+
+    # =========================
+    # CORE LOGIC (MAX 2 TRADES)
+    # =========================
+    MAX_TRADES = 2
+    trade_count = 0
+    last_break = None
+    price_inside_base = True
+
+    for _, c in day1_df.iterrows():
+
+        if trade_count >= MAX_TRADES:
+            break
+
+        close = c['Close_^NSEI']
+
+        # Track price returning into base zone
+        if is_inside_base(close):
+            price_inside_base = True
+            last_break = None
+            continue
+
+        # ======================
+        # CALL BREAKOUT
+        # ======================
+        if (
+            price_inside_base
+            and close > base_high
+            and last_break != "CALL"
+        ):
+            swing_high, swing_low = get_recent_swing(c['Datetime'])
+
+            sig = {
+                'condition': 'Base Re-Break',
+                'option_type': 'CALL',
+                'buy_price': c['High_^NSEI'],
+                'stoploss': swing_low,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': c['Datetime'],
+                'message': f'CALL Base Zone Break #{trade_count + 1}'
+            }
+
+        # ======================
+        # PUT BREAKDOWN
+        # ======================
+        elif (
+            price_inside_base
+            and close < base_low
+            and last_break != "PUT"
+        ):
+            swing_high, swing_low = get_recent_swing(c['Datetime'])
+
+            sig = {
+                'condition': 'Base Re-Break',
+                'option_type': 'PUT',
+                'buy_price': c['Low_^NSEI'],
+                'stoploss': swing_high,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': c['Datetime'],
+                'message': f'PUT Base Zone Break #{trade_count + 1}'
+            }
+        else:
+            continue
+
+        # ======================
+        # EXECUTE & MONITOR
+        # ======================
+        sig = monitor_trade(sig)
+        signals.append(sig)
+
+        trade_count += 1
+        last_break = sig['option_type']
+        price_inside_base = False
+
+    return signals if signals else None
+
+#===================================================Signal=================================================================
 
 def trading_signal_all_conditions_new(df, quantity=10*65, return_all_signals=True):
     """
@@ -6719,7 +6899,8 @@ elif MENU =="Live Trade":
         import json 
         st.subheader("Signal Log")
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
-        signal = trading_signal_all_conditions_new(df_plot)
+        #signal = trading_signal_all_conditions_new(df_plot)
+        signal = trading_signal_all_conditions_final(df_plot) 
         #st.write("DEBUG signal:", signal)
         #st.write("Type:", type(signal))
         df_sig1 = pd.DataFrame(signal)

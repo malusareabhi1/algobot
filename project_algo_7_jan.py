@@ -725,7 +725,7 @@ def monitor_and_exit_last_position(kite, df_15m):
     st.write("Trailing SL:", tsl)
     st.write("Target:", target)
     st.write("LTP:", ltp)
-
+    st.write("Theta:", theta)
     # ---- EXIT CONDITIONS ----
     theta=st.session_state.GREEKtheta   
     if theta >= 50:

@@ -5483,7 +5483,7 @@ elif MENU == "Backtest":
         "Parameter": "IV %",
         "Value": greeks["IV%"],
         "Range": "10 – 35",
-        "Result": evaluate(greeks["IV"], 10, 35)
+        "Result": evaluate(greeks["IV%"], 10, 35)
     }
 ])
  

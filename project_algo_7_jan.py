@@ -6916,7 +6916,7 @@ elif MENU =="Live Trade":
     with col6:
          days_to_exp = days_to_expiry(expiry)
          time_to_expiry = days_to_exp / 365 
-         r=0.07
+         r=0.06
             #st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
          #iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
          iv=new_iv_result
@@ -6970,7 +6970,7 @@ elif MENU =="Live Trade":
     },
     {
         "Parameter": "IV %",
-        "Value": greeks["IV"],
+        "Value": greeks["IV%"],
         "Range": "10 – 35",
         "Result": evaluate(greeks["IV"], 10, 35)
     }

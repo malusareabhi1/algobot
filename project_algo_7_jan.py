@@ -7032,7 +7032,7 @@ elif MENU =="Live Trade":
                   st.write("System generated last_executed Signal time=",signal_time)  
               else:
                   option_type = last_signal["option_type"]
-                  spot = last_signal["spot_price"]
+                  spot = last_signal["buy_price"]
           
                   nearest_itm = find_nearest_itm_option(kite, spot, option_type)
                   trending_symbol = nearest_itm["tradingsymbol"]

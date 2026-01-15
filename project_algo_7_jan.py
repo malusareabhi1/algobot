@@ -49,6 +49,53 @@ if "last_option_entry_price" not in st.session_state:
 if "NIFTY_TOKEN" not in st.session_state:
     st.session_state.NIFTY_TOKEN = 256265
 
+if "signal_cache" not in st.session_state:
+    st.session_state.signal_cache = {}
+#==============================================calculate_and_cache_signal================================================================
+
+
+
+def calculate_and_cache_signal(signal_id, data):
+    """
+    data = {
+        spot, strike, T, iv, option_type,
+        vix, pcr, cash, lot_qty, signal_time
+    }
+    """
+
+    if signal_id in st.session_state.signal_cache:
+        return st.session_state.signal_cache[signal_id]
+
+    # ---- Greeks (calculated ONCE) ----
+    greeks = OptionGreeks(
+        S=data["spot"],
+        K=data["strike"],
+        T=data["T"],
+        r=0.06,
+        sigma=data["iv"],
+        option_type=data["option_type"]
+    ).summary()
+
+    cached = {
+        "signal_time": data["signal_time"],
+        "spot": data["spot"],
+        "strike": data["strike"],
+        "option_type": data["option_type"],
+
+        # Parameters
+        "cash": data["cash"],
+        "iv": data["iv"],
+        "vix": data["vix"],
+        "pcr": data["pcr"],
+        "lot_qty": data["lot_qty"],
+
+        # Greeks
+        "greeks": greeks
+    }
+
+    st.session_state.signal_cache[signal_id] = cached
+    return cached
+
 #=========================================New Signals===============================================================
 
 def trading_signal_all_conditions_final(df, quantity=10*65):
@@ -6927,10 +6974,13 @@ elif MENU =="Live Trade":
             #st.write(df_sig1) 
             st.dataframe(df_sig1, use_container_width=True, hide_index=True) 
             #=========================JSON TO TABLE========================
-            
+            lot_qty=0
 
-     #=============================================================================================
-        
+            #===============================Cache==============================================================
+            signal_id = f"{signal_time}_{strike}_{option_type}"
+
+            
+            
                            
 #==============================================================================================================================
    

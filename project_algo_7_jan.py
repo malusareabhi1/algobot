@@ -6795,7 +6795,7 @@ elif MENU =="Live Trade":
      #-----------------------------------Nearest ITM Option ---------------------------------------------
      
             if signal is not None:
-                 st.write(last_signal)
+                 #st.write(last_signal)
                  #signal_time = df["Datetime"].iloc[-1].time()   # last candle time
                  option_type = last_signal["option_type"]     # CALL / PUT
                  #st.write("Option type ",option_type)

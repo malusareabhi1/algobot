@@ -5390,7 +5390,8 @@ elif MENU == "Backtest":
         import json 
         st.subheader("Signal Log")
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
-        signal = trading_signal_all_conditions(df_plot)
+        #signal = trading_signal_all_conditions(df_plot)
+        signal = trading_signal_all_conditions_final(df_plot) 
         save_signal_log(signal) 
         #st.write("DEBUG signal:", signal)
         #st.write("Type:", type(signal))
@@ -7887,8 +7888,8 @@ elif MENU=="Paper Trade":
         st.plotly_chart(fig, use_container_width=True)
         #----------------------------------------------------------------------
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
-        signal = trading_signal_all_conditions(df_plot)
-
+        #signal = trading_signal_all_conditions(df_plot)
+        signal = trading_signal_all_conditions_final(df_plot)
         if signal is None:
             st.warning("⚠ No signal yet (conditions not met).")
         else:
@@ -9328,7 +9329,8 @@ elif MENU =="LIVE TRADE 3":
         st.plotly_chart(fig, use_container_width=True)
         #----------------------------------------------------------------------
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
-        signal = trading_signal_all_conditions(df_plot)
+        #signal = trading_signal_all_conditions(df_plot)
+        signal = trading_signal_all_conditions_final(df_plot) 
         #st.write("DEBUG signal:", signal)
         #st.write("Type:", type(signal))
 

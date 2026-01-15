@@ -7054,7 +7054,7 @@ elif MENU =="Live Trade":
                      #st.table(display_df) 
                      #st.table(display_df) 
                      #st.table(nearest_itm1)
-                     trending_symbol=nearest_itm1['tradingsymbol']
+                     trending_symbol=nearest_itm['tradingsymbol']
                      #st.write("tradingsymbol-",trending_symbol)
                   #====================================================FLAG SIGNAL================================
                      st.session_state.trade_status = "SIGNAL"

@@ -727,6 +727,9 @@ def monitor_and_exit_last_position(kite, df_15m):
     st.write("LTP:", ltp)
 
     # ---- EXIT CONDITIONS ----
+    theta=st.session_state.GREEKtheta   
+    if theta >= 50:
+         reason = "THETA DECAY EXIT" 
     if ltp <= tsl:
         reason = "STOP LOSS HIT"
     elif ltp >= target:

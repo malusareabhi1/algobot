@@ -6977,7 +6977,7 @@ elif MENU =="Live Trade":
             lot_qty=0
 
             #===============================Cache==============================================================
-            signal_id = f"{signal_time}_{strike}_{option_type}"
+            #signal_id = f"{signal_time}_{strike}_{option_type}"
 
             
             

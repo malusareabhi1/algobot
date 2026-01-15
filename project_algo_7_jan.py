@@ -48,6 +48,197 @@ if "last_option_entry_price" not in st.session_state:
 
 if "NIFTY_TOKEN" not in st.session_state:
     st.session_state.NIFTY_TOKEN = 256265
+#====================================================================================================================
+
+def trading_signal_all_conditions_new(df, quantity=10*65, return_all_signals=True):
+    """
+    Optimized Base Zone Strategy
+    - ONE trade per day (state machine)
+    - First valid break only
+    - Clean entry → monitor → exit flow
+    """
+
+    from datetime import timedelta, time
+    import numpy as np
+    import pandas as pd
+
+    signals = []
+    state = "IDLE"   # IDLE → ENTERED → EXITED
+
+    df = df.copy()
+    df['Date'] = df['Datetime'].dt.date
+
+    unique_days = sorted(df['Date'].unique())
+    if len(unique_days) < 2:
+        return None
+
+    day0, day1 = unique_days[-2], unique_days[-1]
+
+    # --- Base Zone (Previous day 3:00 PM)
+    candle_3pm = df[
+        (df['Date'] == day0) &
+        (df['Datetime'].dt.hour == 15) &
+        (df['Datetime'].dt.minute == 0)
+    ]
+
+    if candle_3pm.empty:
+        return None
+
+    base_open = candle_3pm.iloc[0]['Open_^NSEI']
+    base_close = candle_3pm.iloc[0]['Close_^NSEI']
+    base_low = min(base_open, base_close)
+    base_high = max(base_open, base_close)
+
+    # --- 9:15–9:30 candle
+    candle_915 = df[
+        (df['Date'] == day1) &
+        (df['Datetime'].dt.hour == 9) &
+        (df['Datetime'].dt.minute == 30)
+    ]
+
+    if candle_915.empty:
+        return None
+
+    H1 = candle_915.iloc[0]['High_^NSEI']
+    L1 = candle_915.iloc[0]['Low_^NSEI']
+    C1 = candle_915.iloc[0]['Close_^NSEI']
+    entry_time = candle_915.iloc[0]['Datetime']
+
+    expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+
+    day1_after_915 = df[
+        (df['Date'] == day1) &
+        (df['Datetime'] > entry_time)
+    ].sort_values('Datetime')
+
+    # --- Swing helper
+    def get_recent_swing(ts):
+        recent = df[(df['Date'] == day1) & (df['Datetime'] < ts)].tail(10)
+        if recent.empty:
+            return np.nan, np.nan
+        return recent['High_^NSEI'].max(), recent['Low_^NSEI'].min()
+
+    # --- Trade monitor (called ONCE)
+    def monitor_trade(sig):
+        sl = sig['stoploss']
+        deadline = sig['entry_time'] + timedelta(minutes=16)
+
+        for _, c in day1_after_915.iterrows():
+            if c['Datetime'] >= deadline:
+                sig['exit_price'] = c['Close_^NSEI']
+                sig['status'] = 'Time Exit'
+                return sig
+
+            high, low = get_recent_swing(c['Datetime'])
+
+            # trailing SL
+            if sig['option_type'] == 'CALL' and not np.isnan(low):
+                sl = max(sl, low) if not np.isnan(sl) else low
+                if c['Low_^NSEI'] <= sl:
+                    sig['exit_price'] = sl
+                    sig['status'] = 'Trailing SL Hit'
+                    return sig
+
+            if sig['option_type'] == 'PUT' and not np.isnan(high):
+                sl = min(sl, high) if not np.isnan(sl) else high
+                if c['High_^NSEI'] >= sl:
+                    sig['exit_price'] = sl
+                    sig['status'] = 'Trailing SL Hit'
+                    return sig
+
+            sig['stoploss'] = sl
+
+        sig['exit_price'] = day1_after_915.iloc[-1]['Close_^NSEI']
+        sig['status'] = 'EOD Exit'
+        return sig
+
+    # =========================
+    # ENTRY LOGIC (STATE = IDLE)
+    # =========================
+
+    # --- Condition 1 & 4 (No Gap)
+    if state == "IDLE" and (L1 < base_high and H1 > base_low):
+
+        swing_high, swing_low = get_recent_swing(entry_time)
+
+        if C1 > base_high:
+            sig = {
+                'condition': 1,
+                'option_type': 'CALL',
+                'buy_price': H1,
+                'stoploss': swing_low,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Base Zone Breakout CALL'
+            }
+
+        elif C1 < base_low:
+            sig = {
+                'condition': 4,
+                'option_type': 'PUT',
+                'buy_price': L1,
+                'stoploss': swing_high,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': entry_time,
+                'message': 'Base Zone Breakdown PUT'
+            }
+        else:
+            sig = None
+
+        if sig:
+            state = "ENTERED"
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            state = "EXITED"
+            return signals
+
+    # --- Gap Trades (Condition 2 & 3)
+    if state == "IDLE":
+
+        for _, c in day1_after_915.iterrows():
+
+            if c['Datetime'].time() > time(11, 0):
+                break  # no late entries
+
+            swing_high, swing_low = get_recent_swing(c['Datetime'])
+
+            # Gap Down
+            if C1 < base_low and c['Low_^NSEI'] <= L1:
+                sig = {
+                    'condition': 2,
+                    'option_type': 'PUT',
+                    'buy_price': L1,
+                    'stoploss': swing_high,
+                    'quantity': quantity,
+                    'expiry': expiry,
+                    'entry_time': c['Datetime'],
+                    'message': 'Gap Down PUT'
+                }
+
+            # Gap Up
+            elif C1 > base_high and c['High_^NSEI'] >= H1:
+                sig = {
+                    'condition': 3,
+                    'option_type': 'CALL',
+                    'buy_price': H1,
+                    'stoploss': swing_low,
+                    'quantity': quantity,
+                    'expiry': expiry,
+                    'entry_time': c['Datetime'],
+                    'message': 'Gap Up CALL'
+                }
+            else:
+                continue
+
+            state = "ENTERED"
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            state = "EXITED"
+            break
+
+    return signals if signals else None
 
 #====================================================NEW GREEKS ===========================================================
 
@@ -6528,7 +6719,7 @@ elif MENU =="Live Trade":
         import json 
         st.subheader("Signal Log")
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
-        signal = trading_signal_all_conditions(df_plot)
+        signal = trading_signal_all_conditions_new(df_plot)
         #st.write("DEBUG signal:", signal)
         #st.write("Type:", type(signal))
         df_sig1 = pd.DataFrame(signal)

@@ -6928,7 +6928,9 @@ elif MENU =="Live Trade":
          r=r
          sigma=iv
          option_type=option_type
-         
+         st.write("Expiry value:", expiry)
+         st.write("Expiry type:", type(expiry))
+
          #greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
          greeks= safe_option_greeks(S, K, expiry, r, sigma, option_type="CALL")
          #if greeks:

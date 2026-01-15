@@ -49,6 +49,55 @@ if "last_option_entry_price" not in st.session_state:
 if "NIFTY_TOKEN" not in st.session_state:
     st.session_state.NIFTY_TOKEN = 256265
 
+#====================================================NEW GREEKS ===========================================================
+
+class OptionGreeks:
+    def __init__(self, S, K, T, r, sigma, option_type="call"):
+        self.S = S
+        self.K = K
+        self.T = T
+        self.r = r
+        self.sigma = sigma
+        self.option_type = option_type.lower()
+
+    def d1(self):
+        return (math.log(self.S / self.K) + (self.r + 0.5 * self.sigma**2) * self.T) / (self.sigma * math.sqrt(self.T))
+
+    def d2(self):
+        return self.d1() - self.sigma * math.sqrt(self.T)
+
+    def delta(self):
+        return norm.cdf(self.d1()) if self.option_type == "call" else norm.cdf(self.d1()) - 1
+
+    def gamma(self):
+        return norm.pdf(self.d1()) / (self.S * self.sigma * math.sqrt(self.T))
+
+    def theta(self):
+        d1, d2 = self.d1(), self.d2()
+        first_term = -(self.S * norm.pdf(d1) * self.sigma) / (2 * math.sqrt(self.T))
+        if self.option_type == "call":
+            second_term = -self.r * self.K * math.exp(-self.r * self.T) * norm.cdf(d2)
+        else:
+            second_term = self.r * self.K * math.exp(-self.r * self.T) * norm.cdf(-d2)
+        return first_term + second_term
+
+    def vega(self):
+        return self.S * norm.pdf(self.d1()) * math.sqrt(self.T)
+
+    def rho(self):
+        if self.option_type == "call":
+            return self.K * self.T * math.exp(-self.r * self.T) * norm.cdf(self.d2())
+        else:
+            return -self.K * self.T * math.exp(-self.r * self.T) * norm.cdf(-self.d2())
+
+    def summary(self):
+        return {
+            "Delta": self.delta(),
+            "Gamma": self.gamma(),
+            "Theta": self.theta(),
+            "Vega": self.vega(),
+            "Rho": self.rho()
+        }
 
      #===================================================LAST Price================
 
@@ -4719,7 +4768,7 @@ elif MENU == "Backtest":
     if "signal_log" not in st.session_state:
          st.session_state.signal_log = []
     #today = latest_time.date()
-    st.title("🔴 LIVE TRADE ")
+    st.title("🔴 BACKTEST LIVE TRADE ")
     #st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")
     if not is_kite_connected(kite):
         st.warning("Please login first to access LIVE trade.")
@@ -6269,7 +6318,9 @@ elif MENU =="Live Trade":
         #st.write(funds) 
         cash = (funds['cash'])
         cash = (funds['net'])  
-
+        result = "Fail" if 75000 <= cash <= 25000 else "Pass"
+        add_param_row("CASH", cash, "25K - 100K", result)
+        st.session_state.capital=cash  
         st.subheader("Connection Status") 
         if is_kite_connected(kite):
              st.success("Kite connection active")
@@ -6465,10 +6516,6 @@ elif MENU =="Live Trade":
             signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
             last_signal["signal_time"] = signal_time
             signal_time1=last_signal["signal_time"] 
-
-             
- 
-                
                 # Display as table
             #st.table(df_sig1) 
             #st.write(df_sig1) 
@@ -6563,7 +6610,8 @@ elif MENU =="Live Trade":
     with col5:
             st.subheader("Parameter Values")
             option_dict = get_live_option_details(kite, trending_symbol)
-            spot_price=26046.00 
+            #spot_price=26046.00 
+            spot_price=option_dict.get("strike") 
             ltp = option_dict.get("ltp")
             strike = option_dict.get("strike")
             expiry = option_dict.get("expiry")
@@ -6576,7 +6624,8 @@ elif MENU =="Live Trade":
               # 🔒 ENTRY LOCK — THIS PREVENTS RE-ENTRY ON REFRESH
               if st.session_state.last_executed_signal_time == signal_time:
                   pass  # already traded this signal
-          
+                  st.write("st.session_state.last_executed_signal_time=",st.session_state.last_executed_signal_time)
+                  st.write("System generated last_executed Signal time=",signal_time)  
               else:
                   option_type = last_signal["option_type"]
                   spot = last_signal["spot_price"]
@@ -6594,8 +6643,8 @@ elif MENU =="Live Trade":
                         "symbol": trending_symbol,
                         "option_type": option_type,
                         "entry_price": entry_price,
-                        "quantity": 75,
-                        "remaining_qty": 75,
+                        "quantity": 65,
+                        "remaining_qty": 65,
                         "highest_price": entry_price,
                         "partial_exit_done": False,
                         "final_exit_done": False,
@@ -6606,6 +6655,7 @@ elif MENU =="Live Trade":
           
                   # 🔐 LOCK THE SIGNAL
                   st.session_state.last_executed_signal_time = signal_time
+                  st.session_state.last_option_entry_price = entry_price  
           
                   #st.success(f"Paper trade entered @ {entry_price}")
 
@@ -6904,7 +6954,14 @@ elif MENU =="Live Trade":
          use_container_width=True,
          hide_index=True
      )
+#-----------------------------------------------------NEW GREEKS--------------------------------
 
+         greeks = OptionGreeks(S, K, T, r, sigma, "put")
+         #greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
+         greek_values = greeks.summary()
+          
+         for greek, value in greek_values.items():
+              st.write(f"{greek}: {value:.4f}")
          #---------------------------------tIME-----------------------------------------------
          import pytz
             

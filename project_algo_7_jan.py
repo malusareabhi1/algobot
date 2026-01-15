@@ -549,7 +549,7 @@ def safe_option_greeks(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
 
 #=================================================SAFE GREEK =================================================
 
-def safe_option_greeks-15-jan(S, K, T, r, sigma, option_type="CALL"):
+def safe_option_greeks_15_jan(S, K, T, r, sigma, option_type="CALL"):
 
     T = max(T, 1/365)
     sigma = max(sigma, 0.05)

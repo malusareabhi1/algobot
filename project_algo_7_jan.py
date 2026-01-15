@@ -7729,7 +7729,7 @@ elif MENU =="Live Trade":
         df_plot1 = fetch_nifty_daily_last_7_days(kite)
 
         
-        while True:
+        if pos:
                         if df_plot1 is not None and not df_plot1.empty:
                              monitor_and_exit_last_position(kite, df_plot1)
                              time.sleep(5)

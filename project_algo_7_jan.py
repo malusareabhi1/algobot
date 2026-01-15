@@ -516,10 +516,40 @@ def monitor_and_exit_paper_trades(kite):
 
 #=================================================SAFE GREEK =================================================
 
+def safe_option_greeks(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
+    now = datetime.now()
+    seconds = max((expiry_dt - now).total_seconds(), 3600)
+    T = seconds / (365 * 24 * 60 * 60)
+
+    sigma = max(iv_percent / 100, 0.05)
+
+    d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+
+    if option_type == "CALL":
+        delta = norm.cdf(d1)
+        theta = (-S * norm.pdf(d1) * sigma / (2 * np.sqrt(T))
+                 - r * K * np.exp(-r * T) * norm.cdf(d2)) / 365
+    else:
+        delta = norm.cdf(d1) - 1
+        theta = (-S * norm.pdf(d1) * sigma / (2 * np.sqrt(T))
+                 + r * K * np.exp(-r * T) * norm.cdf(-d2)) / 365
+
+    gamma = norm.pdf(d1) / (S * sigma * np.sqrt(T))
+    vega = S * norm.pdf(d1) * np.sqrt(T) / 100
+
+    return {
+        "Delta": round(delta, 3),
+        "Gamma": round(gamma, 6),
+        "Theta": round(theta, 2),
+        "Vega": round(vega, 2),
+        "IV%": round(iv_percent, 2)
+    }
+
 
 #=================================================SAFE GREEK =================================================
 
-def safe_option_greeks(S, K, T, r, sigma, option_type="CALL"):
+def safe_option_greeks-15-jan(S, K, T, r, sigma, option_type="CALL"):
 
     T = max(T, 1/365)
     sigma = max(sigma, 0.05)

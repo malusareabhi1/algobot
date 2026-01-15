@@ -7391,7 +7391,7 @@ elif MENU =="Live Trade":
         "Parameter": "Delta",
         "Value": greeks["Delta"],
         "Range": "0.30 – 0.85",
-        "Result": evaluate(c, 0.30, 0.85)
+        "Result": evaluate(greeks["Delta"], 0.30, 0.85)
     },
     {
         "Parameter": "Gamma",

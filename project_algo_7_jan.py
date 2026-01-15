@@ -7041,9 +7041,17 @@ elif MENU =="Live Trade":
                      nearest_itm1 = pd.DataFrame([nearest_itm])
                      
                      # Display as table
-                     display_df = nearest_itm1[["tradingsymbol", "option_type", "expiry", "ltp"]].to_frame().T
+                     #display_df = nearest_itm1[["tradingsymbol", "option_type", "expiry", "ltp"]].to_frame().T
+                     display_df = pd.DataFrame([{
+                             "tradingsymbol": nearest_itm1["tradingsymbol"],
+                             "option_type": nearest_itm1["option_type"],
+                             "expiry": nearest_itm1["expiry"],
+                             "ltp": nearest_itm1["ltp"]
+                         }])
+
+                     st.table(display_df) 
                      #st.table(display_df) 
-                     st.table(nearest_itm1)
+                     #st.table(nearest_itm1)
                      trending_symbol=nearest_itm1['tradingsymbol']
                      #st.write("tradingsymbol-",trending_symbol)
                   #====================================================FLAG SIGNAL================================

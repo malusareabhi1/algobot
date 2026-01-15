@@ -154,7 +154,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     # =========================
     # CORE LOGIC (MAX 2 TRADES)
     # =========================
-    MAX_TRADES = 2
+    MAX_TRADES = 3
     trade_count = 0
     last_break = None
     price_inside_base = True

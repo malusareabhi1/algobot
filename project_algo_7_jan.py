@@ -9831,6 +9831,7 @@ elif MENU =="LIVE TRADE 3":
  
            
                 # Check 1: Only run if current time is within trading window
+            st.write("entry_time",entry_time) 
             if is_valid_signal_time(entry_time):
                  st.warning("Signal time  match today's date .") 
                  if start_time <= now <= end_time:

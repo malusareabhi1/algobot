@@ -7291,8 +7291,8 @@ elif MENU =="Live Trade":
               # 🔒 ENTRY LOCK — THIS PREVENTS RE-ENTRY ON REFRESH
               if st.session_state.last_executed_signal_time == signal_time:
                   pass  # already traded this signal
-                  st.write("st.session_state.last_executed_signal_time=",st.session_state.last_executed_signal_time)
-                  st.write("System generated last_executed Signal time=",signal_time)  
+                  #st.write("st.session_state.last_executed_signal_time=",st.session_state.last_executed_signal_time)
+                  #st.write("System generated last_executed Signal time=",signal_time)  
               else:
                   option_type = last_signal["option_type"]
                   spot = last_signal["buy_price"]
@@ -7587,6 +7587,13 @@ elif MENU =="Live Trade":
               #col4.metric("Vega", round(greeks["Vega"], 2))
               #col5.metric("IV %", round(greeks["IV"], 2))
          greeks_param_df = pd.DataFrame([
+                   {
+                       "Parameter": "NIFTY OPTION",
+                       "Value": trending_symbol,
+                       "Range": expiry,
+                       "Result": "Valid"
+                   },                  
+         
     {
         "Parameter": "Delta",
         "Value": greeks["Delta"],
@@ -7640,8 +7647,8 @@ elif MENU =="Live Trade":
          #greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
          greek_values = greeks.summary()
           
-         for greek, value in greek_values.items():
-              st.write(f"{greek}: {value:.4f}")
+         #for greek, value in greek_values.items():
+              #st.write(f"{greek}: {value:.4f}")
          #---------------------------------tIME-----------------------------------------------
          import pytz
             

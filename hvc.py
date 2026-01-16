@@ -15,7 +15,7 @@ vol_multiplier = st.sidebar.slider("Volume Multiplier", 1.0, 3.0, 1.5)
 
 symbols = st.sidebar.text_area(
     "NSE Symbols (comma separated)",
-    "HDFCBANK,INFY,TCS,RELIANCE,ICICIBANK,SBIN,AXISBANK"
+    "HDFCBANK.NS,INFY.NS,TCS.NS,RELIANCE.NS,ICICIBANK.NS,SBIN.NS,AXISBANK.NS"
 )
 
 symbols = [s.strip() + ".NS" for s in symbols.split(",") if s.strip()]

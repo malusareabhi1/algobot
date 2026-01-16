@@ -98,6 +98,205 @@ def calculate_and_cache_signal(signal_id, data):
 
 #=========================================New Signals===============================================================
 
+def trading_multi2_signal_all_conditions_5min(
+    df_5m,
+    quantity=10 * 65,
+    max_trades_per_day=2,
+):
+    """
+    Multi-timeframe intraday option strategy
+
+    TF Usage:
+    - 15m: Previous day base candle (15:00)
+    - 15m: Current day opening range (09:15–09:30)
+    - 5m : Signal execution
+    """
+
+    import pandas as pd
+    from datetime import timedelta
+
+    df_5m = df_5m.copy()
+    df_5m["Datetime"] = pd.to_datetime(df_5m["Datetime"])
+    df_5m["Date"] = df_5m["Datetime"].dt.date
+
+    unique_days = sorted(df_5m["Date"].unique())
+    if len(unique_days) < 2:
+        return None
+
+    day0, day1 = unique_days[-2], unique_days[-1]
+
+    # =================================================
+    # 15-MIN RESAMPLE (FOR BASE + OPENING RANGE)
+    # =================================================
+    df_15m = (
+        df_5m
+        .set_index("Datetime")
+        .resample("15min")
+        .agg({
+            "Open_^NSEI": "first",
+            "High_^NSEI": "max",
+            "Low_^NSEI": "min",
+            "Close_^NSEI": "last",
+        })
+        .dropna()
+        .reset_index()
+    )
+    df_15m["Date"] = df_15m["Datetime"].dt.date
+
+    # ---------------- BASE CANDLE (DAY0 @ 15:00) ----------------
+    base_candle = df_15m[
+        (df_15m["Date"] == day0)
+        & (df_15m["Datetime"].dt.hour == 15)
+        & (df_15m["Datetime"].dt.minute == 0)
+    ]
+    if base_candle.empty:
+        return None
+
+    base_open = base_candle.iloc[0]["Open_^NSEI"]
+    base_close = base_candle.iloc[0]["Close_^NSEI"]
+    base_low, base_high = sorted([base_open, base_close])
+
+    # ---------------- OPENING RANGE (09:15–09:30) ----------------
+    or_candle = df_15m[
+        (df_15m["Date"] == day1)
+        & (df_15m["Datetime"].dt.hour == 9)
+        & (df_15m["Datetime"].dt.minute == 15)
+    ]
+    if or_candle.empty:
+        return None
+
+    O1 = or_candle.iloc[0]["Open_^NSEI"]
+    H1 = or_candle.iloc[0]["High_^NSEI"]
+    L1 = or_candle.iloc[0]["Low_^NSEI"]
+    C1 = or_candle.iloc[0]["Close_^NSEI"]
+    entry_start_time = or_candle.iloc[0]["Datetime"] + timedelta(minutes=15)
+
+    trade_end_time = entry_start_time.replace(hour=14, minute=30)
+    expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+
+    # =================================================
+    # 5-MIN DATA (FOR EXECUTION)
+    # =================================================
+    day_df_5m = df_5m[
+        (df_5m["Date"] == day1)
+        & (df_5m["Datetime"] >= entry_start_time)
+        & (df_5m["Datetime"] <= trade_end_time)
+    ].sort_values("Datetime")
+
+    # =================================================
+    # SAFETY
+    # =================================================
+    signals = []
+    fired_conditions = set()
+    trade_count = 0
+
+    # =================================================
+    # HELPERS
+    # =================================================
+    def recent_swing(ts):
+        recent = day_df_5m[day_df_5m["Datetime"] < ts].tail(10)
+        if recent.empty:
+            return None, None
+        return recent["High_^NSEI"].max(), recent["Low_^NSEI"].min()
+
+    def monitor_trade(sig):
+        sl = sig["stoploss"]
+        exit_deadline = sig["entry_time"] + timedelta(minutes=16)
+
+        for _, c in day_df_5m.iterrows():
+            if c["Datetime"] <= sig["entry_time"]:
+                continue
+
+            if c["Datetime"] >= exit_deadline:
+                sig["exit_price"] = c["Close_^NSEI"]
+                sig["exit_time"] = c["Datetime"]
+                sig["status"] = "Time Exit"
+                return sig
+
+            high, low = recent_swing(c["Datetime"])
+
+            if sig["option_type"] == "CALL" and low:
+                sl = max(sl, low)
+                if c["Low_^NSEI"] <= sl:
+                    sig["exit_price"] = sl
+                    sig["exit_time"] = c["Datetime"]
+                    sig["status"] = "SL Hit"
+                    return sig
+
+            if sig["option_type"] == "PUT" and high:
+                sl = min(sl, high)
+                if c["High_^NSEI"] >= sl:
+                    sig["exit_price"] = sl
+                    sig["exit_time"] = c["Datetime"]
+                    sig["status"] = "SL Hit"
+                    return sig
+
+        last = day_df_5m.iloc[-1]
+        sig["exit_price"] = last["Close_^NSEI"]
+        sig["exit_time"] = last["Datetime"]
+        sig["status"] = "Forced Exit 14:30"
+        return sig
+
+    # =================================================
+    # SIGNAL LOGIC (5-MIN)
+    # =================================================
+    for i in range(1, len(day_df_5m)):
+        if trade_count >= max_trades_per_day:
+            break
+
+        candle = day_df_5m.iloc[i]
+        prev = day_df_5m.iloc[i - 1]
+        high, low = recent_swing(candle["Datetime"])
+
+        # ---- GAP DOWN → PUT ----
+        if (
+            2 not in fired_conditions
+            and C1 < base_low
+            and prev["Low_^NSEI"] > L1
+            and candle["Low_^NSEI"] <= L1
+        ):
+            sig = {
+                "condition": 2,
+                "option_type": "PUT",
+                "buy_price": L1,
+                "entry_time": candle["Datetime"],
+                "spot_price": candle["Close_^NSEI"],
+                "stoploss": high,
+                "quantity": quantity,
+                "expiry": expiry,
+                "message": "Cond 2: OR breakdown → BUY PUT",
+            }
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            fired_conditions.add(2)
+            trade_count += 1
+
+        # ---- GAP UP → CALL ----
+        if (
+            3 not in fired_conditions
+            and C1 > base_high
+            and prev["High_^NSEI"] < H1
+            and candle["High_^NSEI"] >= H1
+        ):
+            sig = {
+                "condition": 3,
+                "option_type": "CALL",
+                "buy_price": H1,
+                "entry_time": candle["Datetime"],
+                "spot_price": candle["Close_^NSEI"],
+                "stoploss": low,
+                "quantity": quantity,
+                "expiry": expiry,
+                "message": "Cond 3: OR breakout → BUY CALL",
+            }
+            sig = monitor_trade(sig)
+            signals.append(sig)
+            fired_conditions.add(3)
+            trade_count += 1
+
+    return signals if signals else None
+
+
 def trading_signal_all_conditions_final(df, quantity=10*65):
     """
     Base Zone Re-Cross Strategy (FINAL)
@@ -9413,7 +9612,10 @@ elif MENU =="LIVE TRADE 3":
         #----------------------------------------------------------------------
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
         #signal = trading_signal_all_conditions(df_plot)
-        signal = trading_signal_all_conditions_final(df_plot) 
+         #trading_multi2_signal_all_conditions_5min
+         
+        #signal = trading_signal_all_conditions_final(df_plot) 
+        signal = trading_multi2_signal_all_conditions_5min(df_plot)  
         #st.write("DEBUG signal:", signal)
         #st.write("Type:", type(signal))
 

@@ -6292,9 +6292,6 @@ elif MENU == "Login Zerodha  API":
             st.success("🎉 Zerodha Connected Successfully!")
             #st.info("Downloading latest instruments.csv…")
 
-           
-
-        
 
         except Exception as e:
             st.error(f"Login failed: {e}")
@@ -9195,6 +9192,17 @@ elif MENU =="LIVE TRADE 3":
     if not is_kite_connected(kite):
         st.warning("Please login first to access LIVE trade.")
         st.stop()     # Stop page execution safely
+
+    if "kite" not in st.session_state or st.session_state.kite is None:
+         st.info("Please login to access Algo Trading.")
+         st.stop()
+
+    kite = st.session_state.kite
+     
+    if not is_kite_connected(kite):
+         st.warning("Kite session not active. Please login again.")
+         st.stop()
+
      # --- --------------------------------------------------------------------------------        
     # --- HARD BLOCK: Do not trade if position already exists ---
     #if has_open_position(kite):

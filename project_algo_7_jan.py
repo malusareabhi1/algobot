@@ -9790,6 +9790,16 @@ elif MENU =="LIVE TRADE 3":
                   st.table(df)
             else:
                   st.write("No parameters added yet.")
+
+             if st.session_state.param_rows:
+                   df = pd.DataFrame(st.session_state.param_rows)
+               
+                   col1, col2 = st.columns([1, 1])  # 50% width each
+               
+                   with col1:
+                       st.table(df)
+             else:
+                   st.write("No parameters added yet.")
     #------------------------------------------------------------------------------------------------
             qty=qty*lot_qty
             #qty=0

@@ -9785,19 +9785,101 @@ elif MENU =="LIVE TRADE 3":
                    lot_qty = 0 
             add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK")
      #-----------------------------------------Display PARA-------------------------------------------
-            if st.session_state.param_rows:
-                  df = pd.DataFrame(st.session_state.param_rows)
-                  st.table(df)
-            else:
-                  st.write("No parameters added yet.")
-
+          
             if st.session_state.param_rows:
                    df = pd.DataFrame(st.session_state.param_rows)
                
                    col1, col2 = st.columns([1, 1])  # 50% width each
                
                    with col1:
+                       st.subheader("Parameters") 
                        st.table(df)
+
+                   with col2:
+                        days_to_exp = days_to_expiry(expiry)
+                        time_to_expiry = days_to_exp / 365 
+                        r=0.07
+                           #st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
+                        #iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
+                        iv=new_iv_result
+                        st.subheader("Greeks Values")
+                        #greeks = option_greeks(S=spot_price,K=strike,T=time_to_expiry,r=r,sigma=iv,option_type=option_type)
+                        S=spot_price
+                        K=strike
+                        T=time_to_expiry
+                        r=r
+                        sigma=iv
+                        option_type=option_type
+                        st.session_state.S=S
+                        st.session_state.K=K
+                        st.session_state.T=T
+                        st.session_state.r=r
+                        st.session_state.sigma=sigma
+                        
+                        #st.write("Expiry value:", expiry)
+                        ##st.write("Expiry type:", type(expiry))
+                        expiry_dt = datetime.strptime(expiry, "%Y-%m-%d").replace(hour=15, minute=30)
+                
+                        #greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
+                        greeks= safe_option_greeks(S, K, expiry_dt, r, sigma, option_type="CALL")
+                        #if greeks:
+                             #st.subheader("Greeks Values")
+                         
+                             #col1, col2, col3, col4, col5 = st.columns(5)
+                             #col1.metric("Delta", round(greeks["Delta"], 3))
+                             #col2.metric("Gamma", round(greeks["Gamma"], 4))
+                             #col3.metric("Theta", round(greeks["Theta"], 2))
+                             #col4.metric("Vega", round(greeks["Vega"], 2))
+                             #col5.metric("IV %", round(greeks["IV"], 2))
+                        greeks_param_df = pd.DataFrame([
+                   {
+                       "Parameter": "Delta",
+                       "Value": greeks["Delta"],
+                       "Range": "0.30 – 0.85",
+                       "Result": evaluate(greeks["Delta"], 0.30, 0.85)
+                   },
+                   {
+                       "Parameter": "Gamma",
+                       "Value": greeks["Gamma"],
+                       "Range": "≥ 0.0005",
+                       "Result": evaluate(greeks["Gamma"], 0.0005, None)
+                   },
+                   {
+                       "Parameter": "Theta",
+                       "Value": greeks["Theta"],
+                       "Range": "≥ -80",
+                       "Result": evaluate(greeks["Theta"], -80, None)
+                   },
+                   {
+                       "Parameter": "Vega",
+                       "Value": greeks["Vega"],
+                       "Range": "≥ 3.0",
+                       "Result": evaluate(greeks["Vega"], 3.0, None)
+                   },
+                   {
+                       "Parameter": "IV %",
+                       "Value": greeks["IV%"],
+                       "Range": "10 – 35",
+                       "Result": evaluate(greeks["IV%"], 10, 35)
+                   }
+               ])
+                        st.session_state.GREEKdelta=greeks["Delta"]
+                        st.session_state.GREEKgamma=greeks["Gamma"]
+                        st.session_state.GREEKtheta=greeks["Theta"]
+                        st.session_state.GREEKvega=greeks["Vega"]
+                        
+                        st.dataframe(
+                        greeks_param_df.style.applymap(
+                           lambda x: "color: green; font-weight: bold"
+                           if x == "Pass"
+                           else "color: red; font-weight: bold"
+                           if x == "Fail"
+                           else ""
+                        ),
+                        use_container_width=True,
+                        hide_index=True
+                    )
+                        
             else:
                    st.write("No parameters added yet.")
     #------------------------------------------------------------------------------------------------

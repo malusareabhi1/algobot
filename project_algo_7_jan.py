@@ -9859,8 +9859,8 @@ elif MENU =="LIVE TRADE 3":
                    {
                        "Parameter": "IV %",
                        "Value": greeks["IV%"],
-                       "Range": "10 – 35",
-                       "Result": evaluate(greeks["IV%"], 10, 35)
+                       "Range": "0.10 – 0.35",
+                       "Result": evaluate(greeks["IV%"], 0.10, 0.35)
                    }
                ])
                         st.session_state.GREEKdelta=greeks["Delta"]

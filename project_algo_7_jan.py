@@ -9831,6 +9831,13 @@ elif MENU =="LIVE TRADE 3":
                              #col3.metric("Theta", round(greeks["Theta"], 2))
                              #col4.metric("Vega", round(greeks["Vega"], 2))
                              #col5.metric("IV %", round(greeks["IV"], 2))
+                         greeks_param_df = pd.DataFrame([
+                   {
+                       "Parameter": "NIFTY OPTION",
+                       "Value": trending_symbol,
+                       "Range": expiry,
+                       "Result": "Valid"
+                   },
                         greeks_param_df = pd.DataFrame([
                    {
                        "Parameter": "Delta",

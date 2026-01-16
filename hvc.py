@@ -60,7 +60,7 @@ if st.button("🔎 Scan HVC"):
 
     for sym in symbols:
         try:
-            df = yf.download(sym, period="6mo", interval="1d", progress=False)
+            df = yf.download(sym, period="2mo", interval="1d", progress=False)
 
             if len(df) < lookback:
                 continue

@@ -9837,8 +9837,7 @@ elif MENU =="LIVE TRADE 3":
                        "Value": trending_symbol,
                        "Range": expiry,
                        "Result": "Valid"
-                   },
-                        greeks_param_df = pd.DataFrame([
+                   },                        
                    {
                        "Parameter": "Delta",
                        "Value": greeks["Delta"],

@@ -7147,7 +7147,8 @@ elif MENU =="Live Trade":
         st.subheader("Signal Log")
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
         #signal = trading_signal_all_conditions_new(df_plot)
-        signal = trading_signal_all_conditions_final(df_plot) 
+        #signal = trading_signal_all_conditions_final(df_plot) 
+        signal = trading_multi2_signal_all_conditions_5min(df_plot)  
         #st.write("DEBUG signal:", signal)
         #st.write("Type:", type(signal))
         df_sig1 = pd.DataFrame(signal)

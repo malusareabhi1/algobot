@@ -17,6 +17,7 @@ import yfinance as yf
 from streamlit_autorefresh import st_autorefresh
 import re
 import math 
+from kiteconnect.exceptions import PermissionException, TokenException
 from dotenv import load_dotenv    
 from math import log, sqrt, exp
 from scipy.stats import norm

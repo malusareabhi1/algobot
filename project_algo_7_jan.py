@@ -7301,6 +7301,9 @@ elif MENU =="Live Trade":
             option_dict = get_live_option_details(kite, trending_symbol)
             #spot_price=26046.00 
             spot_price=option_dict.get("strike") 
+            if not option_dict:
+                   st.warning("Live option data unavailable. Cannot proceed with trade logic.")
+                   st.stop()
             ltp = option_dict.get("ltp")
             strike = option_dict.get("strike")
             expiry = option_dict.get("expiry")

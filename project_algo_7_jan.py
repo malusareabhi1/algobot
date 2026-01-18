@@ -5782,6 +5782,9 @@ elif MENU == "Backtest":
     with col5:
             st.subheader("Parameter Values")
             option_dict = get_live_option_details(kite, trending_symbol)
+            if not option_dict:
+              st.warning("Live option data unavailable. Cannot proceed with trade logic.")
+              st.stop()
             spot_price=spot 
             ltp = option_dict.get("ltp")
             strike = option_dict.get("strike")

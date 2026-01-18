@@ -2673,7 +2673,28 @@ def enrich_with_ltp(kite, option_data):
          #st.write("Optiion Data",option_data) 
          symbol = f"NFO:{option_data['tradingsymbol']}"
          #st.write("Optiion Symbol",symbol)   
-         ltp_data = kite.ltp(symbol)
+         #ltp_data = kite.ltp(symbol)
+         try:
+             ltp_data = kite.ltp(symbol)
+             return ltp_data
+     
+         except PermissionException:
+             st.error(
+                 "🚫 You do not have permission to access live market data or algo trading.\n\n"
+                 "Please check:\n"
+                 "• Kite API subscription status\n"
+                 "• Market data / derivatives access\n"
+                 "• Whether your API key is active\n"
+             )
+             return None
+     
+         except TokenException:
+             st.error("🔑 Session expired. Please re-login to Kite.")
+             return None
+     
+         except Exception as e:
+             st.error(f"Unexpected error while fetching LTP: {e}")
+             return None 
          #st.write("Optiion ltp_data",ltp_data)     
          option_data["ltp"] = ltp_data[symbol]["last_price"]
          return option_data

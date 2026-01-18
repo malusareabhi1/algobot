@@ -9764,7 +9764,7 @@ elif MENU =="LIVE TRADE 3":
             option_dict = get_live_option_details(kite, trending_symbol)
             if option_dict is None:
                    st.info("Running in safe mode. Live data access is unavailable.")
-                   return  # or st.stop()
+                   st.stop() #return  # or st.stop()
                 
            # st.write(option_dict) 
             #spot_price=26046.00 

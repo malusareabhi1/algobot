@@ -10168,8 +10168,8 @@ elif MENU =="LIVE TRADE 3":
                         #greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
                         #st.write("DEBUG Greeks Inputs: S, K, T, sigma ", S, K, T, sigma)
                         #st.write("strike type:", type(K))
-                        K = float(strike.iloc[0])
-
+                        #K = float(strike.iloc[0])
+                        K = float(K)      
                         st.write("K value:", K)
                         st.write("K type:", type(K))
                         greeks= safe_option_greeks(S, K, expiry_dt, r, sigma, option_type="CALL")

@@ -52,6 +52,9 @@ if "NIFTY_TOKEN" not in st.session_state:
 
 if "signal_cache" not in st.session_state:
     st.session_state.signal_cache = {}
+
+if "position_size" not in st.session_state:
+    st.session_state.position_size = None
 #==============================================calculate_and_cache_signal================================================================
 
 
@@ -10017,6 +10020,8 @@ elif MENU =="LIVE TRADE 3":
     
     #------------------------------------PLACING ORDERS--------------------------------------------
              #st.write(f"Placing order for:", trending_symbol)
+            #if "position_size" not in st.session_state:
+            position_size= st.session_state.position_size
             if(position_size=='none'):
                   position_size=1;
         #st.write(f"Quantity: {qty}, LTP: {ltp}")

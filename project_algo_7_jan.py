@@ -10237,9 +10237,9 @@ elif MENU =="LIVE TRADE 3":
             qty=qty*lot_qty
             #qty=0
             # Apply rule
-            if iv_result == "Fail" or iv_rank_result == "Fail":
+            if new_iv_result == "Fail" : #or iv_rank_result == "Fail":
                    lot_qty = 2
-            if iv_result == "Pass" and iv_rank_result == "Fail" and vix_result=="pass" and pcr_result=="pass":
+            if new_iv_result == "Pass"  and vix_result=="pass" and pcr_result=="pass":
                    lot_qty = 6    
             if vix_now < 10 :
                    lot_qty = 1 

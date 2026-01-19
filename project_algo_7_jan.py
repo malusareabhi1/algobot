@@ -10153,6 +10153,9 @@ elif MENU =="LIVE TRADE 3":
                         elif isinstance(expiry, (datetime, pd.Timestamp)):
                              expiry_dt = expiry.to_pydatetime().replace(hour=15, minute=30)
                         else:
+                             st.write("DEBUG expiry value:", expiry)
+                             st.write("DEBUG expiry type:", type(expiry))
+                             st.stop()
                              raise ValueError(f"Invalid expiry type: {type(expiry)}")
                         #greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
                         greeks= safe_option_greeks(S, K, expiry_dt, r, sigma, option_type="CALL")

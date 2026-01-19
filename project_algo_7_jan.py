@@ -10998,7 +10998,7 @@ elif MENU =="NIFTY 3:20 PM Intraday Strategy":
                   #cash_balance = 73500
                   lots = get_lot_size(funds['cash'])
                   #st.write("Lot Size:", lots)
-                  qty=65*lots
+                  #qty=65*lots
                   #st.divider()
 
    
@@ -11073,7 +11073,7 @@ elif MENU =="NIFTY 3:20 PM Intraday Strategy":
             else:
                   st.write("No parameters added yet.")
     #------------------------------------------------------------------------------------------------
-            qty=qty*lot_qty
+            #qty=qty*lot_qty
             #qty=0
                 # Check 1: Only run if current time is within trading window
             if is_valid_signal_time(entry_time):

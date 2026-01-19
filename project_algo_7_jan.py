@@ -57,7 +57,7 @@ if "position_size" not in st.session_state:
     st.session_state.position_size = None
 
 if "lot_qty" not in st.session_state:
-    st.session_state.lot_qty = 0
+    st.session_state.lot_qty = 1
 #==============================================calculate_and_cache_signal================================================================
 
 

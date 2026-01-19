@@ -2477,7 +2477,7 @@ def compute_option_iv_details(option_dict, spot_price):
              strike=strike,
              time_to_expiry=time_to_expiry,
              ltp=ltp,
-             r=0.088
+             r=0.05
          )
      
          # Compute IV Rank

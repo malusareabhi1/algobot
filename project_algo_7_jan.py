@@ -1145,7 +1145,7 @@ def safe_option_greeks(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
     now = datetime.now()
     #st.write("strike value:", strike)
     #st.write("strike type:", type(strike))
-    K = float(df["strike"].values[0])
+    #K = float(df["strike"].values[0])
     seconds = max((expiry_dt - now).total_seconds(), 3600)
     T = seconds / (365 * 24 * 60 * 60)
 
@@ -10163,10 +10163,11 @@ elif MENU =="LIVE TRADE 3":
                         else:
                              st.write("DEBUG expiry value:", expiry)
                              st.write("DEBUG expiry type:", type(expiry))
-                             st.stop()
-                             raise ValueError(f"Invalid expiry type: {type(expiry)}")
+                             #st.stop()
+                             #raise ValueError(f"Invalid expiry type: {type(expiry)}")
                         #greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
                         #st.write("DEBUG Greeks Inputs: S, K, T, sigma ", S, K, T, sigma)
+                        st.write("strike type:", type(K))
                         greeks= safe_option_greeks(S, K, expiry_dt, r, sigma, option_type="CALL")
                         #if greeks:
                              #st.subheader("Greeks Values")

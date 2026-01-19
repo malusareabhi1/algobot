@@ -9980,14 +9980,14 @@ elif MENU =="LIVE TRADE 3":
             #option = get_live_option_details(kite, trending_symbol)
      
             #st.write("option",option)
-            st.write("nearest_itm option",nearest_itm)
+            #st.write("nearest_itm option",nearest_itm)
             spot=ltp
             #spot = option["last_price"]
             #st.write("Spot",spot) 
             #spot = 25900.00  # live NIFTY spot
      
             result = compute_option_iv_details(nearest_itm, spot)
-            st.write("Result IV new",result) 
+            #st.write("Result IV new",result) 
             new_iv_result= result["iv"]
             iv_result=new_iv_result 
             #st.write("new_iv_result",new_iv_result) 

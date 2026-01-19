@@ -7388,6 +7388,7 @@ elif MENU =="Live Trade":
             ltp = option_dict.get("ltp")
             strike = option_dict.get("strike")
             expiry = option_dict.get("expiry")
+            st.write("expiry=",expiry)
             is_call = option_dict.get("option_type") == "CALL"
           #------------------------------------------PAPER TRADE-------------------------------------------------
             if signal is not None:

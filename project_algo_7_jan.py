@@ -3848,6 +3848,7 @@ def find_nearest_itm_option(kite, spot_price, option_type):
     detailed = {
         "tradingsymbol": selected["tradingsymbol"],
         "strike": float(selected["strike"]),
+        "spot: float(spot_price),
         "instrument_token": int(selected["instrument_token"]),
         "option_type": option_type.upper(),
         "expiry": selected.get("expiry"),

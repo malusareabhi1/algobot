@@ -9857,9 +9857,9 @@ elif MENU =="LIVE TRADE 3":
             spot_price=option_dict.get("strike") 
             ltp = option_dict.get("ltp")
             strike = option_dict.get("strike")
-            expiry = option_dict.get("expiry")
+            #expiry = option_dict.get("expiry")
             is_call = option_dict.get("option_type") == "CALL"
-            st.write("ltp ",ltp)  
+            st.write("ltp ", st.session_state.expiry)  
           #------------------------------------------PAPER TRADE-------------------------------------------------
             if signal is not None:
 
@@ -9906,12 +9906,9 @@ elif MENU =="LIVE TRADE 3":
             #for trade in st.session_state.paper_trades:
               #normalize_trade(trade)
               #manage_exit_papertrade(kite, trade)
-
+            expiry =st.session_state.expiry
             st.write("Moniter")
-             
-
- 
-   
+            st.write("Expiry",expiry) 
           #---------------------------------------PAPER TRADE----------------------------------------------------   
               # Compute time to expiry (in years)
             days_to_exp = days_to_expiry(expiry)

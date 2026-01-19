@@ -9923,16 +9923,7 @@ elif MENU =="LIVE TRADE 3":
             days_to_exp = days_to_expiry(expiry)
             time_to_expiry = days_to_exp / 365 
             r=0.07
-            #st.write("spot_price, strike, time_to_expiry, r, ltp",spot_price, strike, time_to_expiry, r, ltp) 
-            iv = implied_vol_call(spot_price, strike, time_to_expiry, r, ltp) 
-            #st.write("IV  FOr (Option):CE")
-            #st.write("IV (decimal):", iv)
-            #st.write("IV (%):", iv * 100)    
-            result = "Pass" if (iv is not None and 0.10 <= iv <= 0.35) else "Fail"
- 
-            #result = "Pass" if 0.10 <= iv <= 0.35 else "Fail"
-            iv_result = result    
-            #add_param_row("IV", round(iv, 2), "0.10 - 0.35", result)
+            
              
 
 #-----------------------------------IV Compute---------------------------------------------
@@ -9940,10 +9931,6 @@ elif MENU =="LIVE TRADE 3":
 #----------------------------------IV----------------------------------------------
 
     
-      
-
-         ##st.write("Current IV:", iv_info["iv"], "%")
-         #st.write("IV Rank:", iv_info["iv_rank"], "%")
 #-----------------------Add PARA----------------------------------------------
   
 #--------------------------------------------------Getting New IV-----------& adding to para----------------------------
@@ -9951,9 +9938,9 @@ elif MENU =="LIVE TRADE 3":
      
             #st.write(result)  
             #
-            option = get_live_option_details(kite, trending_symbol)
+            #option = get_live_option_details(kite, trending_symbol)
      
-            st.write("option",option)
+            #st.write("option",option)
             st.write("nearest_itm option",nearest_itm)
             spot=ltp
             #spot = option["last_price"]
@@ -9961,7 +9948,7 @@ elif MENU =="LIVE TRADE 3":
             #spot = 25900.00  # live NIFTY spot
      
             result = compute_option_iv_details(nearest_itm, spot)
-            #st.write("IV new",result["iv"]) 
+            st.write("Result IV new",result) 
             new_iv_result= result["iv"]
             st.write("new_iv_result",new_iv_result) 
             result = "Pass" if 0.10 <= new_iv_result <= 0.35 else "Fail" 

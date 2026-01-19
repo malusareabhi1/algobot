@@ -1165,7 +1165,7 @@ def safe_option_greeks(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
 
     gamma = norm.pdf(d1) / (S * sigma * np.sqrt(T))
     vega = S * norm.pdf(d1) * np.sqrt(T) / 100
-    print("DEBUG GREEKS:", {
+    st.write("DEBUG GREEKS:", {
               "S": S,
               "K": K,
               "T": expiry_dt,

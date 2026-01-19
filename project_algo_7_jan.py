@@ -9963,17 +9963,11 @@ elif MENU =="LIVE TRADE 3":
             result = compute_option_iv_details(option, spot)
             #st.write("IV new",result["iv"]) 
             new_iv_result= result["iv"]
+            st.write("new_iv_result",new_iv_result) 
             result = "Pass" if 0.10 <= new_iv_result <= 0.35 else "Fail" 
             add_param_row("IV ", round(new_iv_result, 2), "0.10 - 0.35", result) 
 #-------------------------------------------------------------------------
-            if(iv_info["iv"]=='None'):
-             # Safely extract values
-                  iv_value = iv_info.get("iv") or 0
-                  iv_rank_value = iv_info.get("iv_rank") or 0
-             
-                  st.write("After None Current IV:", iv_value, "%")
-                  st.write("After None IV Rank:", iv_rank_value, "%")
-    
+           
         
 
 #--------------------------------VIX------------------------------------------------

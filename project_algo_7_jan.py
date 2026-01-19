@@ -9987,9 +9987,9 @@ elif MENU =="LIVE TRADE 3":
     # -------------------------
         #allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_now)
     # Safely extract values
-            iv_value = iv_info.get("iv") or 0
-            iv_rank_value = iv_info.get("iv_rank") or 0
-            allowed, position_size = combined_filter(iv_value, iv_rank_value, vix_now)
+            #iv_value = iv_info.get("iv") or 0
+            #iv_rank_value = iv_info.get("iv_rank") or 0
+            #allowed, position_size = combined_filter(iv_value, iv_rank_value, vix_now)
             #st.write("Allowed to Trade?", allowed)
             #st.write("Position Size:", position_size)
     #-----------------------------------------------------------------------------------------

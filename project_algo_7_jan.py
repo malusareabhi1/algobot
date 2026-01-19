@@ -6947,6 +6947,8 @@ elif MENU =="Live Trade":
     st.session_state.param_rows = []
     if "signal_log" not in st.session_state:
          st.session_state.signal_log = []
+    if "last_signal" not in st.session_state:
+         st.session_state.last_signal = None     
     #today = latest_time.date()
     st.title("🔴 LIVE TRADE ")
     #st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")

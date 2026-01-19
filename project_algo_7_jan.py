@@ -2742,6 +2742,35 @@ def get_option_instrument_details1(tradingsymbol):
     return row.iloc[0].to_dict()
 
 def enrich_with_ltp(kite, option_data):
+    symbol = f"NFO:{option_data['tradingsymbol']}"
+
+    try:
+        ltp_data = kite.ltp(symbol)
+
+        if not ltp_data or symbol not in ltp_data:
+            st.error("LTP data missing from Kite response")
+            return None
+
+        option_data["ltp"] = ltp_data[symbol]["last_price"]
+        return option_data
+
+    except PermissionException:
+        st.error(
+            "🚫 No permission for live market data.\n"
+            "Check Kite API subscription and derivatives access."
+        )
+        return None
+
+    except TokenException:
+        st.error("🔑 Kite session expired. Please re-login.")
+        return None
+
+    except Exception as e:
+        st.error(f"Unexpected error while fetching LTP: {e}")
+        return None
+
+
+def enrich_with_ltp10(kite, option_data):
          #st.write("Optiion Data",option_data) 
          symbol = f"NFO:{option_data['tradingsymbol']}"
          #st.write("Optiion Symbol",symbol)   

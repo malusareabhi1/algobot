@@ -9914,9 +9914,10 @@ elif MENU =="LIVE TRADE 3":
             #result = compute_option_iv_details(option, spot)
      
             #st.write(result)  
-            #option = get_live_option_details(kite, trending_symbol)
+            #
+            option = get_live_option_details(kite, trending_symbol)
      
-            st.write(option)
+            #st.write(option)
      
             spot=entry_price
             #spot = option["last_price"]

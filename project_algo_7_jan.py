@@ -10098,6 +10098,22 @@ elif MENU =="LIVE TRADE 3":
             add_param_row("PCR", round(pcr_value, 2), "0.80 - 1.30", result)
 
 #-------------------------------------lot ty------------------------------------------------
+
+             # Apply rule
+            if new_iv_result == "Fail" : #or iv_rank_result == "Fail":
+                   lot_qty = 2
+            if new_iv_result == "Pass"  and vix_result=="pass" and pcr_result=="pass":
+                   lot_qty = 6    
+            if vix_now < 10 :
+                   lot_qty = 1 
+            if 10< vix_now < 15 :
+                   lot_qty = 2
+            if 15< vix_now < 20 :
+                   lot_qty = 4
+            if vix_now > 20 :
+                   lot_qty = 1 
+                 
+            add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK") 
     
      #-----------------------------------------Display PARA-------------------------------------------
           
@@ -10220,20 +10236,7 @@ elif MENU =="LIVE TRADE 3":
     #------------------------------------------------------------------------------------------------
             #qty=qty*lot_qty
             #qty=0
-            # Apply rule
-            if new_iv_result == "Fail" : #or iv_rank_result == "Fail":
-                   lot_qty = 2
-            if new_iv_result == "Pass"  and vix_result=="pass" and pcr_result=="pass":
-                   lot_qty = 6    
-            if vix_now < 10 :
-                   lot_qty = 1 
-            if 10< vix_now < 15 :
-                   lot_qty = 2
-            if 15< vix_now < 20 :
-                   lot_qty = 4
-            if vix_now > 20 :
-                   lot_qty = 1     
-            add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK") 
+            
             #st.subheader("Session State Debug")
             #st.write(st.session_state)
             #st.subheader("Session State (Detailed)")

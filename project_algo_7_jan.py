@@ -9857,6 +9857,9 @@ elif MENU =="LIVE TRADE 3":
             #spot_price=26046.00 
             spot_price=option_dict.get("strike") 
             ltp = option_dict.get("ltp")
+            S=ltp
+            K=spot_price 
+            st.write("S, K=",S,K) 
             strike = option_dict.get("strike")
             #expiry = option_dict.get("expiry")
             is_call = option_dict.get("option_type") == "CALL"
@@ -9910,6 +9913,7 @@ elif MENU =="LIVE TRADE 3":
             option_symbol=trending_symbol
             option_type = last_signal["option_type"]
             spot = last_signal["buy_price"] 
+             
             expiry =st.session_state.expiry
             st.write("Moniter")
             st.write("Expiry",expiry) 
@@ -10137,8 +10141,8 @@ elif MENU =="LIVE TRADE 3":
                         iv=new_iv_result
                         st.subheader("Greeks Values")
                         #greeks = option_greeks(S=spot_price,K=strike,T=time_to_expiry,r=r,sigma=iv,option_type=option_type)
-                        S=spot_price
-                        K=strike
+                        #S=spot_price
+                        #K=strike
                         T=time_to_expiry
                         r=r
                         sigma=iv

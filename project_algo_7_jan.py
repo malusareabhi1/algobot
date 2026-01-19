@@ -10013,7 +10013,7 @@ elif MENU =="LIVE TRADE 3":
                   #cash_balance = 73500
                   lots = get_lot_size(funds['cash'])
                   #st.write("Lot Size:", lots)
-                  qty=65*lots
+                  lot_qty=65*lots
                   #st.divider()
 
    
@@ -10074,7 +10074,7 @@ elif MENU =="LIVE TRADE 3":
 #-------------------------------------lot ty------------------------------------------------
      # Default lot size
             qty = 1*65
-     
+          
      # Apply rule
             if new_iv_result == "Fail":   #or iv_rank_result == "Fail":
                    lot_qty = 2

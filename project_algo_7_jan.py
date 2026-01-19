@@ -9543,6 +9543,13 @@ elif MENU =="LIVE TRADE 3":
      ### ✅ In simple words:
      > This is a **professional gap-and-base breakout strategy** with **dynamic trailing SL and time-based exits** — built for intraday NIFTY options trading.
      """)
+    kite = st.session_state.get("kite")
+
+    if kite is None:
+         st.error("Kite object not initialized")
+    else:
+         if not is_kite_connected(kite):
+             st.warning("Kite not connected")     
     if not is_kite_connected(kite):
         st.warning("Please login first to access LIVE trade.")
         st.stop()     # Stop page execution safely

@@ -10147,8 +10147,13 @@ elif MENU =="LIVE TRADE 3":
                         
                         #st.write("Expiry value:", expiry)
                         ##st.write("Expiry type:", type(expiry))
-                        expiry_dt = datetime.strptime(expiry, "%Y-%m-%d").replace(hour=15, minute=30)
-                
+                        #expiry_dt = datetime.strptime(expiry, "%Y-%m-%d").replace(hour=15, minute=30)
+                        if isinstance(expiry, str):
+                             expiry_dt = datetime.strptime(expiry, "%Y-%m-%d").replace(hour=15, minute=30)
+                        elif isinstance(expiry, (datetime, pd.Timestamp)):
+                             expiry_dt = expiry.to_pydatetime().replace(hour=15, minute=30)
+                        else:
+                             raise ValueError(f"Invalid expiry type: {type(expiry)}")
                         #greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
                         greeks= safe_option_greeks(S, K, expiry_dt, r, sigma, option_type="CALL")
                         #if greeks:

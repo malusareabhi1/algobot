@@ -9907,6 +9907,9 @@ elif MENU =="LIVE TRADE 3":
             #for trade in st.session_state.paper_trades:
               #normalize_trade(trade)
               #manage_exit_papertrade(kite, trade)
+            option_symbol=trending_symbol
+            option_type = last_signal["option_type"]
+            spot = last_signal["buy_price"] 
             expiry =st.session_state.expiry
             st.write("Moniter")
             st.write("Expiry",expiry) 

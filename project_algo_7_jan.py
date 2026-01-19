@@ -9937,41 +9937,15 @@ elif MENU =="LIVE TRADE 3":
 
 #-----------------------------------IV Compute---------------------------------------------
 
-        #spot_price = get_ltp(kite, "NSE:NIFTY 50")["ltp"]
-        
-         #iv_percent = compute_option_iv(nearest_itm, spot)
-        
-         #st.write("IV:", iv_percent)    
-         
-         #get_live_iv_nifty_option(kite, option_token: int, index_symbol="NSE:NIFTY 50"):        
-            #st.write(nearest_itm)  
-
 #----------------------------------IV----------------------------------------------
 
     
-        
-            iv_info = get_iv_rank0(kite, nearest_itm, lookback_days=250)
-       
-            #st.write("New Way Iv ",iv)  
-            # Fix missing values
-            if iv_info["iv"] is None:
-                 iv_info["iv"] = 0
-     
-            if iv_info["iv_rank"] is None:
-                iv_info["iv_rank"] = 0
+      
 
          ##st.write("Current IV:", iv_info["iv"], "%")
          #st.write("IV Rank:", iv_info["iv_rank"], "%")
 #-----------------------Add PARA----------------------------------------------
-    # IV
-            result = "Pass" if 0.10 <= iv_info["iv"] <= 0.35 else "Fail"
-            iv_result = result    
-            #add_param_row("IV", round(iv_info["iv"], 2), "0.10 - 0.35", result)
-
-    # IV Rank
-            result = "Pass" if 0.20 <= iv_info["iv_rank"] <= 0.70 else "Fail"
-            iv_rank_result  = result    
-            #add_param_row("IV Rank", round(iv_info["iv_rank"], 2), "0.20 - 0.70", result)
+  
 #--------------------------------------------------Getting New IV-----------& adding to para----------------------------
             #result = compute_option_iv_details(option, spot)
      
@@ -9979,8 +9953,8 @@ elif MENU =="LIVE TRADE 3":
             #
             option = get_live_option_details(kite, trending_symbol)
      
-            #st.write(option)
-     
+            st.write("option",option)
+            st.write("nearest_itm option",nearest_itm)
             spot=ltp
             #spot = option["last_price"]
             #st.write("Spot",spot) 

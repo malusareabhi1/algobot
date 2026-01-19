@@ -10166,7 +10166,7 @@ elif MENU =="LIVE TRADE 3":
                              st.stop()
                              raise ValueError(f"Invalid expiry type: {type(expiry)}")
                         #greeks= safe_option_greeks(S, K, T, r, sigma, option_type="CALL")
-                        st.write("DEBUG Greeks Inputs: S, K, T, sigma ", S, K, T, sigma)
+                        #st.write("DEBUG Greeks Inputs: S, K, T, sigma ", S, K, T, sigma)
                         greeks= safe_option_greeks(S, K, expiry_dt, r, sigma, option_type="CALL")
                         #if greeks:
                              #st.subheader("Greeks Values")

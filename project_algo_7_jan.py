@@ -9866,7 +9866,7 @@ elif MENU =="LIVE TRADE 3":
                 nearest_itm1 = pd.DataFrame([nearest_itm])
                 #S=nearest_itm1["ltp"]
                 K=nearest_itm1["strike"] 
-                st.write("S, K=",S,K)  
+                #st.write("S, K=",S,K)  
                 # Display as table
                 st.table(nearest_itm1)
                 #trending_symbol=nearest_itm1["tradingsymbol"]
@@ -9989,7 +9989,8 @@ elif MENU =="LIVE TRADE 3":
             result = compute_option_iv_details(nearest_itm, spot)
             st.write("Result IV new",result) 
             new_iv_result= result["iv"]
-            st.write("new_iv_result",new_iv_result) 
+            iv_result=new_iv_result 
+            #st.write("new_iv_result",new_iv_result) 
             result = "Pass" if 0.10 <= new_iv_result <= 0.35 else "Fail" 
             add_param_row("IV ", round(new_iv_result, 2), "0.10 - 0.35", result) 
 #-------------------------------------------------------------------------
@@ -10009,17 +10010,7 @@ elif MENU =="LIVE TRADE 3":
             add_param_row("VIX", round(vix_now, 2), " > 10", result)
 
  #------------------------------------------------------------------------------   
-    # Apply IV + VIX Filter
-    # -------------------------
-        #allowed, position_size = combined_filter(iv_info["iv"], iv_info["iv_rank"], vix_now)
-    # Safely extract values
-            #iv_value = iv_info.get("iv") or 0
-            #iv_rank_value = iv_info.get("iv_rank") or 0
-            #allowed, position_size = combined_filter(iv_value, iv_rank_value, vix_now)
-            #st.write("Allowed to Trade?", allowed)
-            #st.write("Position Size:", position_size)
-    #-----------------------------------------------------------------------------------------
-    
+ 
     #---------------------------------tIME-----------------------------------------------
             import pytz
             
@@ -10048,7 +10039,7 @@ elif MENU =="LIVE TRADE 3":
                   #cash_balance = 73500
                   lots = get_lot_size(funds['cash'])
                   #st.write("Lot Size:", lots)
-                  lot_qty=65*lots
+                  #lot_qty=65*lots
                   #st.divider()
 
    
@@ -10108,11 +10099,11 @@ elif MENU =="LIVE TRADE 3":
 
 #-------------------------------------lot ty------------------------------------------------
      # Default lot size
-            qty = 1*65
+            #qty = 1*65
           
      # Apply rule
             if new_iv_result == "Fail":   #or iv_rank_result == "Fail":
-                   lot_qty = 2
+                   lot_qty = 0
             if new_iv_result == "Pass"  and vix_result=="pass" and pcr_result=="pass":
                    lot_qty = 6    
             if vix_now < 10 :

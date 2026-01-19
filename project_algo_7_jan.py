@@ -1165,13 +1165,7 @@ def safe_option_greeks(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
 
     gamma = norm.pdf(d1) / (S * sigma * np.sqrt(T))
     vega = S * norm.pdf(d1) * np.sqrt(T) / 100
-    st.write("DEBUG GREEKS:", {
-              "S": S,
-              "K": K,
-              "T": expiry_dt,
-              "sigma": iv_percent,
-              "delta": delta
-          })
+    #st.write("DEBUG GREEKS:", {"S": S, "K": K,"T": expiry_dt,"sigma": iv_percent,"delta": delta})
     return {
         "Delta": round(delta, 3),
         "Gamma": round(gamma, 6),
@@ -10170,8 +10164,8 @@ elif MENU =="LIVE TRADE 3":
                         #st.write("strike type:", type(K))
                         #K = float(strike.iloc[0])
                         K = float(K)      
-                        st.write("K value:", K)
-                        st.write("K type:", type(K))
+                        #st.write("K value:", K)
+                        #st.write("K type:", type(K))
                         greeks= safe_option_greeks(S, K, expiry_dt, r, sigma, option_type="CALL")
                         #if greeks:
                              #st.subheader("Greeks Values")

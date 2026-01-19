@@ -10228,7 +10228,7 @@ elif MENU =="LIVE TRADE 3":
             else:
                    st.write("No parameters added yet.")
     #------------------------------------------------------------------------------------------------
-            qty=qty*lot_qty
+            #qty=qty*lot_qty
             #qty=0
             # Apply rule
             if new_iv_result == "Fail" : #or iv_rank_result == "Fail":

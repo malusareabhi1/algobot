@@ -9942,8 +9942,7 @@ elif MENU =="LIVE TRADE 3":
                   st.session_state.paper_trades.append(trade)
           
                   # 🔐 LOCK THE SIGNAL
-                  st.session_state.last_executed_signal_time = signal_time
-                  st.session_state.last_option_entry_price = entry_price  
+                  
                   #st.success(f"Paper trade entered @ {entry_price}")
 
             #monitor_paper_trades(kite)
@@ -10320,7 +10319,8 @@ elif MENU =="LIVE TRADE 3":
                                             st.session_state.tradingsymbol = trending_symbol 
                                             st.success(f"Order Placed Successfully! Order ID: {order_id}")
                                             st.session_state["last_order_id"] = order_id
-                                
+                                            st.session_state.last_executed_signal_time = signal_time
+                                            st.session_state.last_option_entry_price = entry_price     
                                         except Exception as e:
                                             st.error(f"Order Failed: {e}")
                                         

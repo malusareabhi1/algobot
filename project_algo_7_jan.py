@@ -2461,7 +2461,7 @@ def compute_option_iv_details(option_dict, spot_price):
              "ltp":138.65
          }
          """
-         spot_price=25531.09
+         spot_price=option_dict.get("spot")
          ltp = option_dict.get("ltp")
          strike = option_dict.get("strike")
          expiry = option_dict.get("expiry")

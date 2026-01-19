@@ -9826,7 +9826,9 @@ elif MENU =="LIVE TRADE 3":
                 st.success("Nearest ITM Option Found")
                 #                st.write(nearest_itm)
                 nearest_itm1 = pd.DataFrame([nearest_itm])
-                
+                S=nearest_itm1["ltp"]
+                K=nearest_itm1["strike"] 
+                st.write("S, K=",S,K)  
                 # Display as table
                 st.table(nearest_itm1)
                 #trending_symbol=nearest_itm1["tradingsymbol"]
@@ -9857,9 +9859,9 @@ elif MENU =="LIVE TRADE 3":
             #spot_price=26046.00 
             spot_price=option_dict.get("strike") 
             ltp = option_dict.get("ltp")
-            S=ltp
-            K=spot_price 
-            st.write("S, K=",S,K) 
+            #S=ltp
+            #K=spot_price 
+            
             strike = option_dict.get("strike")
             #expiry = option_dict.get("expiry")
             is_call = option_dict.get("option_type") == "CALL"

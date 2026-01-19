@@ -1143,9 +1143,9 @@ def monitor_and_exit_paper_trades(kite):
 def safe_option_greeks(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
     st.write("S, K, expiry_dt, r, iv_percent, option_type", S, K, expiry_dt, r, iv_percent, option_type) 
     now = datetime.now()
-    st.write("strike value:", strike)
-    st.write("strike type:", type(strike))
- 
+    #st.write("strike value:", strike)
+    #st.write("strike type:", type(strike))
+    
     seconds = max((expiry_dt - now).total_seconds(), 3600)
     T = seconds / (365 * 24 * 60 * 60)
 
@@ -1165,7 +1165,13 @@ def safe_option_greeks(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
 
     gamma = norm.pdf(d1) / (S * sigma * np.sqrt(T))
     vega = S * norm.pdf(d1) * np.sqrt(T) / 100
-
+    print("DEBUG GREEKS:", {
+              "S": S,
+              "K": K,
+              "T": expiry_dt,
+              "sigma": iv_percent,
+              "delta": delta
+          })
     return {
         "Delta": round(delta, 3),
         "Gamma": round(gamma, 6),

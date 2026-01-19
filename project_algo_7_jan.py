@@ -5396,7 +5396,7 @@ with st.sidebar:
 
     MENU = st.radio(
         "Navigate",
-        ["Home", "Strategies","My Account", "Login Zerodha  API","Strategy Signals","Strategy Multi Signals", "Dashboard","Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","LIVE TRADE 3","Test1","Live IV/RANK","Telegram","Download Instrument","Upload Instrument","NIFTY 3:20 PM Intraday Strategy","Logout"],
+        ["Home", "My Account", "Login Zerodha  API","Strategy Signals","Strategy Multi Signals", "Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","LIVE TRADE 3","Telegram","Download Instrument","NIFTY 3:20 PM Intraday Strategy","Logout"],
         index=0,
     )
 

@@ -9960,7 +9960,7 @@ elif MENU =="LIVE TRADE 3":
             #st.write("Spot",spot) 
             #spot = 25900.00  # live NIFTY spot
      
-            result = compute_option_iv_details(option, spot)
+            result = compute_option_iv_details(nearest_itm, spot)
             #st.write("IV new",result["iv"]) 
             new_iv_result= result["iv"]
             st.write("new_iv_result",new_iv_result) 

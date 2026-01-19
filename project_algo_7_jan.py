@@ -7211,7 +7211,15 @@ elif MENU =="Live Trade":
    
     with col4:
             st.subheader("Option Log")
-            entry_time = last_signal['entry_time']
+            last_signal = st.session_state.last_signal
+
+            if last_signal is None:
+                  st.info("Waiting for first signal...")
+                  st.stop()
+          
+            entry_time = last_signal["entry_time"]
+            signal_time = entry_time.strftime("%H:%M:%S")  
+            #entry_time = last_signal['entry_time']
             #st.write("entry_time",entry_time) 
             #st.write("Signal Time only:", entry_time.strftime("%H:%M:%S"))  # HH:MM:SS
             signal_time=entry_time.strftime("%H:%M:%S")

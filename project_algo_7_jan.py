@@ -9919,7 +9919,7 @@ elif MENU =="LIVE TRADE 3":
      
             #st.write(option)
      
-            spot=entry_price
+            spot=ltp
             #spot = option["last_price"]
             #st.write("Spot",spot) 
             #spot = 25900.00  # live NIFTY spot

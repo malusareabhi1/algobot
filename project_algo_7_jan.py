@@ -9837,7 +9837,7 @@ elif MENU =="LIVE TRADE 3":
                 st.session_state.signal_time = signal_time
                 st.session_state.signal_price = nearest_itm['ltp']   # LTP at signal candle
                 st.session_state.symbol = trending_symbol 
-
+                st.session_state.expiry = nearest_itm['expiry']
              #==================================================================================================
         
             except Exception as e:
@@ -9846,6 +9846,7 @@ elif MENU =="LIVE TRADE 3":
     
 #######################---------------------IV-NEW !-------------------------------------------------
             st.write("trending_symbol ",trending_symbol) 
+             
             option_dict = get_live_option_details(kite, trending_symbol)
             if option_dict is None:
                    st.info("Running in safe mode. Live data access is unavailable.")
@@ -9858,6 +9859,7 @@ elif MENU =="LIVE TRADE 3":
             strike = option_dict.get("strike")
             expiry = option_dict.get("expiry")
             is_call = option_dict.get("option_type") == "CALL"
+            st.write("ltp ",ltp)  
           #------------------------------------------PAPER TRADE-------------------------------------------------
             if signal is not None:
 

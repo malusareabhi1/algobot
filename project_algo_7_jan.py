@@ -2560,7 +2560,7 @@ def bs_call_price(S, K, T, r, sigma):
          Nd2 = 0.5 * (1.0 + math.erf(d2 / math.sqrt(2.0)))
          return S * Nd1 - K * math.exp(-r * T) * Nd2
 
-     def implied_vol_call(S, K, T, r, C_mkt, tol=1e-6, max_iter=100):
+def implied_vol_call(S, K, T, r, C_mkt, tol=1e-6, max_iter=100):
      
          # ---------- HARD GUARDS ----------
          # ---------- HARD GUARDS ----------

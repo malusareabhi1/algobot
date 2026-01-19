@@ -5382,7 +5382,7 @@ def add_trade_log(symbol: str, side: str, qty: int, price: float, pnl: float):
 # Sidebar Navigation
 # ------------------------------------------------------------
 with st.sidebar:
-    st.image("logo.png", width=120)
+    st.image("logo_new.png", width=120)
     st.title("TALK ALGO LABS")
     # Theme toggle (visual only)
     st.session_state.theme_dark = st.toggle("Dark Theme", value=st.session_state.theme_dark)

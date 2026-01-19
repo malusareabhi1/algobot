@@ -9749,8 +9749,7 @@ elif MENU =="LIVE TRADE 3":
             signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
             last_signal["signal_time"] = signal_time
             signal_time1=last_signal["signal_time"] 
-
-             
+            S=last_signal["buy_price"]              
  
                 
                 # Display as table
@@ -9826,7 +9825,7 @@ elif MENU =="LIVE TRADE 3":
                 st.success("Nearest ITM Option Found")
                 #                st.write(nearest_itm)
                 nearest_itm1 = pd.DataFrame([nearest_itm])
-                S=nearest_itm1["ltp"]
+                #S=nearest_itm1["ltp"]
                 K=nearest_itm1["strike"] 
                 st.write("S, K=",S,K)  
                 # Display as table

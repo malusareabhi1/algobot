@@ -1138,6 +1138,7 @@ def monitor_and_exit_paper_trades(kite):
 #=================================================SAFE GREEK =================================================
 
 def safe_option_greeks(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
+    st.write("S, K, expiry_dt, r, iv_percent, option_type", S, K, expiry_dt, r, iv_percent, option_type) 
     now = datetime.now()
     seconds = max((expiry_dt - now).total_seconds(), 3600)
     T = seconds / (365 * 24 * 60 * 60)
@@ -9859,7 +9860,7 @@ elif MENU =="LIVE TRADE 3":
             strike = option_dict.get("strike")
             #expiry = option_dict.get("expiry")
             is_call = option_dict.get("option_type") == "CALL"
-            st.write("ltp ", st.session_state.expiry)  
+            #st.write("ltp ", st.session_state.expiry)  
           #------------------------------------------PAPER TRADE-------------------------------------------------
             if signal is not None:
 

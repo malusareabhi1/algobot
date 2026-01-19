@@ -10100,7 +10100,7 @@ elif MENU =="LIVE TRADE 3":
 #-------------------------------------lot ty------------------------------------------------
      # Default lot size
             #qty = 1*65
-          
+            lot_qty=0
      # Apply rule
             if new_iv_result == "Fail":   #or iv_rank_result == "Fail":
                    lot_qty = 0

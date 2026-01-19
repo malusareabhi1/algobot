@@ -2355,8 +2355,61 @@ def compute_iv_rank(current_iv, iv_min=0.10, iv_max=0.35):
      
          rank = (current_iv - iv_min) / (iv_max - iv_min)
          return max(0, min(rank, 1))
-         
+
+from math import log, sqrt, exp
+from scipy.stats import norm
+
 def black_scholes_call_iv(spot, strike, time_to_expiry, ltp, r=0.0, tol=1e-5, max_iter=100):
+    """
+    Robust IV solver for CALL option using Newton-Raphson.
+    Returns None if IV cannot be computed safely.
+    """
+
+    try:
+        spot = float(spot)
+        strike = float(strike)
+        ltp = float(ltp)
+        time_to_expiry = float(time_to_expiry)
+    except (TypeError, ValueError):
+        return None
+
+    if spot <= 0 or strike <= 0 or ltp <= 0 or time_to_expiry <= 0:
+        return None
+
+    # Intrinsic value check (CRITICAL)
+    intrinsic = max(spot - strike, 0.0)
+    if ltp < intrinsic:
+        return None
+
+    sigma = 0.20  # initial guess
+
+    for _ in range(max_iter):
+        try:
+            d1 = (log(spot/strike) + (r + 0.5*sigma*sigma)*time_to_expiry) / (sigma*sqrt(time_to_expiry))
+            d2 = d1 - sigma*sqrt(time_to_expiry)
+
+            theoretical = spot * norm.cdf(d1) - strike * exp(-r*time_to_expiry) * norm.cdf(d2)
+            vega = spot * norm.pdf(d1) * sqrt(time_to_expiry)
+        except Exception:
+            return None
+
+        if vega < 1e-8:
+            return None
+
+        diff = theoretical - ltp
+
+        if abs(diff) < tol:
+            return round(sigma, 4)
+
+        sigma = sigma - diff / vega
+
+        # Sigma bounds
+        if sigma <= 0 or sigma > 5:
+            return None
+
+    return None
+
+def black_scholes_call_iv_jan_26(spot, strike, time_to_expiry, ltp, r=0.0, tol=1e-5, max_iter=100):
          """
          Safe IV solver for CALL option using Newton-Raphson.
          Returns None if no valid IV found.

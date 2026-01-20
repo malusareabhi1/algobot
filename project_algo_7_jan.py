@@ -231,6 +231,27 @@ def trading_multi2_signal_all_conditions_5min(
     st.write("📌 OR Low / High:", L1, H1)
     st.write("📌 C1 (9:15 Close):", C1)
     st.write("📌 Latest Close:", day_df_5m.iloc[-1]["Close_^NSEI"])
+    debug_table = pd.DataFrame({
+    "Parameter": [
+        "Base Low",
+        "Base High",
+        "OR Low",
+        "OR High",
+        "C1 (9:15 Close)",
+        "Latest Close"
+    ],
+    "Value": [
+        base_low,
+        base_high,
+        L1,
+        H1,
+        C1,
+        day_df_5m.iloc[-1]["Close_^NSEI"]
+    ]
+})
+
+    st.table(debug_table)
+ 
     # ============================================== 
     # =================================================
     # SAFETY

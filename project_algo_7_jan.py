@@ -9775,7 +9775,28 @@ elif MENU =="LIVE TRADE 3":
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
         #signal = trading_signal_all_conditions(df_plot)
          #trading_multi2_signal_all_conditions_5min
-         
+        #================================================5min DTAT=====================================================
+        # 1️⃣ Download 5m data
+        #df = yf.download("^NSEI", start=..., end=..., interval="5m")
+        df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="5m")
+      
+        # 2️⃣ Rename columns
+        df.rename(columns={
+              "Open": "Open_^NSEI",
+              "High": "High_^NSEI",
+              "Low": "Low_^NSEI",
+              "Close": "Close_^NSEI"
+          }, inplace=True)
+          
+          # 3️⃣ Timezone fix
+        df.reset_index(inplace=True)
+        df["Datetime"] = df["Datetime"].dt.tz_localize("UTC").dt.tz_convert("Asia/Kolkata")
+          
+          # 4️⃣ Filter last 2 days
+        df_plot = df[df["Datetime"].dt.date.isin([last_day, today])]
+          
+          # 5️⃣ Call strategy  
+        #==================================================================================================== 
         #signal = trading_signal_all_conditions_final(df_plot) 
         signal = trading_multi2_signal_all_conditions_5min(df_plot)  
         #st.write("DEBUG signal:", signal)

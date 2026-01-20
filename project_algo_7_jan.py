@@ -9867,9 +9867,9 @@ elif MENU =="LIVE TRADE 3":
          
         #signal =trading_signal_all_conditions_new(df_plot1)  
          
-        #signal =trading_multi2_signal_all_conditions(df_plot1)  
+        signal =trading_multi2_signal_all_conditions(df_plot1)  
 
-        signal =trading_multi1_signal_all_conditions (df_plot1)  
+        #signal =trading_multi1_signal_all_conditions (df_plot1)  
          
         #st.write("DEBUG signal:", signal)
         #st.write("Type:", type(signal))

@@ -9790,8 +9790,12 @@ elif MENU =="LIVE TRADE 3":
           
           # 3️⃣ Timezone fix
         df.reset_index(inplace=True)
-        df["Datetime"] = df["Datetime"].dt.tz_localize("UTC").dt.tz_convert("Asia/Kolkata")
-          
+        #df["Datetime"] = df["Datetime"].dt.tz_localize("UTC").dt.tz_convert("Asia/Kolkata")
+        if df["Datetime"].dt.tz is None:
+              df["Datetime"] = df["Datetime"].dt.tz_localize("UTC").dt.tz_convert("Asia/Kolkata")
+        else:
+              df["Datetime"] = df["Datetime"].dt.tz_convert("Asia/Kolkata")
+  
           # 4️⃣ Filter last 2 days
         df_plot = df[df["Datetime"].dt.date.isin([last_day, today])]
           

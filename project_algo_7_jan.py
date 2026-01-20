@@ -9779,14 +9779,18 @@ elif MENU =="LIVE TRADE 3":
         # 1️⃣ Download 5m data
         #df = yf.download("^NSEI", start=..., end=..., interval="5m")
         df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="5m")
-      
-        # 2️⃣ Rename columns
-        df.rename(columns={
-              "Open": "Open_^NSEI",
-              "High": "High_^NSEI",
-              "Low": "Low_^NSEI",
-              "Close": "Close_^NSEI"
-          }, inplace=True)
+        # ---- ENSURE NSEI COLUMN NAMES ----
+        required_cols = ["Open_^NSEI", "High_^NSEI", "Low_^NSEI", "Close_^NSEI"]
+          
+        if not all(col in df.columns for col in required_cols):
+              df.rename(columns={
+                  "Open": "Open_^NSEI",
+                  "High": "High_^NSEI",
+                  "Low": "Low_^NSEI",
+                  "Close": "Close_^NSEI",
+              }, inplace=True)
+
+        
           
           # 3️⃣ Timezone fix
         df.reset_index(inplace=True)

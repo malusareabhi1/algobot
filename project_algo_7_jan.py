@@ -5438,7 +5438,7 @@ with st.sidebar:
 
     MENU = st.radio(
         "Navigate",
-        ["Home", "My Account", "Login Zerodha  API","Strategy Signals","Strategy Multi Signals", "Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","LIVE TRADE 3","Telegram","Download Instrument","NIFTY 3:20 PM Intraday Strategy","Logout"],
+        ["Home", "My Account", "Login Zerodha  API","Strategy Signals","Strategy Multi Signals", "Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","","Telegram","Download Instrument","NIFTY 3:20 PM Intraday Strategy","Logout"],
         index=0,
     )
 
@@ -9675,7 +9675,7 @@ elif MENU =="LIVE TRADE 3":
     else:
         st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
 
-    st.title("Nifty 15-min Chart")
+    #st.title("Nifty 15-min Chart")
     
     # Select date input (default today)
     selected_date = st.date_input("Select date", value=datetime.today())

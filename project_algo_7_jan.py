@@ -368,6 +368,31 @@ def trading_multi2_signal_all_conditions_5min(
               signals.append(sig)
               fired_conditions.add(4)
               trade_count += 1
+
+        # ---- CONDITION 5: GAP-UP TREND CONTINUATION → CALL ----
+        if (
+              5 not in fired_conditions
+              and C1 > base_high                      # Gap-up above base
+              and C1 > H1                             # 9:15 close above OR high
+              and prev["Close_^NSEI"] > H1            # Acceptance above OR
+              and candle["High_^NSEI"] > prev["High_^NSEI"]  # Higher high (momentum)
+          ):
+             sig = {
+                  "condition": 5,
+                  "option_type": "CALL",
+                  "buy_price": candle["Close_^NSEI"],  # market continuation entry
+                  "entry_time": candle["Datetime"],
+                  "spot_price": candle["Close_^NSEI"],
+                  "stoploss": low,                     # recent swing low
+                  "quantity": quantity,
+                  "expiry": expiry,
+                  "message": "Cond 5: Gap-up trend continuation → BUY CALL",
+              }
+              sig = monitor_trade(sig)
+              signals.append(sig)
+              fired_conditions.add(5)
+              trade_count += 1
+    
      
 
      

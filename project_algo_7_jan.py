@@ -9779,6 +9779,7 @@ elif MENU =="LIVE TRADE 3":
         # 1️⃣ Download 5m data
         #df = yf.download("^NSEI", start=..., end=..., interval="5m")
         df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="5m")
+         
         # ---- ENSURE NSEI COLUMN NAMES ----
         required_cols = ["Open_^NSEI", "High_^NSEI", "Low_^NSEI", "Close_^NSEI"]
           
@@ -9802,7 +9803,8 @@ elif MENU =="LIVE TRADE 3":
   
           # 4️⃣ Filter last 2 days
         df_plot = df[df["Datetime"].dt.date.isin([last_day, today])]
-          
+        st.write("COLUMNS:", df_plot.columns)
+  
           # 5️⃣ Call strategy  
         #==================================================================================================== 
         #signal = trading_signal_all_conditions_final(df_plot) 

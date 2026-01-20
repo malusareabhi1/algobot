@@ -58,6 +58,41 @@ if "position_size" not in st.session_state:
 
 if "lot_qty" not in st.session_state:
     st.session_state.lot_qty = 1
+
+
+#===========================================================================================================================
+
+def normalize_nsei_columns(df):
+    rename_map = {}
+
+    for col in df.columns:
+        if col == "Datetime":
+            continue
+
+        # Convert everything to string
+        c = str(col)
+
+        # Remove duplicate NSEI tags
+        c = c.replace(",^NSEI", "")
+        c = c.replace("_^NSEI", "")
+        c = c.replace("^NSEI", "")
+
+        # Final standardized name
+        if "Open" in c:
+            rename_map[col] = "Open_^NSEI"
+        elif "High" in c:
+            rename_map[col] = "High_^NSEI"
+        elif "Low" in c:
+            rename_map[col] = "Low_^NSEI"
+        elif "Close" in c:
+            rename_map[col] = "Close_^NSEI"
+        elif "Volume" in c:
+            rename_map[col] = "Volume"
+
+    df.rename(columns=rename_map, inplace=True)
+    return df
+
+
 #==============================================calculate_and_cache_signal================================================================
 
 
@@ -9804,7 +9839,10 @@ elif MENU =="LIVE TRADE 3":
           # 4️⃣ Filter last 2 days
         df_plot = df[df["Datetime"].dt.date.isin([last_day, today])]
         st.write("COLUMNS:", df_plot.columns)
-  
+        df_plot = normalize_nsei_columns(df_plot)
+
+        st.write("CLEAN COLUMNS:", df_plot.columns.tolist())
+
           # 5️⃣ Call strategy  
         #==================================================================================================== 
         #signal = trading_signal_all_conditions_final(df_plot) 

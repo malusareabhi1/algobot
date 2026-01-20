@@ -9835,14 +9835,20 @@ elif MENU =="LIVE TRADE 3":
               df["Datetime"] = df["Datetime"].dt.tz_localize("UTC").dt.tz_convert("Asia/Kolkata")
         else:
               df["Datetime"] = df["Datetime"].dt.tz_convert("Asia/Kolkata")
-  
+        # ===== FORCE FLATTEN MULTIINDEX COLUMNS =====
+        if isinstance(df.columns, pd.MultiIndex):
+              df.columns = [
+                  col[0] if col[0] != "Volume" else "Volume"
+                  for col in df.columns
+              ]
+
           # 4️⃣ Filter last 2 days
         df_plot = df[df["Datetime"].dt.date.isin([last_day, today])]
         st.write("COLUMNS:", df_plot.columns)
         df_plot = normalize_nsei_columns(df_plot)
 
         st.write("CLEAN COLUMNS:", df_plot.columns.tolist())
-
+        
           # 5️⃣ Call strategy  
         #==================================================================================================== 
         #signal = trading_signal_all_conditions_final(df_plot) 

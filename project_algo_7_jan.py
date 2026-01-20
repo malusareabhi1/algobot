@@ -377,7 +377,7 @@ def trading_multi2_signal_all_conditions_5min(
               and prev["Close_^NSEI"] > H1            # Acceptance above OR
               and candle["High_^NSEI"] > prev["High_^NSEI"]  # Higher high (momentum)
           ):
-             sig = {
+              sig = {
                   "condition": 5,
                   "option_type": "CALL",
                   "buy_price": candle["Close_^NSEI"],  # market continuation entry

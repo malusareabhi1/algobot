@@ -9851,10 +9851,10 @@ elif MENU =="LIVE TRADE 3":
 
           # 4️⃣ Filter last 2 days
         df_plot = df[df["Datetime"].dt.date.isin([last_day, today])]
-        st.write("COLUMNS:", df_plot.columns)
+        #st.write("COLUMNS:", df_plot.columns)
         df_plot = normalize_nsei_columns(df_plot)
 
-        st.write("CLEAN COLUMNS:", df_plot.columns.tolist())
+        #st.write("CLEAN COLUMNS:", df_plot.columns.tolist())
         
           # 5️⃣ Call strategy  
         #==================================================================================================== 

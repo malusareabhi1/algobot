@@ -212,13 +212,7 @@ def trading_multi2_signal_all_conditions_5min(
     L1 = or_candle.iloc[0]["Low_^NSEI"]
     C1 = or_candle.iloc[0]["Close_^NSEI"]
 
-     # ================= DEBUG HERE =================
-    st.write("📌 Base Low / High:", base_low, base_high)
-    st.write("📌 OR Low / High:", L1, H1)
-    st.write("📌 C1 (9:15 Close):", C1)
-    st.write("📌 Latest Close:",
-             day_df.iloc[-1]["Close_^NSEI"])
-    # ============================================== 
+     
     entry_start_time = or_candle.iloc[0]["Datetime"] + timedelta(minutes=15)
 
     trade_end_time = entry_start_time.replace(hour=14, minute=30)
@@ -232,7 +226,12 @@ def trading_multi2_signal_all_conditions_5min(
         & (df_5m["Datetime"] >= entry_start_time)
         & (df_5m["Datetime"] <= trade_end_time)
     ].sort_values("Datetime")
-
+    # ================= DEBUG HERE =================
+    st.write("📌 Base Low / High:", base_low, base_high)
+    st.write("📌 OR Low / High:", L1, H1)
+    st.write("📌 C1 (9:15 Close):", C1)
+    st.write("📌 Latest Close:", day_df_5m.iloc[-1]["Close_^NSEI"])
+    # ============================================== 
     # =================================================
     # SAFETY
     # =================================================

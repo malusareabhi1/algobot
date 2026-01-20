@@ -343,6 +343,35 @@ def trading_multi2_signal_all_conditions_5min(
             fired_conditions.add(3)
             trade_count += 1
 
+          # ==============================
+          # CONDITION-4 : GAP DOWN → DIRECT OR BREAKDOWN → PUT
+          # ==============================
+          
+        if (
+              4 not in fired_conditions
+              and C1 < base_low                     # GAP DOWN
+              and candle["Close_^NSEI"] < L1        # OR Low breakdown & acceptance
+          ):
+              sig = {
+                  "condition": 4,
+                  "option_type": "PUT",
+                  "buy_price": L1,
+                  "entry_time": candle["Datetime"],
+                  "spot_price": candle["Close_^NSEI"],
+                  "stoploss": high,                 # OR High / recent swing high
+                  "quantity": quantity,
+                  "expiry": expiry,
+                  "message": "Cond 4: Gap Down → OR Breakdown → BUY PUT",
+              }
+          
+              sig = monitor_trade(sig)
+              signals.append(sig)
+              fired_conditions.add(4)
+              trade_count += 1
+     
+
+     
+
     return signals if signals else None
 
 

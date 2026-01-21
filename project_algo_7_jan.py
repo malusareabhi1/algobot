@@ -89,6 +89,13 @@ def monitor_position_live_with_theta_table(
         days_to_exp = days_to_expiry(expiry_date)
         time_to_expiry = days_to_exp / 365 
         r=0.07 
+        nearest_itm=st.session_state.tradingsymbol 
+        spot=S 
+        result = compute_option_iv_details(nearest_itm, spot)
+        #st.write("Result IV new",result) 
+        new_iv_result= result["iv"]
+        iv_result=new_iv_result  
+        sima=iv_result 
         if isinstance(expiry_date, str):
                              expiry_dt = datetime.strptime(expiry, "%Y-%m-%d").replace(hour=15, minute=30)
         elif isinstance(expiry_date, (datetime, pd.Timestamp)):

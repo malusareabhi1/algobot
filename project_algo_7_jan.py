@@ -95,7 +95,7 @@ def monitor_position_live_with_theta_table(
                              expiry_dt = expiry.to_pydatetime().replace(hour=15, minute=30)
         else:
                              st.write("DEBUG expiry value:", expiry_date)
-                             st.write("DEBUG expiry type:", type(expiry_date)) 
+                             #st.write("DEBUG expiry type:", type(expiry_date)) 
         greeks= safe_option_greeks(S, K, expiry_dt, r, sigma, option_type="CALL") 
         theta = greeks["Theta"] 
         if ltp > entry_price * 1.01:

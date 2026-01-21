@@ -170,9 +170,9 @@ def monitor_all_open_positions_live(
                 exit_price = ltp
                 log_trade_to_csv(symbol=symbol,qty=qty,entry_price=entry_price,exit_price=exit_price, pnl=pnl,exit_reason=status)
 
-    # place_exit_order(kite, symbol, qty, status)  # real trade later
+                   # place_exit_order(kite, symbol, qty, status)  # real trade later
 
-    st.success(f"{symbol} EXITED → {status}") 
+                st.success(f"{symbol} EXITED → {status}") 
                 st.warning(f"{symbol} EXIT → {status}")
 
         if not live_rows:

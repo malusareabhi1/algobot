@@ -69,7 +69,8 @@ def monitor_position_live_with_theta_table(
     strike,
     expiry_date,
     option_type="CALL"
-):
+):   
+    import time as tm 
     ist = pytz.timezone("Asia/Kolkata")
     placeholder = st.empty()
 
@@ -139,7 +140,7 @@ def monitor_position_live_with_theta_table(
             st.write("place_exit_order") 
             break
 
-        time.sleep(1)
+        tm.sleep(1)
 
 
 def monitor_position_live_with_theta(

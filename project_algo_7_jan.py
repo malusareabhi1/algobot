@@ -58,6 +58,39 @@ if "position_size" not in st.session_state:
 
 if "lot_qty" not in st.session_state:
     st.session_state.lot_qty = 1
+#==========================================================TRADE LOG++=======================================================\
+
+
+def log_trade_to_csv(
+    symbol,
+    qty,
+    entry_price,
+    exit_price,
+    pnl,
+    exit_reason,
+    filename="trade_log.csv"
+):
+    ist = pytz.timezone("Asia/Kolkata")
+
+    row = {
+        "Date": datetime.now(ist).strftime("%Y-%m-%d"),
+        "Time": datetime.now(ist).strftime("%H:%M:%S"),
+        "Symbol": symbol,
+        "Qty": qty,
+        "Entry Price": round(entry_price, 2),
+        "Exit Price": round(exit_price, 2),
+        "P&L": round(pnl, 2),
+        "Exit Reason": exit_reason
+    }
+
+    df = pd.DataFrame([row])
+
+    if os.path.exists(filename):
+        df.to_csv(filename, mode="a", header=False, index=False)
+    else:
+        df.to_csv(filename, mode="w", header=True, index=False)
+     
+
 #=========================================================New Moniter=========================================================
 
 
@@ -134,6 +167,12 @@ def monitor_all_open_positions_live(
             # Exit hook (paper / real)
             if status != "LIVE":
                 # place_exit_order(kite, symbol, qty, status)
+                exit_price = ltp
+                log_trade_to_csv(symbol=symbol,qty=qty,entry_price=entry_price,exit_price=exit_price, pnl=pnl,exit_reason=status)
+
+    # place_exit_order(kite, symbol, qty, status)  # real trade later
+
+    st.success(f"{symbol} EXITED → {status}") 
                 st.warning(f"{symbol} EXIT → {status}")
 
         if not live_rows:

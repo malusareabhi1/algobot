@@ -68,7 +68,7 @@ def monitor_position_live_with_theta_table(
              entry_price,
              strike,
              expiry_date,
-             option_type="CALL")
+             option_type="CALL"):
     
 
     ist = pytz.timezone("Asia/Kolkata")

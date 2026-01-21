@@ -10391,7 +10391,9 @@ elif MENU =="LIVE TRADE 3":
             else:
                    st.write("No parameters added yet.")
     #------------------------------------------------------------------------------------------------
-            #qty=qty*lot_qty
+            #
+            qty=65*lot_qty
+             
             #qty=0
             
             #st.subheader("Session State Debug")
@@ -10446,6 +10448,7 @@ elif MENU =="LIVE TRADE 3":
                         st.info("Execution window In .") 
                         st.write("entry_time-",last_executed_signal_time)
                         st.write("Now Time-", now)
+                        st.write("Qty*LOT=", qty) 
                       # Check 3: Order placed only once
                         if lot_qty>0: 
                               if has_open_position(kite):

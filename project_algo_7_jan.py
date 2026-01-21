@@ -5782,8 +5782,7 @@ elif MENU == "Moniter Position Test":
      strike = 25150
      expiry_date = date(2026, 1, 27)
      
-     if st.button("▶ Start Live Monitor"):
-         monitor_position_live_with_theta_table(
+     monitor_position_live_with_theta_table(
              kite,
              symbol,
              qty,

@@ -59,7 +59,58 @@ if "position_size" not in st.session_state:
 if "lot_qty" not in st.session_state:
     st.session_state.lot_qty = 1
 
+#=====================================================monitor_position_live_with_theta===================================================
 
+def monitor_position_live_with_theta(
+    kite,
+    symbol,
+    qty,
+    entry_price,
+    strike,
+    expiry_date,
+    option_type="CALL",
+    r=0.1
+):
+    placeholder = st.empty()
+
+    while True:
+        # ---- LTPs ----
+        option_ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
+        spot = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
+
+        # ---- IV ----
+        iv = kite.quote(f"NFO:{symbol}")[f"NFO:{symbol}"]["implied_volatility"] / 100
+
+        # ---- TIME ----
+        T = time_to_expiry(expiry_date)
+
+        # ---- THETA ----
+        theta = option_theta(
+            S=spot,
+            K=strike,
+            T=T,
+            r=r,
+            sigma=iv,
+            option_type=option_type
+        )
+
+        # ---- P&L ----
+        pnl = (option_ltp - entry_price) * qty
+
+        with placeholder.container():
+            st.metric("Option LTP", option_ltp)
+            st.metric("P&L", f"₹{round(pnl, 2)}")
+            st.metric("Theta / Day", round(theta, 2))
+            st.metric("IV", round(iv * 100, 2))
+            st.metric("Time to Expiry (hrs)", round(T * 365 * 24, 2))
+
+        # ---- EXIT ON THETA ----
+        if abs(theta) > 50:
+            place_exit_order(kite, symbol, qty, "THETA DECAY EXIT")
+            st.error("❌ THETA EXIT")
+            break
+
+        time.sleep(1)
 #===========================================================================================================================
 
 def normalize_nsei_columns(df):
@@ -5496,7 +5547,7 @@ with st.sidebar:
 
     MENU = st.radio(
         "Navigate",
-        ["Home", "My Account", "Login Zerodha  API","Strategy Signals","Strategy Multi Signals", "Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","LIVE TRADE 3","Telegram","Download Instrument","NIFTY 3:20 PM Intraday Strategy","Logout"],
+        ["Home", "My Account", "Login Zerodha  API","Strategy Signals","Strategy Multi Signals", "Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","LIVE TRADE 3","Telegram","Moniter Position Test","Download Instrument","NIFTY 3:20 PM Intraday Strategy","Logout"],
         index=0,
     )
 
@@ -5638,9 +5689,28 @@ if MENU == "Home":
     st.divider()
     st.info("Use the sidebar to explore Strategies, connect Broker APIs, and run the live Dashboard.")
 
+
+elif MENU == "Moniter Position Test":
+     symbol = "NIFTY26JAN25150PE"
+     qty = 130
+     entry_price = 127.15
+     strike = 25150
+     expiry_date = date(2026, 1, 27)
+     
+     if st.button("▶ Start Live Monitor"):
+         monitor_position_live_with_theta(
+             kite,
+             symbol,
+             qty,
+             entry_price,
+             strike,
+             expiry_date,
+             option_type="CALL"
+         )
 # ------------------------------------------------------------
 # Backtest Strategies
 # ------------------------------------------------------------
+     
 elif MENU == "Backtest":
     st.title("Backtest Strategies")
     st.session_state.param_rows = []

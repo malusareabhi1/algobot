@@ -96,7 +96,7 @@ def monitor_position_live_with_theta_table(
         else:
                              st.write("DEBUG expiry value:", expiry_date)
                              #st.write("DEBUG expiry type:", type(expiry_date)) 
-        greeks= safe_option_greeks(S, K, expiry_dt, r, sigma, option_type="CALL") 
+        greeks= safe_option_greeks(S, K, time_to_expiry, r, sigma, option_type="CALL") 
         theta = greeks["Theta"] 
         if ltp > entry_price * 1.01:
             trailing_sl = max(trailing_sl, ltp * 0.97)

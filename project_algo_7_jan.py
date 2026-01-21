@@ -58,6 +58,109 @@ if "position_size" not in st.session_state:
 
 if "lot_qty" not in st.session_state:
     st.session_state.lot_qty = 1
+#=========================================================New Moniter=========================================================
+
+
+def monitor_all_open_positions_live(
+    kite,
+    poll_interval=1,
+    theta_exit_level=-50
+):
+    import pandas as pd
+    import time
+    from datetime import datetime
+    import pytz
+    import streamlit as st
+
+    ist = pytz.timezone("Asia/Kolkata")
+    placeholder = st.empty()
+
+    # Store trailing SL per symbol
+    if "trailing_sl_map" not in st.session_state:
+        st.session_state.trailing_sl_map = {}
+
+    while True:
+        now = datetime.now(ist)
+        positions = kite.positions()["net"]
+
+        live_rows = []
+
+        for p in positions:
+            if p["quantity"] == 0:
+                continue  # ignore closed positions
+
+            symbol = p["tradingsymbol"]
+            qty = abs(p["quantity"])
+            entry_price = p["average_price"]
+            ltp = p["last_price"]
+            pnl = p["pnl"]
+
+            option_type = "CALL" if symbol.endswith("CE") else "PUT"
+            theta = st.session_state.get(f"GREEKtheta_{symbol}", 0)
+
+            # Initialize trailing SL
+            if symbol not in st.session_state.trailing_sl_map:
+                st.session_state.trailing_sl_map[symbol] = entry_price * 0.75
+
+            trailing_sl = st.session_state.trailing_sl_map[symbol]
+
+            # Trailing SL logic
+            if ltp > entry_price * 1.01:
+                trailing_sl = max(trailing_sl, ltp * 0.97)
+                st.session_state.trailing_sl_map[symbol] = trailing_sl
+
+            # Exit conditions
+            status = "LIVE"
+            if ltp <= trailing_sl:
+                status = "❌ SL HIT"
+            elif theta >= theta_exit_level:
+                status = "⚠ THETA EXIT"
+            elif now.hour == 15 and now.minute >= 20:
+                status = "🕒 EOD EXIT"
+
+            live_rows.append({
+                "Symbol": symbol,
+                "Type": option_type,
+                "Qty": qty,
+                "Entry": round(entry_price, 2),
+                "LTP": round(ltp, 2),
+                "P&L": round(pnl, 2),
+                "Theta": round(theta, 2),
+                "Trailing SL": round(trailing_sl, 2),
+                "Status": status,
+                "Time": now.strftime("%H:%M:%S")
+            })
+
+            # Exit hook (paper / real)
+            if status != "LIVE":
+                # place_exit_order(kite, symbol, qty, status)
+                st.warning(f"{symbol} EXIT → {status}")
+
+        if not live_rows:
+            st.info("No open positions")
+            time.sleep(poll_interval)
+            continue
+
+        df = pd.DataFrame(live_rows)
+
+        # Styling
+        def pnl_color(v): return "color: green" if v > 0 else "color: red"
+        def status_color(v):
+            if "LIVE" in v: return "color: blue"
+            if "SL" in v: return "color: red"
+            return "color: orange"
+
+        styled_df = (
+            df.style
+            .applymap(pnl_color, subset=["P&L"])
+            .applymap(status_color, subset=["Status"])
+        )
+
+        with placeholder.container():
+            st.subheader("📊 LIVE OPTION POSITION MONITOR")
+            st.dataframe(styled_df, use_container_width=True, hide_index=True)
+
+        time.sleep(poll_interval)
 
 #=====================================================monitor_position_live_with_theta===================================================
 
@@ -10717,14 +10820,14 @@ elif MENU =="LIVE TRADE 3":
                  
 
             df_plot1 = fetch_nifty_daily_last_7_days(kite)
-
-        
-            while True:
-                        if df_plot1 is not None and not df_plot1.empty:
-                             monitor_and_exit_last_position(kite, df_plot1)
+            #monitor_position_live_with_theta_table(kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
+            monitor_all_open_positions_live(kite)
+            #while True:
+                        #if df_plot1 is not None and not df_plot1.empty:
+                             #monitor_and_exit_last_position(kite, df_plot1)
                              time.sleep(5)
-                        else:
-                             print("❌ No NIFTY daily data available")
+                        #else:
+                            # print("❌ No NIFTY daily data available")
                         #monitor_and_exit_last_position(kite,df_plot)
 
            

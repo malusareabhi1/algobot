@@ -91,7 +91,7 @@ def monitor_position_live_with_theta_table(
         time_to_expiry = days_to_exp / 365 
         r=0.07 
         nearest_itm=st.session_state.symbol 
-        spot=S 
+        spot=strike 
         result = compute_option_iv_details(nearest_itm, spot)
         #st.write("Result IV new",result) 
         new_iv_result= result["iv"]

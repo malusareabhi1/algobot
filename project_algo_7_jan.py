@@ -61,6 +61,7 @@ if "lot_qty" not in st.session_state:
 
 #=====================================================monitor_position_live_with_theta===================================================
 
+
 def monitor_position_live_with_theta(
     kite,
     symbol,
@@ -68,49 +69,52 @@ def monitor_position_live_with_theta(
     entry_price,
     strike,
     expiry_date,
-    option_type="CALL",
-    r=0.1
+    option_type
 ):
+    import time
+    import pytz
+    from datetime import datetime
+    import streamlit as st
+
+    ist = pytz.timezone("Asia/Kolkata")
     placeholder = st.empty()
 
+    sl = entry_price * 0.75
+
     while True:
-        # ---- LTPs ----
-        option_ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
-        spot = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
+        now = datetime.now(ist)
 
-        # ---- IV ----
-        iv = kite.quote(f"NFO:{symbol}")[f"NFO:{symbol}"]["implied_volatility"] / 100
+        ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
 
-        # ---- TIME ----
-        T = time_to_expiry(expiry_date)
+        pnl = (ltp - entry_price) * qty if option_type == "CALL" else (entry_price - ltp) * qty
 
-        # ---- THETA ----
-        theta = option_theta(
-            S=spot,
-            K=strike,
-            T=T,
-            r=r,
-            sigma=iv,
-            option_type=option_type
-        )
+        # ✅ USE STORED THETA
+        theta = st.session_state.get("GREEKtheta", 0)
 
-        # ---- P&L ----
-        pnl = (option_ltp - entry_price) * qty
+        if ltp > entry_price * 1.01:
+            sl = max(sl, ltp * 0.97)
 
         with placeholder.container():
-            st.metric("Option LTP", option_ltp)
+            st.metric("LTP", round(ltp, 2))
             st.metric("P&L", f"₹{round(pnl, 2)}")
-            st.metric("Theta / Day", round(theta, 2))
-            st.metric("IV", round(iv * 100, 2))
-            st.metric("Time to Expiry (hrs)", round(T * 365 * 24, 2))
+            st.metric("Trailing SL", round(sl, 2))
+            st.metric("Theta", round(theta, 2))
+            st.metric("Time", now.strftime("%H:%M:%S"))
 
-        # ---- EXIT ON THETA ----
-        if abs(theta) > 50:
+        if ltp <= sl:
+            place_exit_order(kite, symbol, qty, "STOP LOSS HIT")
+            break
+
+        if theta >= 50:
             place_exit_order(kite, symbol, qty, "THETA DECAY EXIT")
-            st.error("❌ THETA EXIT")
+            break
+
+        if now.hour == 15 and now.minute >= 20:
+            place_exit_order(kite, symbol, qty, "EOD EXIT")
             break
 
         time.sleep(1)
+
 #===========================================================================================================================
 
 def normalize_nsei_columns(df):

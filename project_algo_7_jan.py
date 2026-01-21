@@ -10825,7 +10825,7 @@ elif MENU =="LIVE TRADE 3":
             #while True:
                         #if df_plot1 is not None and not df_plot1.empty:
                              #monitor_and_exit_last_position(kite, df_plot1)
-                             time.sleep(5)
+                             #time.sleep(5)
                         #else:
                             # print("❌ No NIFTY daily data available")
                         #monitor_and_exit_last_position(kite,df_plot)

@@ -61,6 +61,90 @@ if "lot_qty" not in st.session_state:
 
 #=====================================================monitor_position_live_with_theta===================================================
 
+def monitor_position_live_with_theta_table(
+    kite,
+    symbol,
+    qty,
+    entry_price,
+    option_type
+):
+    import time
+    import pytz
+    import pandas as pd
+    from datetime import datetime
+    import streamlit as st
+
+    ist = pytz.timezone("Asia/Kolkata")
+    placeholder = st.empty()
+
+    trailing_sl = entry_price * 0.75
+    status = "LIVE"
+
+    while True:
+        now = datetime.now(ist)
+
+        ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
+
+        pnl = (
+            (ltp - entry_price) * qty
+            if option_type == "CALL"
+            else (entry_price - ltp) * qty
+        )
+
+        theta = st.session_state.get("GREEKtheta", 0)
+
+        if ltp > entry_price * 1.01:
+            trailing_sl = max(trailing_sl, ltp * 0.97)
+
+        # ---- EXIT LOGIC ----
+        if ltp <= trailing_sl:
+            status = "❌ SL HIT"
+        elif theta >= 50:
+            status = "⚠ THETA EXIT"
+        elif now.hour == 15 and now.minute >= 20:
+            status = "🕒 EOD EXIT"
+
+        # ---- DATAFRAME ----
+        df = pd.DataFrame([{
+            "Symbol": symbol,
+            "Type": option_type,
+            "Qty": qty,
+            "Entry": round(entry_price, 2),
+            "LTP": round(ltp, 2),
+            "P&L": round(pnl, 2),
+            "Theta": round(theta, 2),
+            "Trailing SL": round(trailing_sl, 2),
+            "Status": status,
+            "Time": now.strftime("%H:%M:%S")
+        }])
+
+        def color_pnl(val):
+            return "color: green" if val > 0 else "color: red"
+
+        def color_status(val):
+            if "LIVE" in val:
+                return "color: blue"
+            if "SL" in val:
+                return "color: red"
+            return "color: orange"
+
+        styled = (
+            df.style
+            .applymap(color_pnl, subset=["P&L"])
+            .applymap(color_status, subset=["Status"])
+        )
+
+        with placeholder.container():
+            st.subheader("📊 Live Option Monitor")
+            st.dataframe(styled, use_container_width=True, hide_index=True)
+
+        if status != "LIVE":
+            #place_exit_order(kite, symbol, qty, status)
+            st.write("place_exit_order") 
+            break
+
+        time.sleep(1)
+
 
 def monitor_position_live_with_theta(
     kite,
@@ -5702,7 +5786,7 @@ elif MENU == "Moniter Position Test":
      expiry_date = date(2026, 1, 27)
      
      if st.button("▶ Start Live Monitor"):
-         monitor_position_live_with_theta(
+         monitor_position_live_with_theta_table(
              kite,
              symbol,
              qty,

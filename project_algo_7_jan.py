@@ -73,23 +73,31 @@ def monitor_position_live_with_theta_table(
     import time as tm 
     ist = pytz.timezone("Asia/Kolkata")
     placeholder = st.empty()
-
     trailing_sl = entry_price * 0.75
     status = "LIVE"
-
     while True:
         now = datetime.now(ist)
-
         ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
-
         pnl = (
             (ltp - entry_price) * qty
             if option_type == "CALL"
             else (entry_price - ltp) * qty
         )
-
         theta = st.session_state.get("GREEKtheta", 0)
-
+        K=strike
+        S=strike 
+        days_to_exp = days_to_expiry(expiry_date)
+        time_to_expiry = days_to_exp / 365 
+        r=0.07 
+        if isinstance(expiry_date, str):
+                             expiry_dt = datetime.strptime(expiry, "%Y-%m-%d").replace(hour=15, minute=30)
+        elif isinstance(expiry_date, (datetime, pd.Timestamp)):
+                             expiry_dt = expiry.to_pydatetime().replace(hour=15, minute=30)
+        else:
+                             st.write("DEBUG expiry value:", expiry_date)
+                             st.write("DEBUG expiry type:", type(expiry_date)) 
+        greeks= safe_option_greeks(S, K, expiry_dt, r, sigma, option_type="CALL") 
+        theta = greeks["Theta"] 
         if ltp > entry_price * 1.01:
             trailing_sl = max(trailing_sl, ltp * 0.97)
 

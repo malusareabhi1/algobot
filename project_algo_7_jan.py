@@ -62,17 +62,14 @@ if "lot_qty" not in st.session_state:
 #=====================================================monitor_position_live_with_theta===================================================
 
 def monitor_position_live_with_theta_table(
-    kite,
-    symbol,
-    qty,
-    entry_price,
-    option_type
-):
-    import time
-    import pytz
-    import pandas as pd
-    from datetime import datetime
-    import streamlit as st
+             kite,
+             symbol,
+             qty,
+             entry_price,
+             strike,
+             expiry_date,
+             option_type="CALL")
+    
 
     ist = pytz.timezone("Asia/Kolkata")
     placeholder = st.empty()

@@ -214,7 +214,7 @@ def get_instrument_token(kite, symbol):
 def get_option_ohlc(
     kite,
     symbol,
-    interval="5minute",
+    interval="15minute",
     lookback_minutes=660
 ):
     """
@@ -354,6 +354,18 @@ def monitor_position_live_with_theta_table(
     #============================================SHOW CHART===================================================
     df_option = get_option_ohlc(kite,symbol, interval="5minute")
     st.write(df_option)
+    #---------------------------------------------------------------------------------------SL------------  
+    candle_915 = df_option.between_time("09:15", "09:15")
+    candle_915 = df[df.index.time == datetime.strptime("09:15", "%H:%M").time()]
+    initial_sl = candle_915["low"].iloc[0]
+    if(option_type=="CALL"):
+          risk = entry_price - initial_sl
+    else:
+          risk = initial_sl - entry_price
+    st.write("Risk",risk)     
+    if risk <= 0:
+         st.write("❌ Invalid risk — trade skipped")    
+
     show_option_chart_with_trade_levels(
          df_option,
          symbol,
@@ -361,6 +373,8 @@ def monitor_position_live_with_theta_table(
          stop_loss=120,
          trailing_sl=st.session_state.get("trailing_sl")
      )
+     #---------------------------------------------------------------------------------------SL------------
+     
     #========================================================================================================== 
     while True:
         now = datetime.now(ist)

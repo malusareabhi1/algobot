@@ -229,7 +229,8 @@ def get_option_ohlc(
 
     to_dt = datetime.now()
     from_dt = to_dt - timedelta(minutes=lookback_minutes)
-
+    st.write("from_dt",from_dt)
+    st.write("to_dt",to_dt) 
     data = kite.historical_data(
         instrument_token=token,
         from_date=from_dt,

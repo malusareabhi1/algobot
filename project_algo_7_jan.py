@@ -278,7 +278,7 @@ def show_option_chart_with_trade_levels(
     trailing_sl=None
 ):
     fig = go.Figure()
-
+    st.write(df)
     # Candles
     fig.add_trace(go.Candlestick(
         x=df["datetime"],

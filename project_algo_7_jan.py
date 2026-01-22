@@ -10324,7 +10324,7 @@ elif MENU =="LIVE TRADE 3":
             # We run strategy for each candle progressively
             for i in range(40, len(df)):   # start after enough candles
                 sub_df = df.iloc[:i].copy()
-                sig = trading_signal_all_conditions(sub_df)
+                sig = trading_multi2_signal_all_conditions_5min(sub_df)
                 if sig is not None:
                     all_signals.append((sub_df.iloc[-1]["Datetime"], sig))
         

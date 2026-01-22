@@ -10782,6 +10782,16 @@ elif MENU =="LIVE TRADE 3":
                     st.write("Current Price Difference=",price_diff_pct) 
                     st.write("Current TIIME=",now)
                     st.write("Signal TIIME=",signal_entry_time)  
+                    diff_minutes = (now - signal_time).total_seconds() / 60
+                    st.write("diff_minutes=",diff_minutes)    
+                    MAX_DELAY_MINUTES = 5   # or 10 if you want
+
+                    if diff_minutes > MAX_DELAY_MINUTES:
+                        st.warning(
+                            f"⏰ Old Signal Skipped | Signal Age: {diff_minutes:.1f} min"
+                        )
+                        return None   # ❌ DO NOT PLACE ORDER  
+                                          
                     if (lower <= currnt_price <= upper):
                         st.warning("Price within  ±3% execution range")
                         st.write("Allowed:", lower, "to", upper)

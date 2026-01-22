@@ -235,23 +235,7 @@ def get_initial_sl_and_risk(df, entry_price, option_type):
     return initial_sl, risk
 
 
-def get_initial_sl_and_risk0(df, entry_price, option_type):
-    candle_915 = df[df.index.time == datetime.strptime("09:15", "%H:%M").time()]
 
-    if candle_915.empty:
-        raise ValueError("9:15 candle not found")
-
-    if option_type == "CALL":
-        initial_sl = candle_915["low"].iloc[0]
-        risk = entry_price - initial_sl
-    else:
-        initial_sl = candle_915["high"].iloc[0]
-        risk = initial_sl - entry_price
-
-    if risk <= 0:
-        raise ValueError("Invalid risk — entry beyond SL")
-
-    return initial_sl, risk
 
 def get_instrument_token(kite, symbol):
     instruments = kite.instruments("NFO")
@@ -263,7 +247,7 @@ def get_instrument_token(kite, symbol):
 def get_option_ohlc(
     kite,
     symbol,
-    interval="15minute",
+    interval="5minute",
     lookback_minutes=660
 ):
     """

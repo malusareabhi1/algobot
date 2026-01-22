@@ -5967,7 +5967,7 @@ elif MENU == "Moniter Position Test":
             st.stop()
 
         
-         monitor_position_live_with_theta_table(
+    monitor_position_live_with_theta_table(
             kite=kite,
             symbol=symbol,
             qty=int(qty),

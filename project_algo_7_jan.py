@@ -391,7 +391,7 @@ def monitor_position_live_with_theta_table(
          df_option,
          symbol,
          entry_price=180,
-         stop_loss=initial_sl,
+         stop_loss=120,
          trailing_sl=st.session_state.get("trailing_sl")
      )
      #---------------------------------------------------------------------------------------SL------------

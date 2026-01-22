@@ -204,8 +204,8 @@ def monitor_all_open_positions_live(
 #=====================================================monitor_position_live_with_theta===================================================
 
 def get_initial_sl_and_risk(df, entry_price, option_type):
-    st.write("df_option columns:", df_option.columns)
-    st.write("df_option index:", type(df_option.index))
+    st.write("df_option columns:", df.columns)
+    st.write("df_option index:", type(df.index))
 
     # 🔐 Auto-fix index if needed
     if not isinstance(df.index, pd.DatetimeIndex):

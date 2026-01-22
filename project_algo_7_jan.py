@@ -204,14 +204,23 @@ def monitor_all_open_positions_live(
 #=====================================================monitor_position_live_with_theta===================================================
 
 def get_initial_sl_and_risk(df, entry_price, option_type):
-    if not isinstance(df.index, pd.DatetimeIndex):
-        raise TypeError("DataFrame index must be DateTimeIndex")
 
+    # 🔐 Auto-fix index if needed
+    if not isinstance(df.index, pd.DatetimeIndex):
+        if "date" in df.columns:
+            df = df.copy()
+            df["datetime"] = pd.to_datetime(df["date"])
+            df.set_index("datetime", inplace=True)
+        else:
+            raise TypeError("No datetime info found in DataFrame")
+
+    # 🎯 Extract 9:15 candle
     candle_915 = df[df.index.time == datetime.strptime("09:15", "%H:%M").time()]
 
     if candle_915.empty:
         raise ValueError("9:15 candle not found")
 
+    # 📉 SL & Risk logic
     if option_type == "CALL":
         initial_sl = candle_915["low"].iloc[0]
         risk = entry_price - initial_sl
@@ -223,6 +232,7 @@ def get_initial_sl_and_risk(df, entry_price, option_type):
         raise ValueError("Invalid risk — entry beyond SL")
 
     return initial_sl, risk
+
 
 
 def get_initial_sl_and_risk0(df, entry_price, option_type):

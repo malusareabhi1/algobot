@@ -430,6 +430,8 @@ def trading_multi2_signal_all_conditions_5min(
 
     import pandas as pd
     from datetime import timedelta
+    st.write("CANDELS") 
+    st.write(df_5m.head(10))
 
     df_5m = df_5m.copy()
     df_5m["Datetime"] = pd.to_datetime(df_5m["Datetime"])
@@ -5964,7 +5966,8 @@ elif MENU == "Moniter Position Test":
             st.error("Please enter a valid option symbol")
             st.stop()
 
-        monitor_position_live_with_theta_table(
+        
+         monitor_position_live_with_theta_table(
             kite=kite,
             symbol=symbol,
             qty=int(qty),

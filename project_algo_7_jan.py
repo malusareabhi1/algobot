@@ -10790,6 +10790,7 @@ elif MENU =="LIVE TRADE 3":
                         st.warning(
                             f"⏰ Old Signal Skipped | Signal Age: {diff_minutes:.1f} min"
                         )
+                        st.stop() 
                         #return None   # ❌ DO NOT PLACE ORDER  
                                           
                     if (lower <= currnt_price <= upper):

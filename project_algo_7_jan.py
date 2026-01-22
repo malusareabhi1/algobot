@@ -203,6 +203,51 @@ def monitor_all_open_positions_live(
 
 #=====================================================monitor_position_live_with_theta===================================================
 
+
+
+
+def get_option_ohlc(
+    kite,
+    symbol,
+    interval="minute",
+    lookback_minutes=120
+):
+    """
+    Fetch OHLC data for option symbol
+    interval: "minute", "3minute", "5minute"
+    """
+
+    token = get_instrument_token(kite, symbol)
+    if token is None:
+        return pd.DataFrame()
+
+    to_dt = datetime.now()
+    from_dt = to_dt - timedelta(minutes=lookback_minutes)
+
+    data = kite.historical_data(
+        instrument_token=token,
+        from_date=from_dt,
+        to_date=to_dt,
+        interval=interval,
+        continuous=False,
+        oi=False
+    )
+
+    if not data:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(data)
+    df["datetime"] = pd.to_datetime(df["date"])
+
+    return df[["datetime", "open", "high", "low", "close", "volume"]]
+
+def get_instrument_token(kite, symbol):
+    instruments = kite.instruments("NFO")
+    for ins in instruments:
+        if ins["tradingsymbol"] == symbol:
+            return ins["instrument_token"]
+    return None
+
 def show_option_candle_chart(df, symbol):
     fig = go.Figure()
 

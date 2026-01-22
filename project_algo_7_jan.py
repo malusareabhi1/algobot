@@ -223,7 +223,7 @@ def get_option_ohlc(
     """
 
     token = get_instrument_token(kite, symbol)
-    st.write("token",token) 
+    #st.write("token",token) 
     if token is None:
         return pd.DataFrame()
 
@@ -239,7 +239,7 @@ def get_option_ohlc(
         continuous=False,
         oi=False
     )
-    st.write("data token",data) 
+    #st.write("data token",data) 
     if not data:
         return pd.DataFrame()
 
@@ -280,7 +280,7 @@ def show_option_chart_with_trade_levels(
     trailing_sl=None
 ):
     fig = go.Figure()
-    st.write(df)
+    #st.write(df)
     # Candles
     fig.add_trace(go.Candlestick(
         x=df["datetime"],

@@ -10786,11 +10786,7 @@ elif MENU =="LIVE TRADE 3":
                     st.write("diff_minutes=",diff_minutes)    
                     MAX_DELAY_MINUTES = 5   # or 10 if you want
 
-                    if diff_minutes > MAX_DELAY_MINUTES:
-                        st.warning(
-                            f"⏰ Old Signal Skipped | Signal Age: {diff_minutes:.1f} min"
-                        )
-                        st.stop() 
+                    
                         #return None   # ❌ DO NOT PLACE ORDER  
                                           
                     if (lower <= currnt_price <= upper):
@@ -10802,6 +10798,11 @@ elif MENU =="LIVE TRADE 3":
                         st.write("entry_time-",last_executed_signal_time)
                         st.write("Now Time-", now)
                         st.write("Qty*LOT=", qty) 
+                    if diff_minutes > MAX_DELAY_MINUTES:
+                        st.warning(
+                            f"⏰ Old Signal Skipped | Signal Age: {diff_minutes:.1f} min"
+                        )
+                        st.stop()     
                       # Check 3: Order placed only once
                         if lot_qty>0: 
                               if has_open_position(kite):

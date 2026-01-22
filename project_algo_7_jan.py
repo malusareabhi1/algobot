@@ -373,7 +373,7 @@ def monitor_position_live_with_theta_table(
     st.write(df_option)
     #---------------------------------------------------------------------------------------SL------------  
       
-    initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type):
+    initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)
     st.write("initial_sl,risk1",initial_sl,risk1) 
     show_option_chart_with_trade_levels(
          df_option,

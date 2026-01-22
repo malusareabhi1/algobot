@@ -203,6 +203,23 @@ def monitor_all_open_positions_live(
 
 #=====================================================monitor_position_live_with_theta===================================================
 
+def get_initial_sl_and_risk(df, entry_price, option_type):
+    candle_915 = df[df.index.time == datetime.strptime("09:15", "%H:%M").time()]
+
+    if candle_915.empty:
+        raise ValueError("9:15 candle not found")
+
+    if option_type == "CALL":
+        initial_sl = candle_915["low"].iloc[0]
+        risk = entry_price - initial_sl
+    else:
+        initial_sl = candle_915["high"].iloc[0]
+        risk = initial_sl - entry_price
+
+    if risk <= 0:
+        raise ValueError("Invalid risk — entry beyond SL")
+
+    return initial_sl, risk
 
 def get_instrument_token(kite, symbol):
     instruments = kite.instruments("NFO")
@@ -355,16 +372,7 @@ def monitor_position_live_with_theta_table(
     df_option = get_option_ohlc(kite,symbol, interval="5minute")
     st.write(df_option)
     #---------------------------------------------------------------------------------------SL------------  
-    candle_915 = df_option.between_time("09:15", "09:15")
-    candle_915 = df[df.index.time == datetime.strptime("09:15", "%H:%M").time()]
-    initial_sl = candle_915["low"].iloc[0]
-    if(option_type=="CALL"):
-          risk = entry_price - initial_sl
-    else:
-          risk = initial_sl - entry_price
-    st.write("Risk",risk)     
-    if risk <= 0:
-         st.write("❌ Invalid risk — trade skipped")    
+      
 
     show_option_chart_with_trade_levels(
          df_option,

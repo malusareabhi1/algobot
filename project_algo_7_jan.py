@@ -5914,21 +5914,66 @@ if MENU == "Home":
 
 
 elif MENU == "Moniter Position Test":
-     symbol = "NIFTY26JAN25150PE"
-     qty = 130
-     entry_price = 127.15
-     strike = 25150
-     expiry_date = date(2026, 1, 27)
-     
-     monitor_position_live_with_theta_table(
-             kite,
-             symbol,
-             qty,
-             entry_price,
-             strike,
-             expiry_date,
-             option_type="CALL"
-         )
+    st.title("📊 Monitor Live Option Position")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        symbol = st.text_input(
+            "Option Symbol",
+            value="NIFTY26JAN25150PE",
+            help="Example: NIFTY26JAN25150PE"
+        )
+
+        qty = st.number_input(
+            "Quantity",
+            min_value=1,
+            step=1,
+            value=130
+        )
+
+        entry_price = st.number_input(
+            "Average Entry Price",
+            min_value=0.0,
+            step=0.05,
+            value=127.15
+        )
+
+    with col2:
+        strike = st.number_input(
+            "Strike Price",
+            min_value=0,
+            step=50,
+            value=25150
+        )
+
+        expiry_date = st.date_input(
+            "Expiry Date",
+            value=date(2026, 1, 27)
+        )
+
+        option_type = st.selectbox(
+            "Option Type",
+            ["CALL", "PUT"]
+        )
+
+    start_monitor = st.button("▶ Start Monitoring")
+
+    if start_monitor:
+        if not symbol:
+            st.error("Please enter a valid option symbol")
+            st.stop()
+
+        monitor_position_live_with_theta_table(
+            kite=kite,
+            symbol=symbol,
+            qty=int(qty),
+            entry_price=float(entry_price),
+            strike=int(strike),
+            expiry_date=expiry_date,
+            option_type=option_type
+        )
+
 # ------------------------------------------------------------
 # Backtest Strategies
 # ------------------------------------------------------------

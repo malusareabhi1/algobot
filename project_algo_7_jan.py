@@ -212,7 +212,7 @@ def monitor_position_live_with_theta_table(
     expiry_date,
     option_type="CALL"
 ):  
-    st.write("symbol, qty, entry_price,strike,expiry_date,option_type",symbol, qty, entry_price, strike,  expiry_date,  option_type)   
+    #st.write("symbol, qty, entry_price,strike,expiry_date,option_type",symbol, qty, entry_price, strike,  expiry_date,  option_type)   
     import time as tm 
     ist = pytz.timezone("Asia/Kolkata")
     placeholder = st.empty()

@@ -10781,7 +10781,7 @@ elif MENU =="LIVE TRADE 3":
                     price_diff_pct = abs(currnt_price - last_signal_price) / last_signal_price * 100 
                     st.write("Current Price Difference=",price_diff_pct) 
                     st.write("Current TIIME=",now)
-                    st.write("Signal TIIME=",signal_time)  
+                    st.write("Signal TIIME=",signal_time1)  
                     if (lower <= currnt_price <= upper):
                         st.warning("Price within  ±3% execution range")
                         st.write("Allowed:", lower, "to", upper)

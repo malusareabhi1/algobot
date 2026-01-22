@@ -203,6 +203,84 @@ def monitor_all_open_positions_live(
 
 #=====================================================monitor_position_live_with_theta===================================================
 
+def show_option_candle_chart(df, symbol):
+    fig = go.Figure()
+
+    fig.add_trace(go.Candlestick(
+        x=df["datetime"],
+        open=df["open"],
+        high=df["high"],
+        low=df["low"],
+        close=df["close"],
+        name=symbol
+    ))
+
+    fig.update_layout(
+        title=f"{symbol} Option Chart",
+        xaxis_title="Time",
+        yaxis_title="Price",
+        xaxis_rangeslider_visible=False,
+        height=500
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+def show_option_chart_with_trade_levels(
+    df,
+    symbol,
+    entry_price,
+    stop_loss,
+    trailing_sl=None
+):
+    fig = go.Figure()
+
+    # Candles
+    fig.add_trace(go.Candlestick(
+        x=df["datetime"],
+        open=df["open"],
+        high=df["high"],
+        low=df["low"],
+        close=df["close"],
+        name="Price"
+    ))
+
+    # Entry Line
+    fig.add_hline(
+        y=entry_price,
+        line_dash="dot",
+        line_color="blue",
+        annotation_text="ENTRY",
+        annotation_position="right"
+    )
+
+    # Stop Loss Line
+    fig.add_hline(
+        y=stop_loss,
+        line_dash="dot",
+        line_color="red",
+        annotation_text="SL",
+        annotation_position="right"
+    )
+
+    # Trailing SL Line
+    if trailing_sl:
+        fig.add_hline(
+            y=trailing_sl,
+            line_dash="dash",
+            line_color="orange",
+            annotation_text="TRAIL SL",
+            annotation_position="right"
+        )
+
+    fig.update_layout(
+        title=f"{symbol} Option Trade Chart",
+        xaxis_rangeslider_visible=False,
+        height=550
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+
 def monitor_position_live_with_theta_table(
     kite,
     symbol,
@@ -220,10 +298,23 @@ def monitor_position_live_with_theta_table(
     status = "LIVE"
     fund=get_fund_status(kite)
     cash=fund['net'] 
+    cash=100000 
     risk=cash*(5/100) 
-    st.write("Capital(100%)=",cash)
-    st.write("RISK   (5%)  =",risk) 
-     
+    orisk= entry_price-
+    st.write("Total Capital(100%)=",cash)
+    st.write("Capital RISK   (5%)  =",risk) 
+    st.write("Option RISK   (5%)  =",orisk) 
+    #============================================SHOW CHART===================================================
+    df_option = get_option_ohlc(symbol, interval="5minute")
+
+    show_option_chart_with_trade_levels(
+         df_option,
+         symbol,
+         entry_price=180,
+         stop_loss=120,
+         trailing_sl=st.session_state.get("trailing_sl")
+     )
+    #========================================================================================================== 
     while True:
         now = datetime.now(ist)
         ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]

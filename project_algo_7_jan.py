@@ -215,7 +215,7 @@ def get_option_ohlc(
     kite,
     symbol,
     interval="5minute",
-    lookback_minutes=600
+    lookback_minutes=660
 ):
     """
     Fetch OHLC data for option symbol

@@ -221,8 +221,8 @@ def monitor_position_live_with_theta_table(
     fund=get_fund_status(kite)
     cash=fund['net'] 
     risk=cash*(5/100) 
-    st.write("Capital=",cash)
-    st.write("RISK   =",risk) 
+    st.write("Capital(100%)=",cash)
+    st.write("RISK   (5%)  =",risk) 
      
     while True:
         now = datetime.now(ist)

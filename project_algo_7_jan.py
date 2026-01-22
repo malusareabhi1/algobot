@@ -219,7 +219,7 @@ def monitor_position_live_with_theta_table(
     trailing_sl = entry_price * 0.75
     status = "LIVE"
     fund=get_fund_status(kite)
-    cash=fund["net"] 
+    cash=fund['net'] 
     st.write("Fund/Capital",cash)
      
     while True:

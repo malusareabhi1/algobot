@@ -10287,7 +10287,7 @@ elif MENU =="LIVE TRADE 3":
             last_signal["signal_time"] = signal_time
             signal_time1=last_signal["signal_time"] 
             S=last_signal["buy_price"]              
- 
+            signal_entry_time=last_signal["entry_time"] 
                 
                 # Display as table
             #st.table(df_sig1) 
@@ -10781,7 +10781,7 @@ elif MENU =="LIVE TRADE 3":
                     price_diff_pct = abs(currnt_price - last_signal_price) / last_signal_price * 100 
                     st.write("Current Price Difference=",price_diff_pct) 
                     st.write("Current TIIME=",now)
-                    st.write("Signal TIIME=",signal_time1)  
+                    st.write("Signal TIIME=",signal_entry_time)  
                     if (lower <= currnt_price <= upper):
                         st.warning("Price within  ±3% execution range")
                         st.write("Allowed:", lower, "to", upper)

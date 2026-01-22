@@ -207,21 +207,20 @@ def get_initial_sl_and_risk(df, entry_price, option_type):
 
     df = df.copy()
 
-    # ✅ Fix index using existing datetime column
+    # Ensure datetime index
     if not isinstance(df.index, pd.DatetimeIndex):
         if "datetime" in df.columns:
             df["datetime"] = pd.to_datetime(df["datetime"])
             df.set_index("datetime", inplace=True)
         else:
-            raise TypeError("datetime column missing")
+            return None, None
 
-    # 🎯 Extract 9:15 candle
+    # Get 9:15 candle
     candle_915 = df[df.index.time == datetime.strptime("09:15", "%H:%M").time()]
 
     if candle_915.empty:
-        raise ValueError("9:15 candle not found")
+        return None, None
 
-    # 📉 SL & Risk logic
     if option_type == "CALL":
         initial_sl = candle_915["low"].iloc[0]
         risk = entry_price - initial_sl
@@ -229,8 +228,9 @@ def get_initial_sl_and_risk(df, entry_price, option_type):
         initial_sl = candle_915["high"].iloc[0]
         risk = initial_sl - entry_price
 
+    # ❌ Invalid trade → skip safely
     if risk <= 0:
-        raise ValueError("Invalid risk — entry beyond SL")
+        return None, None
 
     return initial_sl, risk
 

@@ -223,6 +223,7 @@ def get_option_ohlc(
     """
 
     token = get_instrument_token(kite, symbol)
+    st.write("token",token) 
     if token is None:
         return pd.DataFrame()
 

@@ -10421,8 +10421,13 @@ elif MENU =="LIVE TRADE 3":
                   option_symbol = f"NFO:{trending_symbol}"
           
                   entry_price = kite.ltp(option_symbol)[option_symbol]["last_price"]
-          
-                  
+                  ist = pytz.timezone("Asia/Kolkata")
+                  now = datetime.now(ist)  
+                  entry_time1=last_signal["entry_time"]
+                  diff_minutes = (now - signal_time1).total_seconds() / 60
+                  st.write("diff_minutes==",diff_minutes) 
+                  if diff_minutes < 2: 
+                           st.session_state.symbol_entry_ltp=entry_price
                   trade = {
                         "signal_time": signal_time,
                         "entry_time": pd.Timestamp.now(),

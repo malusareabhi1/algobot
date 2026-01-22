@@ -204,9 +204,7 @@ def monitor_all_open_positions_live(
 #=====================================================monitor_position_live_with_theta===================================================
 
 def get_initial_sl_and_risk(df, entry_price, option_type):
-
     df = df.copy()
-
     # Ensure datetime index
     if not isinstance(df.index, pd.DatetimeIndex):
         if "datetime" in df.columns:
@@ -217,7 +215,7 @@ def get_initial_sl_and_risk(df, entry_price, option_type):
 
     # Get 9:15 candle
     candle_915 = df[df.index.time == datetime.strptime("09:15", "%H:%M").time()]
-
+    st.write("candle_915",candle_915)
     if candle_915.empty:
         return None, None
 
@@ -233,8 +231,6 @@ def get_initial_sl_and_risk(df, entry_price, option_type):
         return None, None
 
     return initial_sl, risk
-
-
 
 
 def get_instrument_token(kite, symbol):

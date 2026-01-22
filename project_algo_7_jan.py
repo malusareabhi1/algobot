@@ -430,7 +430,7 @@ def trading_multi2_signal_all_conditions_5min(
 
     import pandas as pd
     from datetime import timedelta
-    st.write("CANDELS") 
+    #st.write("CANDELS") 
     #st.write(df_5m.tail(5))
 
     df_5m = df_5m.copy()
@@ -503,7 +503,7 @@ def trading_multi2_signal_all_conditions_5min(
         & (df_5m["Datetime"] <= trade_end_time)
     ].sort_values("Datetime")
     # ================= DEBUG HERE =================
-    st.write("📌 Base Low / High:", base_low, base_high,"📌 OR Low / High:", L1, H1)
+    #st.write("📌 Base Low / High:", base_low, base_high,"📌 OR Low / High:", L1, H1)
     #st.write("📌 OR Low / High:", L1, H1)
     #st.write("📌 C1 (9:15 Close):", C1,"📌 Latest Close:", day_df_5m.iloc[-1]["Close_^NSEI"])
     #st.write("📌 Latest Close:", day_df_5m.iloc[-1]["Close_^NSEI"])

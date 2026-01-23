@@ -227,8 +227,8 @@ def get_initial_sl_and_risk(df, entry_price, option_type):
         risk = initial_sl - entry_price
     #st.write("initial_sl,risk",initial_sl,risk)
     # ❌ Invalid trade → skip safely
-    if risk <= 0:
-        return None, None
+    #if risk <= 0:
+        #return None, None
 
     return initial_sl, risk
 
@@ -388,7 +388,7 @@ def monitor_position_live_with_theta_table(
     st.write("Option aMOUNT   ()  =",amount) 
     st.write("Option RISK   (5%)  =",orisk) 
     if(orisk>risk):
-         qty=half
+         qty=qty/2
     st.write("Qty=",qty)    
     #============================================SHOW CHART===================================================
     df_option = get_option_ohlc(kite,symbol, interval="5minute")

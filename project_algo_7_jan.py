@@ -215,7 +215,8 @@ def get_initial_sl_and_risk(df, entry_price, option_type):
 
     # Get 9:15 candle
     candle_915 = df[df.index.time == datetime.strptime("09:15", "%H:%M").time()]
-    #st.write("candle_915",candle_915)
+    #
+    st.write("candle_915",candle_915)
     if candle_915.empty:
         return None, None
 
@@ -260,11 +261,11 @@ def get_option_ohlc(
      
     ist = pytz.timezone("Asia/Kolkata")
     now_ist = datetime.now(ist) 
-    st.write("now_ist",now_ist) 
+    #st.write("now_ist",now_ist) 
     to_dt = datetime.now(ist)
     from_dt = to_dt - timedelta(minutes=lookback_minutes)
-    st.write("from_dt",from_dt)
-    st.write("to_dt",to_dt) 
+    #st.write("from_dt",from_dt)
+    #st.write("to_dt",to_dt) 
     data = kite.historical_data(
         instrument_token=token,
         from_date=from_dt,

@@ -381,7 +381,8 @@ def monitor_position_live_with_theta_table(
     import time as tm 
     ist = pytz.timezone("Asia/Kolkata")
     placeholder = st.empty()
-    trailing_sl = entry_price * 0.85
+    trailing_sl = entry_price * 0.30
+     
     status = "LIVE"
     amount=entry_price*qty
     fund=get_fund_status(kite)
@@ -391,12 +392,13 @@ def monitor_position_live_with_theta_table(
     orisk= (entry_price-initial_sl)*qty
     st.write("Total Capital(100%)=",cash)
     st.write("Capital RISK   (5%)  =",risk)
-    st.write("Option aMOUNT   ()  =",amount) 
-    st.write("Option RISK   (5%)  =",orisk) 
+    st.write("Option AMOUNT   ()  =",amount) 
+    st.write("Option RISK   (entry_price-initial_sl*QTY)  =",orisk) 
     if(orisk>risk):
          qty=qty/2
     st.write("Qty=",qty)    
-    
+    pprofit=orisk+entry_price+2
+    st.write("Partial pprofit=",pprofit)     
     #---------------------------------------------------------------------------------------SL------------  
       
   

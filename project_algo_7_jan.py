@@ -31,7 +31,7 @@ end = time(15, 0)    # 3:25 PM
 now = datetime.now(ist).time()    
 # Refresh only between 9:30–3:25
 if start <= now <= end:
-     st_autorefresh(interval=60000, key="refresh")  # 1 minute refresh
+     st_autorefresh(interval=30000, key="refresh")  # 1 minute refresh
 else:
     st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
 

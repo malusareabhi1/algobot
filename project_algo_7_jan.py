@@ -215,7 +215,7 @@ def get_initial_sl_and_risk(df, entry_price, option_type):
 
     # Get 9:15 candle
     candle_915 = df[df.index.time == datetime.strptime("09:15", "%H:%M").time()]
-    #st.write("candle_915",candle_915)
+    st.write("candle_915",candle_915)
     if candle_915.empty:
         return None, None
 

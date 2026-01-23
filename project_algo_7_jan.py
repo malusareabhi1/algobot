@@ -225,7 +225,7 @@ def get_initial_sl_and_risk(df, entry_price, option_type):
     else:
         initial_sl = candle_915["high"].iloc[0]
         risk = initial_sl - entry_price
-    st.write("initial_sl,risk",initial_sl,risk)
+    #st.write("initial_sl,risk",initial_sl,risk)
     # ❌ Invalid trade → skip safely
     if risk <= 0:
         return None, None
@@ -377,13 +377,15 @@ def monitor_position_live_with_theta_table(
     placeholder = st.empty()
     trailing_sl = entry_price * 0.75
     status = "LIVE"
+    amount=entry_price*qty
     fund=get_fund_status(kite)
     cash=fund['net'] 
     cash=100000 
     risk=cash*(5/100) 
     orisk= (entry_price-120)*qty
     st.write("Total Capital(100%)=",cash)
-    st.write("Capital RISK   (5%)  =",risk) 
+    st.write("Capital RISK   (5%)  =",risk)
+    st.write("Option aMOUNT   ()  =",amount) 
     st.write("Option RISK   (5%)  =",orisk) 
     #============================================SHOW CHART===================================================
     df_option = get_option_ohlc(kite,symbol, interval="5minute")

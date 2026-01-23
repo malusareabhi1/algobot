@@ -389,7 +389,7 @@ def monitor_position_live_with_theta_table(
     st.write("Option RISK   (5%)  =",orisk) 
     if(orisk>risk):
          qty=half
-    st.write("Qty=",half)    
+    st.write("Qty=",qty)    
     #============================================SHOW CHART===================================================
     df_option = get_option_ohlc(kite,symbol, interval="5minute")
     #st.write(df_option)

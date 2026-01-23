@@ -3448,7 +3448,35 @@ def days_to_expiry(expiry_timestamp):
 
 #--------------------------------------------------------NEW IV Calc-----------------------------------------
 #--------------------------------------------SIGNAL TIME-----------------------------------------------------
+
+from datetime import datetime, time
+import pytz
+
 def is_valid_signal_time(signal_dt):
+    """Return True only if signal date is today and time is within trading window."""
+
+    IST = pytz.timezone("Asia/Kolkata")
+
+    START_TIME = time(9, 30)    # 09:30 IST
+    END_TIME   = time(14, 30)   # 14:30 IST
+
+    # Ensure timezone-aware
+    if signal_dt.tzinfo is None:
+        signal_dt = IST.localize(signal_dt)
+
+    now = datetime.now(IST)
+
+    # Same trading day check
+    if signal_dt.date() != now.date():
+        return False
+
+    # Trading window check
+    if not (START_TIME <= signal_dt.time() <= END_TIME):
+        return False
+
+    return True
+
+def is_valid_signal_time01(signal_dt):
     """Return True only if signal date is today and time is within trading window."""
     import pytz
     import time

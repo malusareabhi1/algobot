@@ -865,6 +865,32 @@ def trading_multi2_signal_all_conditions_5min(
               signals.append(sig)
               fired_conditions.add(5)
               trade_count += 1
+
+               # ==============================
+          # CONDITION 6: BASE LOW ACCEPTANCE BREAKDOWN → PUT
+          # ==============================
+        if (
+              6 not in fired_conditions
+              and C1 <= base_high                  # No strong gap-up
+              and candle["Close_^NSEI"] < base_low # Acceptance below base low
+              and prev["Close_^NSEI"] >= base_low  # First breakdown candle
+          ):
+              sig = {
+                  "condition": 6,
+                  "option_type": "PUT",
+                  "buy_price": candle["Close_^NSEI"],  # market entry
+                  "entry_time": candle["Datetime"],
+                  "spot_price": candle["Close_^NSEI"],
+                  "stoploss": high,                   # recent swing high / base low
+                  "quantity": quantity,
+                  "expiry": expiry,
+                  "message": "Cond 6: Base low acceptance → BUY PUT",
+              }
+          
+              sig = monitor_trade(sig)
+              signals.append(sig)
+              fired_conditions.add(6)
+              trade_count += 1
     
      
 

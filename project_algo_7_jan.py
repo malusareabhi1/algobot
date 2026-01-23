@@ -255,7 +255,12 @@ def get_option_ohlc(
     st.write("token",token) 
     if token is None:
         return pd.DataFrame()
-
+    from datetime import datetime
+    import pytz
+     
+    ist = pytz.timezone("Asia/Kolkata")
+    now_ist = datetime.now(ist) 
+     
     to_dt = datetime.now()
     from_dt = to_dt - timedelta(minutes=lookback_minutes)
     st.write("from_dt",from_dt)

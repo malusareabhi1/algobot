@@ -389,7 +389,7 @@ def monitor_position_live_with_theta_table(
     st.write("Option RISK   (5%)  =",orisk) 
     #============================================SHOW CHART===================================================
     df_option = get_option_ohlc(kite,symbol, interval="5minute")
-    st.write(df_option)
+    #st.write(df_option)
     #---------------------------------------------------------------------------------------SL------------  
       
     initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)

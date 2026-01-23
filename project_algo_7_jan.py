@@ -3453,7 +3453,7 @@ from datetime import datetime, time
 import pytz
 
 import pytz
-import datetime
+#import datetime
 
 def is_valid_signal_time(signal_dt):
     """Return True only if signal date is today and time is within trading window."""
@@ -3462,7 +3462,7 @@ def is_valid_signal_time(signal_dt):
 
     START_TIME = datetime.time(9, 30)     # ✅ SAFE
     END_TIME   = datetime.time(14, 30)    # ✅ SAFE
-
+    st.write("type(datetime):", type(datetime))
     # Ensure timezone-aware
     if signal_dt.tzinfo is None:
         signal_dt = IST.localize(signal_dt)

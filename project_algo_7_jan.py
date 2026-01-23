@@ -371,11 +371,14 @@ def monitor_position_live_with_theta_table(
     expiry_date,
     option_type="CALL"
 ):  
+    #============================================SHOW CHART===================================================
+    df_option = get_option_ohlc(kite,symbol, interval="5minute")
+    st.write(df_option) 
     #st.write("symbol, qty, entry_price,strike,expiry_date,option_type",symbol, qty, entry_price, strike,  expiry_date,  option_type)   
     import time as tm 
     ist = pytz.timezone("Asia/Kolkata")
     placeholder = st.empty()
-    trailing_sl = entry_price * 0.75
+    trailing_sl = entry_price * 0.85
     status = "LIVE"
     amount=entry_price*qty
     fund=get_fund_status(kite)
@@ -390,9 +393,7 @@ def monitor_position_live_with_theta_table(
     if(orisk>risk):
          qty=qty/2
     st.write("Qty=",qty)    
-    #============================================SHOW CHART===================================================
-    df_option = get_option_ohlc(kite,symbol, interval="5minute")
-    #st.write(df_option)
+    
     #---------------------------------------------------------------------------------------SL------------  
       
     initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)

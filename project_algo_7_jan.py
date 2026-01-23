@@ -242,7 +242,58 @@ def get_instrument_token(kite, symbol):
             return ins["instrument_token"]
     return None
 
+
 def get_option_ohlc(
+    kite,
+    symbol,
+    interval="5minute"
+):
+    """
+    Fetch option OHLC from today's market open (09:15 IST) to now
+    """
+
+    import pandas as pd
+    import pytz
+    import datetime as dt
+
+    token = get_instrument_token(kite, symbol)
+    if token is None:
+        return pd.DataFrame()
+
+    IST = pytz.timezone("Asia/Kolkata")
+    now_ist = dt.datetime.now(IST)
+
+    # ✅ Market start time: 09:15 IST today
+    market_start = now_ist.replace(
+        hour=9,
+        minute=15,
+        second=0,
+        microsecond=0
+    )
+
+    # Safety: before market open
+    if now_ist < market_start:
+        return pd.DataFrame()
+
+    data = kite.historical_data(
+        instrument_token=token,
+        from_date=market_start,
+        to_date=now_ist,
+        interval=interval,
+        continuous=False,
+        oi=False
+    )
+
+    if not data:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(data)
+    df["datetime"] = pd.to_datetime(df["date"])
+
+    return df[["datetime", "open", "high", "low", "close", "volume"]] \
+             .sort_values("datetime") \
+             .reset_index(drop=True)
+def get_option_ohlc1(
     kite,
     symbol,
     interval="5minute",

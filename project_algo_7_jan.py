@@ -261,7 +261,7 @@ def get_option_ohlc(
     ist = pytz.timezone("Asia/Kolkata")
     now_ist = datetime.now(ist) 
     st.write("now_ist",now_ist) 
-    to_dt = datetime.now()
+    to_dt = datetime.now(ist)
     from_dt = to_dt - timedelta(minutes=lookback_minutes)
     st.write("from_dt",from_dt)
     st.write("to_dt",to_dt) 

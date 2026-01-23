@@ -215,7 +215,7 @@ def get_initial_sl_and_risk(df, entry_price, option_type):
 
     # Get 9:15 candle
     candle_915 = df[df.index.time == datetime.strptime("09:15", "%H:%M").time()]
-    st.write("candle_915",candle_915)
+    #st.write("candle_915",candle_915)
     if candle_915.empty:
         return None, None
 
@@ -373,7 +373,9 @@ def monitor_position_live_with_theta_table(
 ):  
     #============================================SHOW CHART===================================================
     df_option = get_option_ohlc(kite,symbol, interval="5minute")
-    st.write(df_option) 
+    initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)
+    st.write("initial_sl,risk1",initial_sl,risk1)  
+    #st.write(df_option) 
     #st.write("symbol, qty, entry_price,strike,expiry_date,option_type",symbol, qty, entry_price, strike,  expiry_date,  option_type)   
     import time as tm 
     ist = pytz.timezone("Asia/Kolkata")
@@ -385,7 +387,7 @@ def monitor_position_live_with_theta_table(
     cash=fund['net'] 
     cash=100000 
     risk=cash*(5/100) 
-    orisk= (entry_price-120)*qty
+    orisk= (entry_price-initial_sl)*qty
     st.write("Total Capital(100%)=",cash)
     st.write("Capital RISK   (5%)  =",risk)
     st.write("Option aMOUNT   ()  =",amount) 
@@ -396,8 +398,7 @@ def monitor_position_live_with_theta_table(
     
     #---------------------------------------------------------------------------------------SL------------  
       
-    initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)
-    st.write("initial_sl,risk1",initial_sl,risk1) 
+  
     #show_option_chart_with_trade_levels( df_option, symbol, entry_price=180, stop_loss=120,trailing_sl=st.session_state.get("trailing_sl") )
      #---------------------------------------------------------------------------------------SL------------
      

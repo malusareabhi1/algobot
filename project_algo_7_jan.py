@@ -156,6 +156,7 @@ def monitor_all_open_positions_live(
                 "Type": option_type,
                 "Qty": qty,
                 "Entry": round(entry_price, 2),
+                "Amount":round(entry_price*qty), 
                 "LTP": round(ltp, 2),
                 "P&L": round(pnl, 2),
                 "Theta": round(theta, 2),

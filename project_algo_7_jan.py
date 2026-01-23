@@ -3451,6 +3451,8 @@ def days_to_expiry(expiry_timestamp):
 def is_valid_signal_time(signal_dt):
     """Return True only if signal date is today and time is within trading window."""
     import pytz
+    import time
+ 
      # Trading window (GLOBAL CONSTANTS)
     START_TIME = time(9, 30)   # 9:30 AM
     END_TIME   = time(14, 30)  # 2:30 PM

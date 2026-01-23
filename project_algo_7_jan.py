@@ -10427,6 +10427,7 @@ elif MENU =="LIVE TRADE 3":
             ]
         )
     )
+        chart_slot = st.empty() 
         import time
         if "last_chart_refresh" not in st.session_state:
               st.session_state.last_chart_refresh = 0

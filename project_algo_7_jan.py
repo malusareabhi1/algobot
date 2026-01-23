@@ -10427,9 +10427,16 @@ elif MENU =="LIVE TRADE 3":
             ]
         )
     )
-    
-    
-        st.plotly_chart(fig, use_container_width=True)
+        if "last_chart_refresh" not in st.session_state:
+              st.session_state.last_chart_refresh = 0
+        now = time.time()
+
+        if now - st.session_state.last_chart_refresh >= 1:
+              with chart_slot:
+                  st.plotly_chart(fig, use_container_width=True)
+          
+              st.session_state.last_chart_refresh = now 
+        #st.plotly_chart(fig, use_container_width=True)
         #----------------------------------------------------------------------
         df_plot1 = df[df['Datetime'].dt.date.isin([last_day, today])]
         #signal = trading_signal_all_conditions(df_plot)

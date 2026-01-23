@@ -397,9 +397,13 @@ def monitor_position_live_with_theta_table(
     st.write("Option RISK   (entry_price-initial_sl*QTY)  =",orisk) 
     if(orisk>risk):
          qty=qty/2
-    st.write("Qty=",qty)    
+    st.write("Qty=",qty) 
+    amount= entry_price*qty
+    orisk= (entry_price-initial_sl)*qty 
+    st.write("New Option AMOUNT   ()  =",amount) 
     pprofit=orisk+entry_price+2
-    st.write("Partial pprofit=",pprofit)     
+    st.write("Partial pprofit=",pprofit) 
+    st.write("New Option RISK   (entry_price-initial_sl*QTY)  =",orisk)  
     #---------------------------------------------------------------------------------------SL------------  
       
   

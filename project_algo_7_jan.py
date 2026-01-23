@@ -220,7 +220,7 @@ def get_initial_sl_and_risk(df, entry_price, option_type):
     if candle_915.empty:
         return None, None
 
-    if option_type == "CALL":
+    if option_type == "PUT":
         initial_sl = candle_915["low"].iloc[0]
         risk = entry_price - initial_sl
     else:

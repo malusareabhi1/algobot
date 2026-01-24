@@ -962,6 +962,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     - Trailing SL using last 10 candles swing
     - NO time exit
     """
+    #st.write 
     from datetime import time as dtime 
     import numpy as np
     import pandas as pd
@@ -1059,7 +1060,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     trade_count = 0
     last_break = None
     price_inside_base = True
-
+    st.write("Data",day1_df)
     for _, c in day1_df.iterrows():
 
         if trade_count >= MAX_TRADES:

@@ -962,7 +962,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     - Trailing SL using last 10 candles swing
     - NO time exit
     """
-
+    from datetime import time as dtime 
     import numpy as np
     import pandas as pd
     TRADE_START_TIME = dtime(9, 30)

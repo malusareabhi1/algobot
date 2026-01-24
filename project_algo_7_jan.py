@@ -1060,7 +1060,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     trade_count = 0
     last_break = None
     price_inside_base = True
-    st.write("Data",day1_df)
+    #st.write("Data",day1_df)
     for _, c in day1_df.iterrows():
 
         if trade_count >= MAX_TRADES:
@@ -10624,8 +10624,8 @@ elif MENU =="LIVE TRADE 3":
 
         #st.write("CLEAN COLUMNS:", df_plot.columns.tolist())
          
-        st.write("15 MIn Data")
-        st.write(df_plot1)
+        #st.write("15 MIn Data")
+        #st.write(df_plot1)
          
           # 5️⃣ Call strategy  
         #==================================================================================================== 

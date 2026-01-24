@@ -965,7 +965,8 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
 
     import numpy as np
     import pandas as pd
-
+    TRADE_START_TIME = dtime(9, 30)
+    TRADE_EXIT_CUTOFF = dtime(14, 30) 
     signals = []
 
     # =========================
@@ -1065,7 +1066,9 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
             break
 
         close = c['Close_^NSEI']
-
+        candle_time = c['Datetime'].time() 
+        if candle_time < TRADE_START_TIME:
+            continue
         # Track price returning into base zone
         if is_inside_base(close):
             price_inside_base = True

@@ -3520,7 +3520,7 @@ def is_valid_signal_time(signal_dt):
     #END_TIME   = datetime.time(14, 30)    # ✅ SAFE
     START_TIME = time(9, 30)      # ✅ FIXED
     END_TIME   = time(14, 30)     # ✅ FIXED 
-    st.write("type(datetime):", type(datetime))
+    #st.write("type(datetime):", type(datetime))
     # Ensure timezone-aware
     if signal_dt.tzinfo is None:
         signal_dt = IST.localize(signal_dt)

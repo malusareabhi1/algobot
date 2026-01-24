@@ -3509,8 +3509,34 @@ import pytz
 
 import pytz
 #import datetime
-
 def is_valid_signal_time(signal_dt):
+    """Return True only if signal date is today and time is within trading window."""
+
+    from datetime import datetime, time
+    import pytz
+
+    IST = pytz.timezone("Asia/Kolkata")
+
+    START_TIME = time(9, 30)      # ✅ FIXED
+    END_TIME   = time(14, 30)     # ✅ FIXED
+
+    # Ensure timezone-aware
+    if signal_dt.tzinfo is None:
+        signal_dt = IST.localize(signal_dt)
+
+    now = datetime.now(IST)
+
+    # Same trading day
+    if signal_dt.date() != now.date():
+        return False
+
+    # Trading window
+    if not (START_TIME <= signal_dt.time() <= END_TIME):
+        return False
+
+    return True
+
+def is_valid_signal_time03(signal_dt):
     """Return True only if signal date is today and time is within trading window."""
     from datetime import datetime, time
     import pytz 

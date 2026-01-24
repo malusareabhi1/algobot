@@ -10622,7 +10622,10 @@ elif MENU =="LIVE TRADE 3":
         df_plot = normalize_nsei_columns(df_plot)
 
         #st.write("CLEAN COLUMNS:", df_plot.columns.tolist())
-        
+         
+        st.write("15 MIn Data")
+        st.write(df_plot1)
+         
           # 5️⃣ Call strategy  
         #==================================================================================================== 
         #signal = trading_signal_all_conditions_final(df_plot) 

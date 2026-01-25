@@ -10862,7 +10862,8 @@ elif MENU =="LIVE TRADE 3":
             #spot = option["last_price"]
             #st.write("Spot",spot) 
             #spot = 25900.00  # live NIFTY spot
-     
+            st.write("nearest_itm",nearest_itm)
+            st.write("spot",spot) 
             result = compute_option_iv_details(nearest_itm, spot)
             #st.write("Result IV new",result) 
             new_iv_result= result["iv"]

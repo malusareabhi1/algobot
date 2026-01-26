@@ -525,7 +525,7 @@ def monitor_position_live_with_theta_table(
     #---------------------------------------------------------------------------------------SL------------  
     # ------------------ RISK MANAGEMENT ------------------
 
-    lot_size = nearest_itm.get("lot_size", qty)
+    lot_size = 65 #nearest_itm.get("lot_size", qty)
      
     max_capital_risk = cash * 0.05  # 5%
     per_unit_risk = abs(entry_price - initial_sl)

@@ -537,8 +537,11 @@ def monitor_position_live_with_theta_table(
          qty -= lot_size
      
          if qty <= 0:
+             #st.error("❌ Trade rejected: Risk too high even for 1 lot")
+             #return  # EXIT FUNCTION
+             trade_allowed = False
              st.error("❌ Trade rejected: Risk too high even for 1 lot")
-             return  # EXIT FUNCTION
+             break     
      
          orisk = per_unit_risk * qty
      

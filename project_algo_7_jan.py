@@ -11202,125 +11202,126 @@ elif MENU =="LIVE TRADE 3":
             add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK") 
     
      #-----------------------------------------Display PARA-------------------------------------------
-            if st.session_state.param_rows:
-				    df = pd.DataFrame(st.session_state.param_rows)
-				
-				    col1, col2, col3 = st.columns(3)
-				
-				    # ---------------- COL 1 ----------------
-				    with col1:
-				        st.subheader("Parameters")
-				        st.table(df)
-				
-				    # ---------------- COL 2 ----------------
-				    with col2:
-				        days_to_exp = days_to_expiry(expiry)
-				        time_to_expiry = days_to_exp / 365
-				        r = 0.07
-				
-				        iv = new_iv_result
-				        st.subheader("Greeks Values")
-				
-				        T = time_to_expiry
-				        sigma = iv
-				
-				        st.session_state.S = S
-				        st.session_state.K = K
-				        st.session_state.T = T
-				        st.session_state.r = r
-				        st.session_state.sigma = sigma
-				
-				        if isinstance(expiry, str):
-				            expiry_dt = datetime.strptime(expiry, "%Y-%m-%d").replace(hour=15, minute=30)
-				        elif isinstance(expiry, (datetime, pd.Timestamp)):
-				            expiry_dt = expiry.to_pydatetime().replace(hour=15, minute=30)
-				        else:
-				            st.write("DEBUG expiry value:", expiry)
-				            st.write("DEBUG expiry type:", type(expiry))
-				            st.stop()
-				
-				        K = float(K)
-				
-				        greeks = safe_option_greeks(
-				            S, K, expiry_dt, r, sigma, option_type="CALL"
-				        )
-				
-				        greeks_param_df = pd.DataFrame([
-				            {
-				                "Parameter": "NIFTY OPTION",
-				                "Value": trending_symbol,
-				                "Range": expiry,
-				                "Result": "Valid"
-				            },
-				            {
-				                "Parameter": "Delta",
-				                "Value": greeks["Delta"],
-				                "Range": "0.30 – 0.85",
-				                "Result": evaluate(greeks["Delta"], 0.30, 0.85)
-				            },
-				            {
-				                "Parameter": "Gamma",
-				                "Value": greeks["Gamma"],
-				                "Range": "≥ 0.0005",
-				                "Result": evaluate(greeks["Gamma"], 0.0005, None)
-				            },
-				            {
-				                "Parameter": "Theta",
-				                "Value": greeks["Theta"],
-				                "Range": "≥ -80",
-				                "Result": evaluate(greeks["Theta"], -80, None)
-				            },
-				            {
-				                "Parameter": "Vega",
-				                "Value": greeks["Vega"],
-				                "Range": "≥ 3.0",
-				                "Result": evaluate(greeks["Vega"], 3.0, None)
-				            },
-				            {
-				                "Parameter": "IV %",
-				                "Value": greeks["IV%"],
-				                "Range": "0.10 – 0.35",
-				                "Result": evaluate(greeks["IV%"], 0.10, 0.35)
-				            }
-				        ])
-				
-				        st.session_state.GREEKdelta = greeks["Delta"]
-				        st.session_state.GREEKgamma = greeks["Gamma"]
-				        st.session_state.GREEKtheta = greeks["Theta"]
-				        st.session_state.GREEKvega = greeks["Vega"]
-				
-				        st.dataframe(
-				            greeks_param_df.style.applymap(
-				                lambda x: "color: green; font-weight: bold"
-				                if x == "Pass"
-				                else "color: red; font-weight: bold"
-				                if x == "Fail"
-				                else ""
-				            ),
-				            use_container_width=True,
-				            hide_index=True
-				        )
-				
-				    # ---------------- COL 3 ----------------
-				    with col3:
-				        st.subheader("✅ Trade Validation")
-				        qty = get_lot_qty(new_iv_result, vix_now, vix_result, pcr_result)
-				        qty = qty * QTY_PER_LOT
-				        strike = spot
-				
-				        trade_validation(
-				            kite,
-				            trending_symbol,
-				            qty,
-				            entry_price,
-				            strike,
-				            expiry,
-				            option_type="CALL"
-				        )
-				
-				else:
-				    st.write("No parameters added yet.")
-
+			if st.session_state.param_rows:
+			    df = pd.DataFrame(st.session_state.param_rows)
+			
+			    col1, col2, col3 = st.columns(3)
+			
+			    # ---------------- COL 1 ----------------
+			    with col1:
+			        st.subheader("Parameters")
+			        st.table(df)
+			
+			    # ---------------- COL 2 ----------------
+			    with col2:
+			        days_to_exp = days_to_expiry(expiry)
+			        time_to_expiry = days_to_exp / 365
+			        r = 0.07
+			
+			        iv = new_iv_result
+			        st.subheader("Greeks Values")
+			
+			        T = time_to_expiry
+			        sigma = iv
+			
+			        st.session_state.S = S
+			        st.session_state.K = K
+			        st.session_state.T = T
+			        st.session_state.r = r
+			        st.session_state.sigma = sigma
+			
+			        if isinstance(expiry, str):
+			            expiry_dt = datetime.strptime(expiry, "%Y-%m-%d").replace(hour=15, minute=30)
+			        elif isinstance(expiry, (datetime, pd.Timestamp)):
+			            expiry_dt = expiry.to_pydatetime().replace(hour=15, minute=30)
+			        else:
+			            st.write("DEBUG expiry value:", expiry)
+			            st.write("DEBUG expiry type:", type(expiry))
+			            st.stop()
+			
+			        K = float(K)
+			
+			        greeks = safe_option_greeks(
+			            S, K, expiry_dt, r, sigma, option_type="CALL"
+			        )
+			
+			        greeks_param_df = pd.DataFrame([
+			            {
+			                "Parameter": "NIFTY OPTION",
+			                "Value": trending_symbol,
+			                "Range": expiry,
+			                "Result": "Valid"
+			            },
+			            {
+			                "Parameter": "Delta",
+			                "Value": greeks["Delta"],
+			                "Range": "0.30 – 0.85",
+			                "Result": evaluate(greeks["Delta"], 0.30, 0.85)
+			            },
+			            {
+			                "Parameter": "Gamma",
+			                "Value": greeks["Gamma"],
+			                "Range": "≥ 0.0005",
+			                "Result": evaluate(greeks["Gamma"], 0.0005, None)
+			            },
+			            {
+			                "Parameter": "Theta",
+			                "Value": greeks["Theta"],
+			                "Range": "≥ -80",
+			                "Result": evaluate(greeks["Theta"], -80, None)
+			            },
+			            {
+			                "Parameter": "Vega",
+			                "Value": greeks["Vega"],
+			                "Range": "≥ 3.0",
+			                "Result": evaluate(greeks["Vega"], 3.0, None)
+			            },
+			            {
+			                "Parameter": "IV %",
+			                "Value": greeks["IV%"],
+			                "Range": "0.10 – 0.35",
+			                "Result": evaluate(greeks["IV%"], 0.10, 0.35)
+			            }
+			        ])
+			
+			        st.session_state.GREEKdelta = greeks["Delta"]
+			        st.session_state.GREEKgamma = greeks["Gamma"]
+			        st.session_state.GREEKtheta = greeks["Theta"]
+			        st.session_state.GREEKvega = greeks["Vega"]
+			
+			        st.dataframe(
+			            greeks_param_df.style.applymap(
+			                lambda x: "color: green; font-weight: bold"
+			                if x == "Pass"
+			                else "color: red; font-weight: bold"
+			                if x == "Fail"
+			                else ""
+			            ),
+			            use_container_width=True,
+			            hide_index=True
+			        )
+			
+			    # ---------------- COL 3 ----------------
+			    with col3:
+			        st.subheader("✅ Trade Validation")
+			        qty = get_lot_qty(new_iv_result, vix_now, vix_result, pcr_result)
+			        qty = qty * QTY_PER_LOT
+			        strike = spot
+			
+			        trade_validation(
+			            kite,
+			            trending_symbol,
+			            qty,
+			            entry_price,
+			            strike,
+			            expiry,
+			            option_type="CALL"
+			        )
+			
+			else:
+			    st.write("No parameters added yet.")
+			            
+			
 
 			       
     #------------------------------------------------------------------------------------------------

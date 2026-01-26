@@ -11376,7 +11376,7 @@ elif MENU =="LIVE TRADE 3":
             
                 # ---------------- COL 1 ----------------
                 with col1:
-                    st.subheader("Parameters")
+                    st.subheader("🚦 Parameters")
                     st.table(df)
             
                 # ---------------- COL 2 ----------------
@@ -11386,7 +11386,7 @@ elif MENU =="LIVE TRADE 3":
                     r = 0.07
             
                     iv = new_iv_result
-                    st.subheader("Greeks Values")
+                    st.subheader("🧮 Greeks Values")
             
                     T = time_to_expiry
                     sigma = iv

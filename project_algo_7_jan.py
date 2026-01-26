@@ -11316,7 +11316,7 @@ elif MENU =="LIVE TRADE 3":
                         use_container_width=True,
                         hide_index=True
                     )
-                    with col3:
+                   with col3:
 						st.subheader("✅ Trade Validation")
 			            qty=get_lot_qty(new_iv_result,vix_now,vix_result,pcr_result)
 			            #st.write("Qty",qty)

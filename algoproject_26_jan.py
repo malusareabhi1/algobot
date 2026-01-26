@@ -61,6 +61,151 @@ if "position_size" not in st.session_state:
 if "lot_qty" not in st.session_state:
     st.session_state.lot_qty = 1
 
+#===================================================================================================================
+
+def monitor_position_live_with_theta_table_and_exit(
+    kite,
+    symbol,
+    qty,
+    entry_price,
+    strike,
+    expiry_date,
+    option_type="CALL"
+):  
+    #============================================SHOW CHART===================================================
+    df_option = get_option_ohlc(kite,symbol, interval="5minute")
+    #st.write("Option data",df_option)  
+    initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)
+    st.write("initial_sl,risk1",initial_sl,risk1)  
+    #st.write(df_option) 
+    #st.write("symbol, qty, entry_price,strike,expiry_date,option_type",symbol, qty, entry_price, strike,  expiry_date,  option_type)   
+    import time as tm 
+    ist = pytz.timezone("Asia/Kolkata")
+    placeholder = st.empty()
+    trailing_sl = entry_price * 0.30
+     
+    status = "LIVE"
+    amount=entry_price*qty
+    fund=get_fund_status(kite)
+    cash=fund['net'] 
+    cash=100000 
+    risk=cash*(5/100) 
+    orisk= (entry_price-initial_sl)*qty
+    #st.write("Total Capital(100%)=",cash)
+    #st.write("Capital RISK   (5%)  =",risk)
+    #st.write("Option AMOUNT   ()  =",amount) 
+    #st.write("Option RISK   (entry_price-initial_sl*QTY)  =",orisk) 
+    
+    #st.write("Qty=",qty) 
+    amount= entry_price*qty
+    orisk= (entry_price-initial_sl)*qty 
+    #st.write("New Option AMOUNT   ()  =",amount) 
+    pprofit=orisk+entry_price+2
+    #st.write("Partial pprofit=",pprofit) 
+    #st.write("New Option RISK   (entry_price-initial_sl*QTY)  =",orisk)  
+    #---------------------------------------------------------------------------------------SL------------  
+    # ------------------ RISK MANAGEMENT ------------------
+
+    lot_size = 65 #nearest_itm.get("lot_size", qty)
+     
+    max_capital_risk = cash * 0.05  # 5%
+    per_unit_risk = abs(entry_price - initial_sl)
+     
+    qty = int(qty)  # safety
+    orisk = per_unit_risk * qty
+     
+    
+     # Final validated qty
+    amount = entry_price * qty
+    greek_theta=st.session_state.GREEKtheta 
+    option_iv=st.session_state.option_iv
+
+    st.success("✅Monitor  Risk validation ")
+    #st.write("Final Qty =", qty)
+    st.write("Option Risk =", round(orisk, 2))
+    st.write("Capital Risk (5%) =", round(max_capital_risk, 2))
+    st.write("Position Value =", round(amount, 2))  
+    st.write("Partial Profit Value =", round(pprofit, 2))
+    st.write("Theta  Value =", round(greek_theta, 2))
+    st.write("IV Value =", round(option_iv, 2))
+    
+  
+    #show_option_chart_with_trade_levels( df_option, symbol, entry_price=180, stop_loss=120,trailing_sl=st.session_state.get("trailing_sl") )
+     #---------------------------------------------------------------------------------------SL------------
+     
+    #========================================================================================================== 
+    while True:
+        now = datetime.now(ist)
+        ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
+        pnl = (
+            (ltp - entry_price) * qty
+            if option_type == "PUT"
+            else (entry_price - ltp) * qty
+        )
+        #theta = st.session_state.get("GREEKtheta", 0)
+        
+        if ltp > entry_price * 1.01:
+            trailing_sl = max(trailing_sl, ltp * 0.97)
+       
+        # ---- EXIT LOGIC ----
+        if option_iv >= 50:
+            status = "❌ IV Blast Exit"
+        if pprofit <= pnl:
+            status = "❌ Partial Exit"
+        if ltp <= trailing_sl:
+            status = "❌ SL HIT"
+        elif greek_theta <= -80:
+            status = "⚠ THETA EXIT"
+        elif now.hour == 15 and now.minute >= 20:
+            status = "🕒 EOD EXIT"
+
+        # ---- DATAFRAME ----
+        df = pd.DataFrame([{
+            "Symbol": symbol,
+            "Type": option_type,
+            "Qty": qty,
+            "Entry": round(entry_price, 2),
+            "LTP": round(ltp, 2),
+            "P&L": round(pnl, 2),
+            "Theta": round(greek_theta, 2),
+            "Trailing SL": round(trailing_sl, 2),
+            "Status": status,
+            "Time": now.strftime("%H:%M:%S")
+        }])
+
+        def color_pnl(val):
+            return "color: green" if val > 0 else "color: red"
+
+        def color_status(val):
+            if "LIVE" in val:
+                return "color: blue"
+            if "SL" in val:
+                return "color: red"
+            return "color: orange"
+
+        styled = (
+            df.style
+            .applymap(color_pnl, subset=["P&L"])
+            .applymap(color_status, subset=["Status"])
+        )
+
+        with placeholder.container():
+            st.subheader("📊 Live Option Monitor")
+            st.dataframe(styled, use_container_width=True, hide_index=True)
+        if (status == "❌ Partial Exit"):
+            if(qty==65):
+                qty=65
+            else:    
+                qty=qty/2
+            place_exit_order(kite, symbol, qty, status)
+            st.write("Placing Partial place_exit_order") 
+            break
+        if status != "LIVE":
+            #place_exit_order(kite, symbol, qty, status)
+            st.write("place_exit_order") 
+            break
+
+        tm.sleep(1)
 
 
 
@@ -80,15 +225,14 @@ def trade_validation(
     df_option = get_option_ohlc(kite,symbol, interval="5minute")
     #st.write("Option data",df_option)  
     initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)
-    st.write("initial_sl,risk1",initial_sl,risk1)  
-    st.write("Qty",qty)
+    
     #st.write(df_option) 
     #st.write("symbol, qty, entry_price,strike,expiry_date,option_type",symbol, qty, entry_price, strike,  expiry_date,  option_type)   
     import time as tm 
     ist = pytz.timezone("Asia/Kolkata")
     placeholder = st.empty()
     trailing_sl = entry_price * 0.30
-     
+    oldqty=qty 
     status = "LIVE"
     amount=entry_price*qty
     fund=get_fund_status(kite)
@@ -127,20 +271,40 @@ def trade_validation(
              #st.error("❌ Trade rejected: Risk too high even for 1 lot")
              #return  # EXIT FUNCTION
              trade_allowed = False
-             st.error("❌ Trade rejected: Risk too high even for 1 lot")
+             st.error("❌ Trade rejected: Risk too high even for 1 lot ")
              break     
      
          orisk = per_unit_risk * qty
      
      # Final validated qty
-    amount = entry_price * qty
-     
+    #amount = entry_price * qty
+    #st.write("initial_sl,risk1",initial_sl,risk1)  
+    #st.write("Old Qty",qty) 
+    #st.success("✅ Risk validated")
+    #st.write("Final Qty =", qty)
+    #st.write("Option AMOUNT   ()  =",amount)  
+    #st.write("Option Risk =", round(orisk, 2))
+    #st.write("Capital Risk (5%) =", round(max_capital_risk, 2))
+    #st.write("Position Value =", round(amount, 2))  
+
+    risk_table = pd.DataFrame([
+        {"Metric": "Initial SL / Risk", "Value": f"{initial_sl} , {risk1}"},
+        {"Metric": "Old Qty", "Value": oldqty},
+        {"Metric": "Final Qty", "Value": qty},
+        {"Metric": "Option Amount", "Value": round(amount, 2)},
+        {"Metric": "Option Risk", "Value": round(orisk, 2)},
+        {"Metric": "Capital Risk (5%)", "Value": round(max_capital_risk, 2)},
+        {"Metric": "Position Value", "Value": round(amount, 2)},
+        {"Metric": "Profit", "Value": round(pprofit,2)},
+    ])
+
     st.success("✅ Risk validated")
-    st.write("Final Qty =", qty)
-    st.write("Option AMOUNT   ()  =",amount)  
-    st.write("Option Risk =", round(orisk, 2))
-    st.write("Capital Risk (5%) =", round(max_capital_risk, 2))
-    st.write("Position Value =", round(amount, 2))  
+
+    st.dataframe(
+        risk_table,
+        use_container_width=True,
+        hide_index=True
+    )
   
     #show_option_chart_with_trade_levels( df_option, symbol, entry_price=180, stop_loss=120,trailing_sl=st.session_state.get("trailing_sl") )
      #---------------------------------------------------------------------------------------SL------------
@@ -290,7 +454,7 @@ def monitor_all_open_positions_live(
                 st.warning(f"{symbol} EXIT → {status}")
 
         if not live_rows:
-            st.info("No open positions")
+            #st.info("No open positions")
             time.sleep(poll_interval)
             continue
 
@@ -330,7 +494,7 @@ def get_initial_sl_and_risk(df, entry_price, option_type):
     # Get 9:15 candle
     candle_915 = df[df.index.time == datetime.strptime("09:15", "%H:%M").time()]
     #
-    st.write("candle_915",candle_915)
+    #st.write("candle_915",candle_915)
     if candle_915.empty:
         return None, None
 
@@ -11075,6 +11239,8 @@ elif MENU =="LIVE TRADE 3":
             result = compute_option_iv_details(nearest_itm, spot)
             #st.write("Result IV new",result) 
             new_iv_result= result["iv"]
+            #st.session_state.GREEKtheta=new_iv_result 
+            st.session_state.option_iv=new_iv_result 
             iv_result=new_iv_result 
             #st.write("new_iv_result",new_iv_result) 
             result = "Pass" if 0.10 <= new_iv_result <= 0.35 else "Fail" 
@@ -11483,11 +11649,14 @@ elif MENU =="LIVE TRADE 3":
 
             st.subheader("🟢 Active Trade")
                
+            active_trade_box = st.empty()
+
+            #last_order1 = get_last_active_order(kite)
+
             if last_order1:
-                   #st.write({"Symbol": last_order["tradingsymbol"],"Qty": last_order["quantity"],"Entry Price": last_order["average_price"],"Order Time": last_order["order_timestamp"] })
-                   st.write("Last Order")
+                active_trade_box.success("Last Order Found")
             else:
-                   st.info("No active trade found.")
+                active_trade_box.info("No active trade found.")
 
 #--------------------------------------Exit Logix=-----------------------------------------------------------        
             pos = False 
@@ -11502,9 +11671,20 @@ elif MENU =="LIVE TRADE 3":
               #st.write("POS",pos)
             else:
                  st.write("No Open Position Active")
+                 symbol=trending_symbol
+                 #symbol="NIFTY26JAN25150PE" 
+                 #qty=65  
+                 #entry_price=127.15
+                 #strike=25200
+                 #expiry_date=date(2026,1,27)
+
+                 monitor_position_live_with_theta_table_and_exit(kite,symbol,qty,entry_price,strike,expiry,option_type="CALL")
+               
           
             if pos:
                   st.subheader("🟢 Active Position")
+                  
+                  monitor_position_live_with_theta_table_and_exit(kite,symbol,qty,entry_price,strike,expiry,option_type="CALL")
                   st.table(pd.DataFrame([{
                       "Symbol": pos["tradingsymbol"],
                       "Qty": pos["quantity"],
@@ -11517,7 +11697,7 @@ elif MENU =="LIVE TRADE 3":
             df_plot1 = fetch_nifty_daily_last_7_days(kite)
              
             #monitor_position_live_with_theta_table(kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
-            monitor_all_open_positions_live(kite)
+            #monitor_all_open_positions_live(kite)
             #while True:
                         #if df_plot1 is not None and not df_plot1.empty:
                              #monitor_and_exit_last_position(kite, df_plot1)

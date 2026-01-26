@@ -243,7 +243,73 @@ def get_instrument_token(kite, symbol):
     return None
 
 
+
 def get_option_ohlc(
+    kite,
+    symbol,
+    interval="5minute",
+    lookback_days=7
+):
+    """
+    Fetch option OHLC from latest working trading day (09:15 IST) to now
+    Automatically handles weekends & holidays
+    """
+
+    import pandas as pd
+    import pytz
+    import datetime as dt
+
+    token = get_instrument_token(kite, symbol)
+    if token is None:
+        return pd.DataFrame()
+
+    IST = pytz.timezone("Asia/Kolkata")
+    now_ist = dt.datetime.now(IST)
+
+    for day_offset in range(lookback_days):
+        trade_day = now_ist.date() - dt.timedelta(days=day_offset)
+
+        market_start = IST.localize(
+            dt.datetime.combine(trade_day, dt.time(9, 15))
+        )
+
+        market_end = IST.localize(
+            dt.datetime.combine(trade_day, dt.time(15, 30))
+        )
+
+        # If today → till now, else full day
+        to_time = now_ist if day_offset == 0 else market_end
+
+        # Skip future / pre-open time
+        if to_time <= market_start:
+            continue
+
+        try:
+            data = kite.historical_data(
+                instrument_token=token,
+                from_date=market_start,
+                to_date=to_time,
+                interval=interval,
+                continuous=False,
+                oi=False
+            )
+        except Exception:
+            continue
+
+        if data:
+            df = pd.DataFrame(data)
+            df["datetime"] = pd.to_datetime(df["date"])
+
+            return (
+                df[["datetime", "open", "high", "low", "close", "volume"]]
+                .sort_values("datetime")
+                .reset_index(drop=True)
+            )
+
+    # No data found even after lookback
+    return pd.DataFrame()
+
+def get_option_ohlc0(
     kite,
     symbol,
     interval="5minute"
@@ -259,7 +325,7 @@ def get_option_ohlc(
     token = get_instrument_token(kite, symbol)
     if token is None:
         return pd.DataFrame()
-    st.write("Token ",token) 
+    #st.write("Token ",token) 
     IST = pytz.timezone("Asia/Kolkata")
     now_ist = dt.datetime.now(IST)
 
@@ -426,7 +492,7 @@ def monitor_position_live_with_theta_table(
 ):  
     #============================================SHOW CHART===================================================
     df_option = get_option_ohlc(kite,symbol, interval="5minute")
-    st.write(df_option)  
+    st.write("Option data",df_option)  
     initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)
     st.write("initial_sl,risk1",initial_sl,risk1)  
     #st.write(df_option) 

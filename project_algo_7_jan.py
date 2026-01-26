@@ -251,7 +251,7 @@ def get_option_ohlc(
     """
     Fetch option OHLC from today's market open (09:15 IST) to now
     """
-    st.write("Symbol ",symbol) 
+    #st.write("Symbol ",symbol) 
     import pandas as pd
     import pytz
     import datetime as dt
@@ -259,7 +259,7 @@ def get_option_ohlc(
     token = get_instrument_token(kite, symbol)
     if token is None:
         return pd.DataFrame()
-
+    st.write("Token ",token) 
     IST = pytz.timezone("Asia/Kolkata")
     now_ist = dt.datetime.now(IST)
 

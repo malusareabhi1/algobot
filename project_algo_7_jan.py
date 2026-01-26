@@ -11316,17 +11316,17 @@ elif MENU =="LIVE TRADE 3":
                         use_container_width=True,
                         hide_index=True
                     )
-                        
-            else:
-                   st.write("No parameters added yet.")
-
-			       col3:
+                    with col3:
 						st.subheader("✅ Trade Validation")
 			            qty=get_lot_qty(new_iv_result,vix_now,vix_result,pcr_result)
 			            #st.write("Qty",qty)
 			            qty=qty*QTY_PER_LOT
 			            strike=spot
-			            trade_validation(kite,trending_symbol, qty,entry_price, strike, expiry,option_type="CALL")
+			            trade_validation(kite,trending_symbol, qty,entry_price, strike, expiry,option_type="CALL")    
+            else:
+                   st.write("No parameters added yet.")
+
+			       
     #------------------------------------------------------------------------------------------------
             #
             qty=65*lot_qty

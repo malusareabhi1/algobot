@@ -1,0 +1,26 @@
+QTY_PER_LOT = 65
+MAX_SIGNAL_DELAY_SEC = 300     # 5 minutes
+MAX_TRADES_PER_DAY =3
+
+RISK_FREE_RATE = 0.05
+
+MARKET_START = (9, 30)
+MARKET_END   = (15, 20)
+
+DEFAULT_IV = 0.18
+from datetime import time
+
+
+IST_TIMEZONE = "Asia/Kolkata"
+
+
+TRADE_START_TIME = time(9, 30)
+TRADE_END_TIME = time(14, 30)
+
+
+MAX_TRADES_PER_DAY = 3
+
+
+INDEX_SYMBOL = "^NSEI"
+INTERVAL_5M = "5m"
+INTERVAL_15M = "15m"

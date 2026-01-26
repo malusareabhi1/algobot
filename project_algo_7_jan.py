@@ -21,6 +21,8 @@ from kiteconnect.exceptions import PermissionException, TokenException
 from dotenv import load_dotenv    
 from math import log, sqrt, exp
 from scipy.stats import norm
+from config import QTY_PER_LOT
+
 # Auto-refresh every 30 seconds
 # Market hours condition
 #import pytz
@@ -58,6 +60,117 @@ if "position_size" not in st.session_state:
 
 if "lot_qty" not in st.session_state:
     st.session_state.lot_qty = 1
+
+
+
+
+#==============================================Trade Validation +++++++++++++++++=====================================
+
+
+def trade_validation(
+    kite,
+    symbol,
+    qty,
+    entry_price,
+    strike,
+    expiry_date,
+    option_type="CALL"
+):  
+    #============================================SHOW CHART===================================================
+    df_option = get_option_ohlc(kite,symbol, interval="5minute")
+    #st.write("Option data",df_option)  
+    initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)
+    st.write("initial_sl,risk1",initial_sl,risk1)  
+    st.write("Qty",qty)
+    #st.write(df_option) 
+    #st.write("symbol, qty, entry_price,strike,expiry_date,option_type",symbol, qty, entry_price, strike,  expiry_date,  option_type)   
+    import time as tm 
+    ist = pytz.timezone("Asia/Kolkata")
+    placeholder = st.empty()
+    trailing_sl = entry_price * 0.30
+     
+    status = "LIVE"
+    amount=entry_price*qty
+    fund=get_fund_status(kite)
+    cash=fund['net'] 
+    cash=100000 
+    risk=cash*(5/100) 
+    orisk= (entry_price-initial_sl)*qty
+    #st.write("Total Capital(100%)=",cash)
+    #st.write("Capital RISK   (5%)  =",risk)
+    #st.write("Option AMOUNT   ()  =",amount) 
+    #st.write("Option RISK   (entry_price-initial_sl*QTY)  =",orisk) 
+    if(orisk>risk):
+         qty=qty/2
+    #st.write("Qty=",qty) 
+    amount= entry_price*qty
+    orisk= (entry_price-initial_sl)*qty 
+    #st.write("New Option AMOUNT   ()  =",amount) 
+    pprofit=orisk+entry_price+2
+    #st.write("Partial pprofit=",pprofit) 
+    #st.write("New Option RISK   (entry_price-initial_sl*QTY)  =",orisk)  
+    #---------------------------------------------------------------------------------------SL------------  
+    # ------------------ RISK MANAGEMENT ------------------
+
+    lot_size = 65 #nearest_itm.get("lot_size", qty)
+     
+    max_capital_risk = cash * 0.05  # 5%
+    per_unit_risk = abs(entry_price - initial_sl)
+     
+    qty = int(qty)  # safety
+    orisk = per_unit_risk * qty
+     
+    while orisk > max_capital_risk:
+         qty -= lot_size
+     
+         if qty <= 0:
+             #st.error("❌ Trade rejected: Risk too high even for 1 lot")
+             #return  # EXIT FUNCTION
+             trade_allowed = False
+             st.error("❌ Trade rejected: Risk too high even for 1 lot")
+             break     
+     
+         orisk = per_unit_risk * qty
+     
+     # Final validated qty
+    amount = entry_price * qty
+     
+    st.success("✅ Risk validated")
+    st.write("Final Qty =", qty)
+    st.write("Option AMOUNT   ()  =",amount)  
+    st.write("Option Risk =", round(orisk, 2))
+    st.write("Capital Risk (5%) =", round(max_capital_risk, 2))
+    st.write("Position Value =", round(amount, 2))  
+  
+    #show_option_chart_with_trade_levels( df_option, symbol, entry_price=180, stop_loss=120,trailing_sl=st.session_state.get("trailing_sl") )
+     #---------------------------------------------------------------------------------------SL------------
+     
+    #========================================================================================================== 
+    
+
+	
+
+#===========================================Get Lot Qty+=============================================================
+
+
+def  get_lot_qty(new_iv_result,vix_now,vix_result,pcr_result):
+    lot_qty = 0  
+    if new_iv_result == "Fail" : #or iv_rank_result == "Fail":
+            lot_qty = 2
+    if new_iv_result == "Pass"  and vix_result=="pass" and pcr_result=="pass":
+            lot_qty = 6    
+    if vix_now < 10 :
+            lot_qty = 1 
+    if 10< vix_now < 15 :
+            lot_qty = 2
+    if 15< vix_now < 20 :
+            lot_qty = 4
+    if vix_now > 20 :
+            lot_qty = 1 
+    return lot_qty             
+    #add_param_row("LOT QTY", lot_qty, "0,1,2,4,6", "OK")
+
+
 #==========================================================TRADE LOG++=======================================================\
 
 
@@ -11397,6 +11510,12 @@ elif MENU =="LIVE TRADE 3":
                  
 
             df_plot1 = fetch_nifty_daily_last_7_days(kite)
+            st.subheader("✅ Trade Validation")
+            qty=get_lot_qty(new_iv_result,vix_now,vix_result,pcr_result)
+            #st.write("Qty",qty)
+            qty=qty*QTY_PER_LOT
+            strike=spot
+            monitor_position_live_with_theta_table(kite,trending_symbol, qty,entry_price, strike, expiry,option_type="CALL") 
             #monitor_position_live_with_theta_table(kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
             monitor_all_open_positions_live(kite)
             #while True:

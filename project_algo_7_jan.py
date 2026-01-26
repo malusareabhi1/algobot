@@ -543,7 +543,7 @@ def monitor_position_live_with_theta_table(
          orisk = per_unit_risk * qty
      
      # Final validated qty
-     amount = entry_price * qty
+    amount = entry_price * qty
      
     st.success("✅ Risk validated")
     st.write("Final Qty =", qty)

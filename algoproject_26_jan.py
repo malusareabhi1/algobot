@@ -11679,7 +11679,7 @@ elif MENU =="LIVE TRADE 3":
                  #strike=25200
                  #expiry_date=date(2026,1,27)
 
-                 monitor_position_live_with_theta_table_and_exit(kite,symbol,qty,entry_price,strike,expiry,option_type="CALL")
+                 #monitor_position_live_with_theta_table_and_exit(kite,symbol,qty,entry_price,strike,expiry,option_type="CALL")
                
           
             if pos:

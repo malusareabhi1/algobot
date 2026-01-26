@@ -251,7 +251,7 @@ def get_option_ohlc(
     """
     Fetch option OHLC from today's market open (09:15 IST) to now
     """
-
+    st.write("Symbol ",symbol) 
     import pandas as pd
     import pytz
     import datetime as dt

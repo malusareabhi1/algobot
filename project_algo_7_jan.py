@@ -11206,7 +11206,7 @@ elif MENU =="LIVE TRADE 3":
             if st.session_state.param_rows:
                    df = pd.DataFrame(st.session_state.param_rows)
                
-                   col1, col2 = st.columns([1, 1])  # 50% width each
+                   col1, col2, col3 = st.columns([1, 1,1])  # 50% width each
                
                    with col1:
                        st.subheader("Parameters") 
@@ -11319,6 +11319,14 @@ elif MENU =="LIVE TRADE 3":
                         
             else:
                    st.write("No parameters added yet.")
+
+			       col3:
+						st.subheader("✅ Trade Validation")
+			            qty=get_lot_qty(new_iv_result,vix_now,vix_result,pcr_result)
+			            #st.write("Qty",qty)
+			            qty=qty*QTY_PER_LOT
+			            strike=spot
+			            trade_validation(kite,trending_symbol, qty,entry_price, strike, expiry,option_type="CALL")
     #------------------------------------------------------------------------------------------------
             #
             qty=65*lot_qty
@@ -11510,12 +11518,7 @@ elif MENU =="LIVE TRADE 3":
                  
 
             df_plot1 = fetch_nifty_daily_last_7_days(kite)
-            st.subheader("✅ Trade Validation")
-            qty=get_lot_qty(new_iv_result,vix_now,vix_result,pcr_result)
-            #st.write("Qty",qty)
-            qty=qty*QTY_PER_LOT
-            strike=spot
-            monitor_position_live_with_theta_table(kite,trending_symbol, qty,entry_price, strike, expiry,option_type="CALL") 
+             
             #monitor_position_live_with_theta_table(kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
             monitor_all_open_positions_live(kite)
             #while True:

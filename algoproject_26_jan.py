@@ -6506,14 +6506,14 @@ with st.sidebar:
 
     MENU = st.radio(
         "Navigate",
-        ["Home", "My Account", "Login Zerodha  API","Strategy Signals","Strategy Multi Signals", "Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","LIVE TRADE 3","Telegram","Moniter Position Test","Download Instrument","NIFTY 3:20 PM Intraday Strategy","Logout"],
+        ["🏠 Home", "My Account", "Login Zerodha  API","Strategy Signals","Strategy Multi Signals", "Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","LIVE TRADE 3","Telegram","Moniter Position Test","Download Instrument","NIFTY 3:20 PM Intraday Strategy","Logout"],
         index=0,
     )
 
 # ------------------------------------------------------------
 # Home
 # ------------------------------------------------------------
-if MENU == "Home":
+if MENU == "🏠 Home":
     st.title("Welcome to TALK ALGO LABS  Trading Platform")
     st.write("Automate your trades with smart, auditable strategies. Connect your broker, choose a strategy, and manage risk — all from one dashboard.")
 

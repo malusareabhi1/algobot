@@ -523,7 +523,33 @@ def monitor_position_live_with_theta_table(
     st.write("Partial pprofit=",pprofit) 
     st.write("New Option RISK   (entry_price-initial_sl*QTY)  =",orisk)  
     #---------------------------------------------------------------------------------------SL------------  
-      
+    # ------------------ RISK MANAGEMENT ------------------
+
+    lot_size = nearest_itm.get("lot_size", qty)
+     
+    max_capital_risk = cash * 0.05  # 5%
+    per_unit_risk = abs(entry_price - initial_sl)
+     
+    qty = int(qty)  # safety
+    orisk = per_unit_risk * qty
+     
+    while orisk > max_capital_risk:
+         qty -= lot_size
+     
+         if qty <= 0:
+             st.error("❌ Trade rejected: Risk too high even for 1 lot")
+             return  # EXIT FUNCTION
+     
+         orisk = per_unit_risk * qty
+     
+     # Final validated qty
+     amount = entry_price * qty
+     
+    st.success("✅ Risk validated")
+    st.write("Final Qty =", qty)
+    st.write("Option Risk =", round(orisk, 2))
+    st.write("Capital Risk (5%) =", round(max_capital_risk, 2))
+    st.write("Position Value =", round(amount, 2))  
   
     #show_option_chart_with_trade_levels( df_option, symbol, entry_price=180, stop_loss=120,trailing_sl=st.session_state.get("trailing_sl") )
      #---------------------------------------------------------------------------------------SL------------

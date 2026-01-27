@@ -35,8 +35,8 @@ now = datetime.now(ist).time()
 # Refresh only between 9:30–3:25
 if start <= now <= end:
      st_autorefresh(interval=30000, key="refresh")  # 1 minute refresh
-else:
-    st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
+#else:
+    #st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
 
 if "paper_trades" not in st.session_state:
     st.session_state["paper_trades"] = []
@@ -10767,11 +10767,7 @@ elif MENU =="LIVE TRADE 3":
         except:
             return False
 
-    if is_kite_connected(kite):
-        st.success("Kite connection active")
-    else:
-        st.error("Kite session expired. Please login again.")
-
+    
     st.set_page_config(layout="wide")
     # Place at the very top of your script (or just before plotting)
     #st_autorefresh(interval=60000, limit=None, key="refresh")
@@ -10799,8 +10795,8 @@ elif MENU =="LIVE TRADE 3":
     if start <= now <= end:
         #st_autorefresh(interval=60000, key="refresh")  # 1 minute refresh
         st_autorefresh(interval=60000, key="refresh_live3")
-    else:
-        st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
+    #else:
+        #st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
 
     #st.title("Nifty 15-min Chart")
     

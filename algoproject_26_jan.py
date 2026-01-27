@@ -238,7 +238,7 @@ def trade_validation(
     amount=entry_price*qty
     fund=get_fund_status(kite)
     cash=fund['net'] 
-    cash=100000 
+    #cash=100000 
     risk=cash*(5/100) 
     orisk= (entry_price-initial_sl)*qty
     #st.write("Total Capital(100%)=",cash)

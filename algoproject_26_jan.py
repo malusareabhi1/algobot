@@ -11516,7 +11516,7 @@ elif MENU =="LIVE TRADE 3":
             else:
                 st.write("No parameters added yet.")
 
-            demo_place_order(trending_symbol,qty)
+            #demo_place_order(trending_symbol,qty)
             
 
                    
@@ -11594,11 +11594,9 @@ elif MENU =="LIVE TRADE 3":
                         )
                         st.stop()     
                       # Check 3: Order placed only once
-                        if lot_qty>0: 
+                        if qty>0: 
                               if has_open_position(kite):
-
-                                  st.warning("⚠️ Open position exists. New trade not allowed.")
-                                  
+                                  st.warning("⚠️ Open position exists. New trade not allowed.")                                  
                               else:
                                     if not st.session_state.order_executed:
                                         try:

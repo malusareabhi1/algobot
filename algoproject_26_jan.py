@@ -138,11 +138,11 @@ def monitor_position_live_with_theta_table_and_exit(
     while True:
         now = datetime.now(ist)
         ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
-        pnl = (
-            (ltp - entry_price) * qty
-            if option_type == "PUT"
-            else (entry_price - ltp) * qty
-        )
+        if(option_type=="CALL") 
+             pnl =(ltp - entry_price) * qty
+        if option_type == "PUT"
+             pnl =(entry_price - ltp) * qty
+             
         #theta = st.session_state.get("GREEKtheta", 0)
         
         if ltp > entry_price * 1.01:

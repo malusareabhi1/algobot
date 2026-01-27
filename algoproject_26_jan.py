@@ -11024,7 +11024,8 @@ elif MENU =="LIVE TRADE 3":
             signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
             last_signal["signal_time"] = signal_time
             signal_time1=last_signal["signal_time"] 
-            S=last_signal["buy_price"]              
+            S=last_signal["buy_price"] 
+            SPOT=last_signal["buy_price"]  
             signal_entry_time=last_signal["entry_time"] 
                 
                 # Display as table
@@ -11135,9 +11136,9 @@ elif MENU =="LIVE TRADE 3":
                    st.info("Running in safe mode. Live data access is unavailable.")
                    st.stop() #return  # or st.stop()
                 
-            st.write(option_dict) 
+            #st.write(option_dict) 
             #spot_price=26046.00 
-            spot_price=option_dict.get("strike") 
+            spot_price=SPOT #option_dict.get("strike") 
             ltp = option_dict.get("ltp")
             #S=ltp
             #K=spot_price 
@@ -11199,7 +11200,7 @@ elif MENU =="LIVE TRADE 3":
             option_symbol=trending_symbol
             option_type = last_signal["option_type"]
             spot = last_signal["buy_price"] 
-             
+            st.session_state.SPOT=spot 
             expiry =st.session_state.expiry
             #st.write("Moniter")
             #st.write("Expiry",expiry) 
@@ -11227,7 +11228,7 @@ elif MENU =="LIVE TRADE 3":
      
             #st.write("option",option)
             #st.write("nearest_itm option",nearest_itm)
-            spot=ltp
+            spot=SPOT
             #spot = option["last_price"]
             #st.write("Spot",spot) 
             #spot = 25900.00  # live NIFTY spot

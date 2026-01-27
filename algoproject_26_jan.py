@@ -294,8 +294,7 @@ def trade_validation(
         {"Metric": "Final Qty", "Value": qty},
         {"Metric": "Option Amount", "Value": round(amount, 2)},
         {"Metric": "Option Risk", "Value": round(orisk, 2)},
-        {"Metric": "Capital Risk (5%)", "Value": round(max_capital_risk, 2)},
-        {"Metric": "Position Value", "Value": round(amount, 2)},
+        {"Metric": "Capital Risk (5%)", "Value": round(max_capital_risk, 2)},        
         {"Metric": "Profit", "Value": round(pprofit,2)},
     ])
 
@@ -11111,7 +11110,7 @@ elif MENU =="LIVE TRADE 3":
                 K=nearest_itm1["strike"] 
                 #st.write("S, K=",S,K)  
                 # Display as table
-                st.table(nearest_itm1)
+                #st.table(nearest_itm1)
                 #trending_symbol=nearest_itm1["tradingsymbol"]
                 trending_symbol = nearest_itm1["tradingsymbol"].iloc[0]
  
@@ -11171,7 +11170,7 @@ elif MENU =="LIVE TRADE 3":
                   entry_time1=last_signal["entry_time"]
                   diff_minutes = (now - signal_time1).total_seconds() / 60
                   st.write("diff_minutes==",diff_minutes) 
-                  if diff_minutes < 2: 
+                  if diff_minutes < 3: 
                            st.session_state.symbol_entry_ltp=entry_price
                   trade = {
                         "signal_time": signal_time,
@@ -11202,8 +11201,8 @@ elif MENU =="LIVE TRADE 3":
             spot = last_signal["buy_price"] 
              
             expiry =st.session_state.expiry
-            st.write("Moniter")
-            st.write("Expiry",expiry) 
+            #st.write("Moniter")
+            #st.write("Expiry",expiry) 
           #---------------------------------------PAPER TRADE----------------------------------------------------   
               # Compute time to expiry (in years)
             days_to_exp = days_to_expiry(expiry)

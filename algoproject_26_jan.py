@@ -91,7 +91,7 @@ def demo_place_order(symbol,qty):
                                             st.session_state["last_order_id"] = order_id
                                             st.session_state.last_executed_signal_time = signal_time
                                             st.session_state.last_option_entry_price = entry_price     
-                                        except Exception as e:
+     except Exception as e:
                                             st.error(f"Order Failed: {e}")
 #===================================================================================================================
 

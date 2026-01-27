@@ -306,7 +306,7 @@ def trade_validation(
         use_container_width=True,
         hide_index=True
     )
-  
+    return qty 
     #show_option_chart_with_trade_levels( df_option, symbol, entry_price=180, stop_loss=120,trailing_sl=st.session_state.get("trailing_sl") )
      #---------------------------------------------------------------------------------------SL------------
      
@@ -11475,7 +11475,7 @@ elif MENU =="LIVE TRADE 3":
                     qty = qty * QTY_PER_LOT
                     strike = spot
             
-                    trade_validation(
+                    qty=trade_validation(
                         kite,
                         trending_symbol,
                         qty,

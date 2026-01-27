@@ -10605,7 +10605,7 @@ elif MENU =="LIVE TRADE 3":
              st.success("All paper trades cleared")
              st.rerun()
  
-    st.title("🔴 LIVE TRADE 3")
+    #st.title("🔴 LIVE TRADE 3")
     #st.title("🔴 Live Nifty 15-Minute Chart + Signal Engine")
     with st.expander("📘 Base Zone Multi-Condition Options Strategy (Click to Expand)"):
          st.markdown("""
@@ -10717,26 +10717,21 @@ elif MENU =="LIVE TRADE 3":
      ### ✅ In simple words:
      > This is a **professional gap-and-base breakout strategy** with **dynamic trailing SL and time-based exits** — built for intraday NIFTY options trading.
      """)
+    
+    # STEP 1: Check kite object existence
     kite = st.session_state.get("kite")
-
-    if kite is None:
-         st.error("Kite object not initialized")
-    else:
-         if not is_kite_connected(kite):
-             st.warning("Kite not connected")     
-    if not is_kite_connected(kite):
-        st.warning("Please login first to access LIVE trade.")
-        st.stop()     # Stop page execution safely
-
-    if "kite" not in st.session_state or st.session_state.kite is None:
-         st.info("Please login to access Algo Trading.")
-         st.stop()
-
-    kite = st.session_state.kite
      
+    if kite is None:
+         st.warning("Please login to access Algo Trading.")
+         st.stop()
+     
+     # STEP 2: Check kite session validity
     if not is_kite_connected(kite):
          st.warning("Kite session not active. Please login again.")
          st.stop()
+     
+     # ✅ SAFE TO CONTINUE LIVE TRADING BELOW
+
 
      # --- --------------------------------------------------------------------------------        
     # --- HARD BLOCK: Do not trade if position already exists ---

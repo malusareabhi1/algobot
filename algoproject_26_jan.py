@@ -11573,6 +11573,7 @@ elif MENU =="LIVE TRADE 3":
                               else:
                                     if not st.session_state.order_executed:
                                         try:
+                                            st.write("Placing Trade-") 
                                             order_id = kite.place_order(
                                                     tradingsymbol=trending_symbol,
                                                     exchange=kite.EXCHANGE_NFO,

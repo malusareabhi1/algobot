@@ -1339,8 +1339,8 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     from datetime import time as dtime 
     import numpy as np
     import pandas as pd
-    TRADE_START_TIME = dtime(9, 30)
-    TRADE_EXIT_CUTOFF = dtime(14, 30) 
+    TRADE_START_TIME = dtime(9, 35)
+    TRADE_EXIT_CUTOFF = dtime(15, 20) 
     signals = []
 
     # =========================

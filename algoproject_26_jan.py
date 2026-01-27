@@ -11103,7 +11103,8 @@ elif MENU =="LIVE TRADE 3":
                 nearest_itm1 = pd.DataFrame([nearest_itm]) 
                 with colB:
                      st.subheader("📊 Option Log")
-                     st.table(nearest_itm1)
+                     #st.table(nearest_itm1)
+                     st.table(nearest_itm1[["tradingsymbol", "strike", "expiry", "ltp"]])
                      #st.write(df[["tradingsymbol", "ltp", "expiry", "spot", "strike"]])
 
                 #S=nearest_itm1["ltp"]

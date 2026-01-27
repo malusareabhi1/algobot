@@ -6536,7 +6536,7 @@ with st.sidebar:
 
     MENU = st.radio(
         "Navigate",
-        ["🏠 Home", "My Account", "Login Zerodha  API","Strategy Signals","Strategy Multi Signals", "Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","LIVE TRADE 3","Telegram","Moniter Position Test","Download Instrument","NIFTY 3:20 PM Intraday Strategy","Logout"],
+        ["🏠 Home", "My Account", "Login Zerodha  API","Strategy Signals","Strategy Multi Signals", "Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","LIVE TRADE 3","Telegram","Moniter Position Test","Download Instrument","Download OPTION CHAIN","NIFTY 3:20 PM Intraday Strategy","Logout"],
         index=0,
     )
 
@@ -13236,6 +13236,142 @@ elif MENU=="Upload Instrument":
     # 🔴 VERY IMPORTANT: Button trigger
     if st.button("Upload Instruments to GitHub"):
         upload_instruments_to_github()
+
+elif MENU=="Download OPTION CHAIN":
+     import time
+     import math
+     import pandas as pd
+     from datetime import datetime, date
+     import pytz
+     from scipy.stats import norm
+     
+     # ==================================================
+     # CONFIG
+     # ==================================================
+     EXPIRY_DATE = date(2026, 2, 3)     # Change weekly expiry
+     RISK_FREE_RATE = 0.06               # 6%
+     INTERVAL_SECONDS = 60               # 1 minute
+     CSV_FILE = "nifty_option_chain_minutely.csv"
+     
+     IST = pytz.timezone("Asia/Kolkata")
+     
+     # NOTE:
+     # kite object MUST already be connected before importing this file
+     # ==================================================
+     
+     
+     # ==================================================
+     # BLACK–SCHOLES GREEKS
+     # ==================================================
+     def bs_greeks(S, K, T, r, sigma, opt_type):
+         if T <= 0 or sigma <= 0 or S <= 0:
+             return 0, 0, 0, 0
+     
+         d1 = (math.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * math.sqrt(T))
+         d2 = d1 - sigma * math.sqrt(T)
+     
+         delta = norm.cdf(d1) if opt_type == "CE" else -norm.cdf(-d1)
+         gamma = norm.pdf(d1) / (S * sigma * math.sqrt(T))
+         theta = -(S * norm.pdf(d1) * sigma) / (2 * math.sqrt(T))
+         vega = S * norm.pdf(d1) * math.sqrt(T)
+     
+         return delta, gamma, theta, vega
+     
+     
+     # ==================================================
+     # FETCH NIFTY OPTIONS
+     # ==================================================
+     def get_nifty_options():
+         instruments = kite.instruments("NFO")
+         return [
+             ins for ins in instruments
+             if ins["name"] == "NIFTY"
+             and ins["instrument_type"] in ("CE", "PE")
+             and ins["expiry"] == EXPIRY_DATE
+         ]
+     
+     
+     # ==================================================
+     # MAIN LOGGER
+     # ==================================================
+     def save_nifty_option_chain():
+         now = datetime.now(IST)
+     
+         nifty_price = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
+         options = get_nifty_options()
+     
+         rows = []
+     
+         for opt in options:
+             symbol = f"NFO:{opt['tradingsymbol']}"
+     
+             try:
+                 ltp_data = kite.ltp(symbol)[symbol]
+             except Exception:
+                 continue
+     
+             ltp = ltp_data["last_price"]
+             oi = ltp_data.get("oi", 0)
+             volume = ltp_data.get("volume", 0)
+             iv = ltp_data.get("implied_volatility", 0) / 100
+     
+             strike = opt["strike"]
+             opt_type = opt["instrument_type"]
+     
+             T = max((opt["expiry"] - now.date()).days / 365, 0.0001)
+     
+             delta, gamma, theta, vega = bs_greeks(
+                 nifty_price, strike, T, RISK_FREE_RATE, iv, opt_type
+             )
+     
+             rows.append({
+                 "timestamp": now,
+                 "spot": nifty_price,
+                 "expiry": opt["expiry"],
+                 "strike": strike,
+                 "type": opt_type,
+                 "ltp": ltp,
+                 "volume": volume,
+                 "oi": oi,
+                 "iv": iv,
+                 "delta": delta,
+                 "gamma": gamma,
+                 "theta": theta,
+                 "vega": vega
+             })
+     
+         if not rows:
+             return
+     
+         df = pd.DataFrame(rows)
+     
+         df.to_csv(
+             CSV_FILE,
+             mode="a",
+             header=not pd.io.common.file_exists(CSV_FILE),
+             index=False
+         )
+     
+         print(f"✅ {now.strftime('%H:%M:%S')} | Rows saved: {len(df)}")
+     
+     
+     # ==================================================
+     # RUN LOOP
+     # ==================================================
+     if __name__ == "__main__":
+         print("🚀 NIFTY Option Chain + Greeks Logger Started")
+     
+         while True:
+             try:
+                 save_nifty_option_chain()
+                 time.sleep(INTERVAL_SECONDS)
+             except KeyboardInterrupt:
+                 print("⛔ Logger stopped")
+                 break
+             except Exception as e:
+                 print("❌ Error:", e)
+                 time.sleep(10)
+
 
 # ------------------------------------------------------------
 # Footer

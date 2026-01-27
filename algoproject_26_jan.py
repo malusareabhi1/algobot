@@ -61,7 +61,38 @@ if "position_size" not in st.session_state:
 
 if "lot_qty" not in st.session_state:
     st.session_state.lot_qty = 1
+#=====================================================Demo Place order=======================-====
 
+
+def demo_place_order(symbol,qty):
+     try:
+                                            st.write("Placing Trade-") 
+                                            order_id = kite.place_order(
+                                                    tradingsymbol=trending_symbol,
+                                                    exchange=kite.EXCHANGE_NFO,
+                                                    transaction_type=kite.TRANSACTION_TYPE_BUY,
+                                                    quantity=qty,
+                                                    order_type=kite.ORDER_TYPE_MARKET,
+                                                    variety=kite.VARIETY_REGULAR,
+                                                    product=kite.PRODUCT_MIS
+                                                )
+                                
+                                            st.session_state.order_executed = True   # Mark executed
+                                            #st.session_state.order_executed = True
+                                            st.session_state.last_order_id = order_id
+                                   
+                                           # ✅ Mark trade active
+                                            st.session_state.trade_active = True
+                                            st.session_state.entry_price = ltp
+                                            st.session_state.entry_time = datetime.now()
+                                            st.session_state.qty = qty
+                                            st.session_state.tradingsymbol = trending_symbol 
+                                            st.success(f"Order Placed Successfully! Order ID: {order_id}")
+                                            st.session_state["last_order_id"] = order_id
+                                            st.session_state.last_executed_signal_time = signal_time
+                                            st.session_state.last_option_entry_price = entry_price     
+                                        except Exception as e:
+                                            st.error(f"Order Failed: {e}")
 #===================================================================================================================
 
 def monitor_position_live_with_theta_table_and_exit(

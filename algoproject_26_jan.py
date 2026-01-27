@@ -13352,24 +13352,24 @@ elif MENU=="Download OPTION CHAIN":
              index=False
          )
      
-         print(f"✅ {now.strftime('%H:%M:%S')} | Rows saved: {len(df)}")
+         st.write(f"✅ {now.strftime('%H:%M:%S')} | Rows saved: {len(df)}")
      
      
      # ==================================================
      # RUN LOOP
      # ==================================================
      if __name__ == "__main__":
-         print("🚀 NIFTY Option Chain + Greeks Logger Started")
+         st.write("🚀 NIFTY Option Chain + Greeks Logger Started")
      
          while True:
              try:
                  save_nifty_option_chain()
                  time.sleep(INTERVAL_SECONDS)
              except KeyboardInterrupt:
-                 print("⛔ Logger stopped")
+                 st.write("⛔ Logger stopped")
                  break
              except Exception as e:
-                 print("❌ Error:", e)
+                 st.write("❌ Error:", e)
                  time.sleep(10)
 
 

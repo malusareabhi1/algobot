@@ -11128,7 +11128,7 @@ elif MENU =="LIVE TRADE 3":
 
     
 #######################---------------------IV-NEW !-------------------------------------------------
-            st.write("trending_symbol ",trending_symbol) 
+            #st.write("trending_symbol ",trending_symbol) 
              
             option_dict = get_live_option_details(kite, trending_symbol)
             if option_dict is None:

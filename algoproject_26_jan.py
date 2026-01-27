@@ -11031,17 +11031,14 @@ elif MENU =="LIVE TRADE 3":
                 # Display as table
             #st.table(df_sig1) 
             #st.write(df_sig1) 
-            st.subheader("📊 Signal Log")
-            #st.write(df_sig1) 
-            st.dataframe(df_sig1, use_container_width=True, hide_index=True)
-            #if "trades_signals" not in st.session_state:
-                   #st.session_state.trades_signals = []
-            #st.session_state.trades_signals.append(df_sig1) 
-            #if isinstance(st.session_state.get("trades_signals"), pd.DataFrame):
-                       # st.subheader("📊 Signal Logs")
-                       # st.dataframe(st.session_state.trades_signals, use_container_width=True) 
-           # else:
-                # st.write("No signals in session state")
+            colA, colB = st.columns(2)
+            st.divider()
+            with colA:
+                 
+                 st.subheader("📊 Signal Log")
+                 #st.write(df_sig1) 
+                 st.dataframe(df_sig1, use_container_width=True, hide_index=True)
+            
 #======================================================================================================================
 
 
@@ -11097,10 +11094,10 @@ elif MENU =="LIVE TRADE 3":
             #st.write("Option spot ",spot)
             try:
                 nearest_itm = find_nearest_itm_option(kite, spot, option_type)
-                
-                st.success("Nearest ITM Option Found")
-                #                st.write(nearest_itm)
-                nearest_itm1 = pd.DataFrame([nearest_itm])
+                nearest_itm1 = pd.DataFrame([nearest_itm]) 
+                with colB:
+                     st.success("Nearest ITM Option Found")
+                     st.table(nearest_itm1)
                 #S=nearest_itm1["ltp"]
                 K=nearest_itm1["strike"] 
                 #st.write("S, K=",S,K)  

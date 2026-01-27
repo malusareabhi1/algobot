@@ -11516,7 +11516,7 @@ elif MENU =="LIVE TRADE 3":
             else:
                 st.write("No parameters added yet.")
 
-             demo_place_order(trending_symbol,qty)
+            demo_place_order(trending_symbol,qty)
             
 
                    

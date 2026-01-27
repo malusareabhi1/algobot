@@ -202,8 +202,8 @@ def monitor_position_live_with_theta_table_and_exit(
             st.write("Placing Partial place_exit_order") 
             break
         if status != "LIVE":
-            #place_exit_order(kite, symbol, qty, status)
-            st.write("place_exit_order") 
+            place_exit_order(kite, symbol, qty, status)
+            st.write("place_exit_order triggred") 
             break
 
         tm.sleep(1)

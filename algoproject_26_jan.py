@@ -11037,8 +11037,14 @@ elif MENU =="LIVE TRADE 3":
                  
                  st.subheader("📊 Signal Log")
                  #st.write(df_sig1) 
-                 st.dataframe(df_sig1, use_container_width=True, hide_index=True)
-            
+                 #st.dataframe(df_sig1, use_container_width=True, hide_index=True)
+                 cols = ["option_type", "buy_price", "entry_time"]
+                 st.dataframe(
+                        df_sig1[cols],
+                        use_container_width=True,
+                        hide_index=True
+                    )
+                                
 #======================================================================================================================
 
 
@@ -11096,8 +11102,10 @@ elif MENU =="LIVE TRADE 3":
                 nearest_itm = find_nearest_itm_option(kite, spot, option_type)
                 nearest_itm1 = pd.DataFrame([nearest_itm]) 
                 with colB:
-                     st.success("Nearest ITM Option Found")
-                     st.table(nearest_itm1)
+                     st.subheader("📊 Option Log")
+                     #st.table(nearest_itm1)
+                     st.write(df[["tradingsymbol", "ltp", "expiry", "spot", "strike"]])
+
                 #S=nearest_itm1["ltp"]
                 K=nearest_itm1["strike"] 
                 #st.write("S, K=",S,K)  

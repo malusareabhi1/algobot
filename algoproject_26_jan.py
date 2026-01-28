@@ -11571,7 +11571,7 @@ elif MENU =="LIVE TRADE 3":
                     price_diff_pct = abs(currnt_price - last_signal_price) / last_signal_price * 100 
                     st.write("Current Price Difference=",price_diff_pct) 
                     st.write("Current TIIME=",now)
-                    st.write("Signal TIIME=",signal_entry_time)  
+                    st.write("Signal TIIME=",signal_time)  
                     diff_minutes = (now - signal_time).total_seconds() / 60
                     st.write("diff_minutes=",diff_minutes)    
                     MAX_DELAY_MINUTES = 5   # or 10 if you want

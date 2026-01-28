@@ -11575,7 +11575,8 @@ elif MENU =="LIVE TRADE 3":
                     
                     IST = pytz.timezone("Asia/Kolkata")
                     now = datetime.now(IST)
-                    signal_time = signal_time.astimezone(IST)    
+                    signal_time = IST.localize(datetime.strptime(ts, "%Y-%m-%d %H:%M:%S"))  
+                    #signal_time = signal_time.astimezone(IST)    
                     st.write("Current TIIME=",now)
                     st.write("Signal TIIME=",signal_time)
                     

@@ -11072,7 +11072,7 @@ elif MENU =="LIVE TRADE 3":
             S=last_signal["buy_price"] 
             SPOT=last_signal["buy_price"]  
             signal_entry_time=last_signal["entry_time"] 
-                
+            st.write("signal_entry_time ",signal_entry_time)    
                 # Display as table
             #st.table(df_sig1) 
             #st.write(df_sig1) 
@@ -11584,6 +11584,7 @@ elif MENU =="LIVE TRADE 3":
                                    
                     price_diff_pct = abs(currnt_price - last_signal_price) / last_signal_price * 100 
                     st.write("Current Price Difference=",price_diff_pct)
+                      
                     from datetime import datetime
                     import pytz
                     

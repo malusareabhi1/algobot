@@ -11602,13 +11602,13 @@ elif MENU =="LIVE TRADE 3":
                     diff_minutes = (now - signal_entry_time).total_seconds() / 60
                     st.write("signal_entry_time ",signal_entry_time) 
                     st.write("Current TIME =", now)
-                    st.write("Signal TIME =", signal_time)
+                    #st.write("Signal TIME =", signal_time)
                     st.write("diff_minutes =", diff_minutes)
-                    
+                    st.write("Allowed diff_minutes in time is  =", MAX_DELAY_MINUTES)
 
                     
                     #diff_minutes = (now - signal_time).total_seconds() / 60
-                    st.write("diff_minutes=",diff_minutes)    
+                    #st.write("diff_minutes=",diff_minutes)    
                     MAX_DELAY_MINUTES = 5   # or 10 if you want
 
                     

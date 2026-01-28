@@ -11574,15 +11574,22 @@ elif MENU =="LIVE TRADE 3":
                     import pytz
                     
                     IST = pytz.timezone("Asia/Kolkata")
+
                     now = datetime.now(IST)
-                    signal_time = IST.localize(datetime.strptime(ts, "%Y-%m-%d %H:%M:%S"))  
-                    #signal_time = signal_time.astimezone(IST)    
-                    st.write("Current TIIME=",now)
-                    st.write("Signal TIIME=",signal_time)
+                    
+                    # CLEAN signal_time
+                    signal_time = signal_time.replace(tzinfo=None)
+                    signal_time = IST.localize(signal_time)
+                    
+                    diff_minutes = (now - signal_time).total_seconds() / 60
+                    
+                    st.write("Current TIME =", now)
+                    st.write("Signal TIME =", signal_time)
+                    st.write("diff_minutes =", diff_minutes)
                     
 
                     
-                    diff_minutes = (now - signal_time).total_seconds() / 60
+                    #diff_minutes = (now - signal_time).total_seconds() / 60
                     st.write("diff_minutes=",diff_minutes)    
                     MAX_DELAY_MINUTES = 5   # or 10 if you want
 

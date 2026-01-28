@@ -11591,7 +11591,7 @@ elif MENU =="LIVE TRADE 3":
                     IST = pytz.timezone("Asia/Kolkata")
 
                     now = datetime.now(IST)
-                    
+                    MAX_DELAY_MINUTES = 5   # or 10 if you want
                     # CLEAN signal_time
                     signal_time = signal_time.replace(tzinfo=None)
                     signal_time = IST.localize(signal_time)
@@ -11609,7 +11609,7 @@ elif MENU =="LIVE TRADE 3":
                     
                     #diff_minutes = (now - signal_time).total_seconds() / 60
                     #st.write("diff_minutes=",diff_minutes)    
-                    MAX_DELAY_MINUTES = 5   # or 10 if you want
+                    
 
                     
                         #return None   # ❌ DO NOT PLACE ORDER  

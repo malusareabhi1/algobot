@@ -8505,6 +8505,7 @@ elif MENU =="Live Trade":
             signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
             last_signal["signal_time"] = signal_time
             signal_time1=last_signal["signal_time"] 
+            pure_signal_time1=last_signal["entry_time"]  
                 # Display as table
             #st.table(df_sig1) 
             #st.write(df_sig1) 
@@ -9152,8 +9153,21 @@ elif MENU =="Live Trade":
 
                     lower = last_signal_price * 0.97
                     upper = last_signal_price * 1.03
+                    #---------------------------------------------------------------
+                    IST = pytz.timezone("Asia/Kolkata")
+
+                    now = datetime.now(IST)
                     
-                                   
+                    # CLEAN signal_time
+                    pure_signal_time = signal_time.replace(tzinfo=None)
+                    pure_signal_time = IST.localize(signal_time)
+                    
+                    diff_minutes = (now - pure_signal_time).total_seconds() / 60
+                    
+                    st.write("Current TIME =", now)
+                    st.write("Pure Signal TIME =", signal_time)
+                    st.write("diff_minutes =", diff_minutes)   
+                     #----------------------------------------------------------------              
                     price_diff_pct = abs(currnt_price - last_signal_price) / last_signal_price * 100 
                     st.write("Current Price Difference=",price_diff_pct)  
                     if (lower <= currnt_price <= upper):

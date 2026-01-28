@@ -1353,8 +1353,199 @@ def trading_multi2_signal_all_conditions_5min(
 
     return signals if signals else None
 
-
 def trading_signal_all_conditions_final(df, quantity=10*65):
+    """
+    Base Zone Re-Cross Strategy + Opening Range (FINAL)
+
+    Rules:
+    - Max 3 trades per day
+    - Trade ONLY when price re-enters Base Zone and breaks again
+    - OR (9:15–9:30) breakout confirmation
+    - Single active trade at a time
+    - Trailing SL using last 10 candles swing
+    - NO time exit
+    """
+
+    from datetime import time as dtime
+    import numpy as np
+    import pandas as pd
+
+    TRADE_START_TIME = dtime(9, 35)
+    OR_START = dtime(9, 15)
+    OR_END   = dtime(9, 30)
+
+    signals = []
+
+    # =========================
+    # PREPROCESS
+    # =========================
+    df = df.copy()
+    df['Date'] = df['Datetime'].dt.date
+    unique_days = sorted(df['Date'].unique())
+
+    if len(unique_days) < 2:
+        return None
+
+    day0, day1 = unique_days[-2], unique_days[-1]
+
+    # =========================
+    # BASE ZONE (Prev Day 3:00 PM)
+    # =========================
+    candle_3pm = df[
+        (df['Date'] == day0) &
+        (df['Datetime'].dt.hour == 15) &
+        (df['Datetime'].dt.minute == 0)
+    ]
+
+    if candle_3pm.empty:
+        return None
+
+    base_open = candle_3pm.iloc[0]['Open_^NSEI']
+    base_close = candle_3pm.iloc[0]['Close_^NSEI']
+    base_low = min(base_open, base_close)
+    base_high = max(base_open, base_close)
+
+    # =========================
+    # CURRENT DAY DATA
+    # =========================
+    day1_df = df[df['Date'] == day1].sort_values('Datetime')
+
+    expiry = get_nearest_weekly_expiry(pd.to_datetime(day1))
+
+    # =========================
+    # OPENING RANGE (9:15–9:30)
+    # =========================
+    orb_df = day1_df[
+        (day1_df['Datetime'].dt.time >= OR_START) &
+        (day1_df['Datetime'].dt.time <= OR_END)
+    ]
+
+    if orb_df.empty:
+        return None
+
+    orb_high = orb_df['High_^NSEI'].max()
+    orb_low  = orb_df['Low_^NSEI'].min()
+
+    # =========================
+    # HELPERS
+    # =========================
+    def is_inside_base(price):
+        return base_low < price < base_high
+
+    def get_recent_swing(ts):
+        recent = day1_df[day1_df['Datetime'] < ts].tail(10)
+        if recent.empty:
+            return np.nan, np.nan
+        return recent['High_^NSEI'].max(), recent['Low_^NSEI'].min()
+
+    def monitor_trade(sig):
+        sl = sig['stoploss']
+
+        for _, c in day1_df[day1_df['Datetime'] > sig['entry_time']].iterrows():
+            high, low = get_recent_swing(c['Datetime'])
+
+            # ----- CALL -----
+            if sig['option_type'] == 'CALL' and not np.isnan(low):
+                sl = max(sl, low)
+                sig['stoploss'] = sl
+
+                if c['Low_^NSEI'] <= sl:
+                    sig['exit_price'] = sl
+                    sig['status'] = 'Trailing SL Hit'
+                    return sig
+
+            # ----- PUT -----
+            if sig['option_type'] == 'PUT' and not np.isnan(high):
+                sl = min(sl, high)
+                sig['stoploss'] = sl
+
+                if c['High_^NSEI'] >= sl:
+                    sig['exit_price'] = sl
+                    sig['status'] = 'Trailing SL Hit'
+                    return sig
+
+        sig['exit_price'] = day1_df.iloc[-1]['Close_^NSEI']
+        sig['status'] = 'EOD Exit'
+        return sig
+
+    # =========================
+    # CORE LOGIC
+    # =========================
+    MAX_TRADES = 3
+    trade_count = 0
+    last_break = None
+    price_inside_base = True
+
+    for _, c in day1_df.iterrows():
+
+        if trade_count >= MAX_TRADES:
+            break
+
+        close = c['Close_^NSEI']
+        candle_time = c['Datetime'].time()
+
+        if candle_time < TRADE_START_TIME:
+            continue
+
+        # Re-arm only when price returns into Base Zone
+        if is_inside_base(close):
+            price_inside_base = True
+            last_break = None
+            continue
+
+        # ========== CALL ==========
+        if (
+            price_inside_base
+            and close > base_high
+            and close > orb_high
+            and last_break != "CALL"
+        ):
+            _, swing_low = get_recent_swing(c['Datetime'])
+
+            sig = {
+                'condition': 'Base + OR Re-Break',
+                'option_type': 'CALL',
+                'buy_price': c['High_^NSEI'],
+                'stoploss': swing_low,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': c['Datetime'],
+                'message': f'CALL Base+OR Break #{trade_count + 1}'
+            }
+
+        # ========== PUT ==========
+        elif (
+            price_inside_base
+            and close < base_low
+            and close < orb_low
+            and last_break != "PUT"
+        ):
+            swing_high, _ = get_recent_swing(c['Datetime'])
+
+            sig = {
+                'condition': 'Base + OR Re-Break',
+                'option_type': 'PUT',
+                'buy_price': c['Low_^NSEI'],
+                'stoploss': swing_high,
+                'quantity': quantity,
+                'expiry': expiry,
+                'entry_time': c['Datetime'],
+                'message': f'PUT Base+OR Break #{trade_count + 1}'
+            }
+        else:
+            continue
+
+        sig = monitor_trade(sig)
+        signals.append(sig)
+
+        trade_count += 1
+        last_break = sig['option_type']
+        price_inside_base = False
+
+    return signals if signals else None
+
+
+def trading_signal_all_conditions_final_changed_28jan(df, quantity=10*65):
     """
     Base Zone Re-Cross Strategy (FINAL)
 
@@ -1369,7 +1560,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     from datetime import time as dtime 
     import numpy as np
     import pandas as pd
-    TRADE_START_TIME = dtime(9, 35)
+    TRADE_START_TIME = dtime(9, 31)
     TRADE_EXIT_CUTOFF = dtime(15, 20) 
     signals = []
 

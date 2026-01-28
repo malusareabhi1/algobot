@@ -11595,9 +11595,12 @@ elif MENU =="LIVE TRADE 3":
                     # CLEAN signal_time
                     signal_time = signal_time.replace(tzinfo=None)
                     signal_time = IST.localize(signal_time)
+
+                    signal_entry_time = signal_entry_time.replace(tzinfo=None)
+                    signal_entry_time = IST.localize(signal_time)  
                     
-                    diff_minutes = (now - signal_time).total_seconds() / 60
-                    
+                    diff_minutes = (now - signal_entry_time).total_seconds() / 60
+                    st.write("signal_entry_time ",signal_entry_time) 
                     st.write("Current TIME =", now)
                     st.write("Signal TIME =", signal_time)
                     st.write("diff_minutes =", diff_minutes)

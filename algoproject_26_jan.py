@@ -4163,7 +4163,7 @@ def is_valid_signal_time(signal_dt):
     IST = pytz.timezone("Asia/Kolkata")
 
     START_TIME = time(9, 30)      # ✅ FIXED
-    END_TIME   = time(14, 30)     # ✅ FIXED
+    END_TIME   = time(15, 00)     # ✅ FIXED
 
     # Ensure timezone-aware
     if signal_dt.tzinfo is None:
@@ -4190,7 +4190,7 @@ def is_valid_signal_time03(signal_dt):
     #START_TIME = datetime.time(9, 30)     # ✅ SAFE
     #END_TIME   = datetime.time(14, 30)    # ✅ SAFE
     START_TIME = time(9, 30)      # ✅ FIXED
-    END_TIME   = time(14, 30)     # ✅ FIXED 
+    END_TIME   = time(15, 00)     # ✅ FIXED 
     #st.write("type(datetime):", type(datetime))
     # Ensure timezone-aware
     if signal_dt.tzinfo is None:
@@ -7561,7 +7561,7 @@ elif MENU == "Backtest":
         # Condition 1: Current time >= signal candle time
         # Trading window
             start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
-            end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+            end_time   = now.replace(hour=15, minute=00, second=0, microsecond=0)
     #st.write("start_time", start_time)
     #st.write("end_time", end_time)
     #st.write("Now Time", now)
@@ -7743,7 +7743,7 @@ elif MENU == "Backtest":
         # Condition 1: Current time >= signal candle time
         # Trading window
          start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
-         end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+         end_time   = now.replace(hour=15, minute=00, second=0, microsecond=0)
     #st.wite("start_time", start_time)
     #st.write("end_time", end_time)
     #st.write("Now Time", now)
@@ -9080,7 +9080,7 @@ elif MENU =="Live Trade":
         # Condition 1: Current time >= signal candle time
         # Trading window
             start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
-            end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+            end_time   = now.replace(hour=15, minute=00, second=0, microsecond=0)
     #st.write("start_time", start_time)
     #st.write("end_time", end_time)
     #st.write("Now Time", now)
@@ -9285,7 +9285,7 @@ elif MENU =="Live Trade":
         # Condition 1: Current time >= signal candle time
         # Trading window
          start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
-         end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+         end_time   = now.replace(hour=15, minute=00, second=0, microsecond=0)
     #st.wite("start_time", start_time)
     #st.write("end_time", end_time)
     #st.write("Now Time", now)
@@ -10059,7 +10059,7 @@ elif MENU=="Paper Trade":
         # Condition 1: Current time >= signal candle time
         # Trading window
             start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
-            end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+            end_time   = now.replace(hour=15, minute=00, second=0, microsecond=0)
     #st.write("start_time", start_time)
     #st.write("end_time", end_time)
     #st.write("Now Time", now)
@@ -11592,7 +11592,7 @@ elif MENU =="LIVE TRADE 3":
         # Condition 1: Current time >= signal candle time
         # Trading window
             start_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
-            end_time   = now.replace(hour=14, minute=30, second=0, microsecond=0)
+            end_time   = now.replace(hour=15, minute=00, second=0, microsecond=0)
     #st.write("start_time", start_time)
     #st.write("end_time", end_time)
     #st.write("Now Time", now)

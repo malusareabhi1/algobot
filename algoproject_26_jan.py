@@ -1369,7 +1369,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     from datetime import time as dtime
     import numpy as np
     import pandas as pd
-
+    import streamlit as st 
     TRADE_START_TIME = dtime(9, 30)
     OR_START = dtime(9, 15)
     OR_END   = dtime(9, 30)
@@ -1442,7 +1442,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     inside_or   = orb_low < last_close < orb_high
 
     # ---- STREAMLIT DISPLAY ----
-    import streamlit as st
+    
 
     st.subheader("📍 Last Candle Check")
 

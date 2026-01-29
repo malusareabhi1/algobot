@@ -1425,8 +1425,8 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     if orb_df.empty:
         return None
 
-    orb_high = orb_df['High_^NSEI'].max()
-    orb_low  = orb_df['Low_^NSEI'].min()
+    orb_high = orb_df['Open_^NSEI'].max()
+    orb_low  = orb_df['Close_^NSEI'].min()
     st.write("ORB HIGH/LOW=", orb_high,orb_low ) 
         # =========================
     # LAST CANDLE STATUS (DISPLAY)

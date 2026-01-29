@@ -295,7 +295,7 @@ def trade_validation(
      
     qty = int(qty)  # safety
     orisk = per_unit_risk * qty
-     
+    st.session_state.option_risk=orisk 
     while orisk > max_capital_risk:
          qty -= lot_size
      

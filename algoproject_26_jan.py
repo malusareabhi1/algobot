@@ -800,7 +800,7 @@ def monitor_position_live_with_theta_table(
 ):  
     #============================================SHOW CHART===================================================
     df_option = get_option_ohlc(kite,symbol, interval="5minute")
-    #st.write("Option data",df_option)  
+    st.write("Option data",df_option)  
     initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)
     st.write("initial_sl,risk1",initial_sl,risk1)  
     #st.write(df_option) 

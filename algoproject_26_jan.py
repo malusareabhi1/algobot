@@ -1445,20 +1445,22 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     
 
     st.subheader("📍 Last Candle Check")
-
-    st.write({
-        "Datetime": last_time,
-        "Open": last_candle['Open_^NSEI'],
-        "High": last_high,
-        "Low": last_low,
-        "Close": last_close,
-        "Base Low": base_low,
-        "Base High": base_high,
-        "OR Low": orb_low,
-        "OR High": orb_high,
-        "Inside Base Zone": inside_base,
-        "Inside Opening Range": inside_or
-    })
+    last_candle_table = pd.DataFrame([{
+         "Datetime": last_time,
+         "Open": last_candle['Open_^NSEI'],
+         "High": last_high,
+         "Low": last_low,
+         "Close": last_close,
+         "Base Low": base_low,
+         "Base High": base_high,
+         "OR Low": orb_low,
+         "OR High": orb_high,
+         "Inside Base Zone": inside_base,
+         "Inside Opening Range": inside_or
+     }])
+     
+    st.dataframe(last_candle_table, use_container_width=True) 
+   
 
     # ---- HUMAN READABLE STATUS ----
     if inside_base and inside_or:

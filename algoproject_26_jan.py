@@ -1406,7 +1406,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     base_high = max(base_open, base_close)
     
  
-    #st.write("BASE HIGH/LOW=",base_high,base_low)
+    st.write("BASE HIGH/LOW=",base_high,base_low)
     # =========================
     # CURRENT DAY DATA
     # =========================

@@ -1404,11 +1404,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     base_close = candle_3pm.iloc[0]['Close_^NSEI']
     base_low = min(base_open, base_close)
     base_high = max(base_open, base_close)
-    if base_high is not None and base_low is not None:
-         #st.write("BASE HIGH/LOW =", base_high, base_low)
-         st.write(base_high)
-    else:
-         st.warning("Base zone not formed yet")
+    
  
     #st.write("BASE HIGH/LOW=",base_high,base_low)
     # =========================

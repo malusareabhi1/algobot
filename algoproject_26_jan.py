@@ -12654,62 +12654,7 @@ elif MENU =="NIFTY 3:20 PM Intraday Strategy":
     #------------------------------------------------------------------------------------------------
             #qty=qty*lot_qty
             #qty=0
-                # Check 1: Only run if current time is within trading window
-            if is_valid_signal_time(entry_time):
-                 st.warning("Signal time  match today's date .") 
-                 if start_time <= now <= end_time:
-                 
-                 # Check 2: Signal time reached
-                    #if now >= entry_time:
-                      
-                    if abs((now - entry_time).total_seconds()) < 30:  
-                         st.info("Execution window In (30 seconds).") 
-                         st.write("entry_time-",entry_time)
-                         st.write("Now Time-", now)
-                      # Check 3: Order placed only once
-                         if lot_qty>0: 
-                              if has_open_position(kite):
-
-                                  st.warning("⚠️ Open position exists. New trade not allowed.")
-                                  
-                              else:
-                                    if not st.session_state.order_executed:
-                                        try:
-                                            order_id = kite.place_order(
-                                                    tradingsymbol=trending_symbol,
-                                                    exchange=kite.EXCHANGE_NFO,
-                                                    transaction_type=kite.TRANSACTION_TYPE_BUY,
-                                                    quantity=qty,
-                                                    order_type=kite.ORDER_TYPE_MARKET,
-                                                    variety=kite.VARIETY_REGULAR,
-                                                    product=kite.PRODUCT_MIS
-                                                )
-                                
-                                            st.session_state.order_executed = True   # Mark executed
-                                            st.session_state.order_executed = True
-                                            st.session_state.last_order_id = order_id
-                                   
-                                           # ✅ Mark trade active
-                                            st.session_state.trade_active = True
-                                            st.session_state.entry_price = ltp
-                                            st.session_state.entry_time = datetime.now()
-                                            st.session_state.qty = qty
-                                            st.session_state.tradingsymbol = trending_symbol 
-                                            st.success(f"Order Placed Successfully! Order ID: {order_id}")
-                                            st.session_state["last_order_id"] = order_id
-                                
-                                        except Exception as e:
-                                            st.error(f"Order Failed: {e}")
-                                        
-                         else:
-                               st.info("Trade Not Allowed Qty=0.")  
-                    else:
-                         st.info("Order already executed for this signal.")
-                 
-                 else:
-                       st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
-            else:
-                   st.warning("Signal time does not match today's date or is outside trading hours. Order not placed.")     
+                
 #=========================================================================================================
              
 

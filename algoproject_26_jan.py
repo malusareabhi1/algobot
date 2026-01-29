@@ -12710,7 +12710,130 @@ elif MENU =="NIFTY 3:20 PM Intraday Strategy":
                        st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
             else:
                    st.warning("Signal time does not match today's date or is outside trading hours. Order not placed.")     
+#=========================================================================================================
+             
+
+            if is_valid_signal_time(entry_time):
+              st.warning("Signal time matches today's date.")
           
+              # ===============================
+              # TRADING WINDOW CHECK
+              # ===============================
+              if start_time <= now <= end_time:
+          
+                  # ===============================
+                  # FETCH PRICES
+                  # ===============================
+                  last_signal_price = st.session_state.signal_price
+                  last_executed_signal_time = st.session_state.last_executed_signal_time
+          
+                  st.write("Signal Price =", last_signal_price)
+          
+                  currnt_price = get_option_ltp(trending_symbol)
+                  st.write("Current Price =", currnt_price)
+          
+                  lower = last_signal_price * 0.97
+                  upper = last_signal_price * 1.03
+          
+                  price_diff_pct = abs(currnt_price - last_signal_price) / last_signal_price * 100
+                  st.write("Current Price Difference =", price_diff_pct)
+          
+                  # ===============================
+                  # TIME VALIDATION (IST)
+                  # ===============================
+                  from datetime import datetime
+                  import pytz
+          
+                  IST = pytz.timezone("Asia/Kolkata")
+                  now = datetime.now(IST)
+          
+                  MAX_DELAY_MINUTES = 5
+          
+                  signal_time = IST.localize(signal_time.replace(tzinfo=None))
+                  signal_entry_time = IST.localize(signal_entry_time.replace(tzinfo=None))
+          
+                  diff_minutes = (now - signal_entry_time).total_seconds() / 60
+          
+                  st.write("Signal Entry Time =", signal_entry_time)
+                  st.write("Current Time =", now)
+                  st.write("Signal Age (minutes) =", diff_minutes)
+                  st.write("Max Allowed Delay =", MAX_DELAY_MINUTES)
+          
+                  # ===============================
+                  # OLD SIGNAL BLOCK
+                  # ===============================
+                  if diff_minutes > MAX_DELAY_MINUTES:
+                      st.warning(f"⏰ Old Signal Skipped | Signal Age: {diff_minutes:.1f} min")
+                      st.stop()
+          
+                  # ===============================
+                  # PRICE RANGE CHECK
+                  # ===============================
+                  if not (lower <= currnt_price <= upper):
+                      st.warning("Price outside ±3% execution range")
+                      st.write("Allowed:", lower, "to", upper)
+                      st.write("Current:", currnt_price)
+                      st.stop()
+          
+                  st.success("Price within ±3% execution range")
+                  st.info("Execution window active")
+          
+                  st.write("Last Executed Signal Time =", last_executed_signal_time)
+                  st.write("Qty × LOT =", qty)
+          
+                  # ===============================
+                  # ORDER EXECUTION
+                  # ===============================
+                  if qty > 0:
+          
+                      if has_open_position(kite):
+                          st.warning("⚠️ Open position exists. New trade not allowed.")
+                          st.stop()
+          
+                      if st.session_state.order_executed:
+                          st.info("Order already executed for this signal.")
+                          st.stop()
+          
+                      try:
+                          st.write("🚀 Placing Trade...")
+          
+                          order_id = kite.place_order(
+                              tradingsymbol=trending_symbol,
+                              exchange=kite.EXCHANGE_NFO,
+                              transaction_type=kite.TRANSACTION_TYPE_BUY,
+                              quantity=qty,
+                              order_type=kite.ORDER_TYPE_MARKET,
+                              variety=kite.VARIETY_REGULAR,
+                              product=kite.PRODUCT_MIS
+                          )
+          
+                          # ===============================
+                          # SESSION STATE UPDATE
+                          # ===============================
+                          st.session_state.order_executed = True
+                          st.session_state.last_order_id = order_id
+                          st.session_state.trade_active = True
+                          st.session_state.entry_price = currnt_price
+                          st.session_state.entry_time = now
+                          st.session_state.qty = qty
+                          st.session_state.tradingsymbol = trending_symbol
+                          st.session_state.last_executed_signal_time = signal_time
+          
+                          st.success(f"✅ Order Placed Successfully! Order ID: {order_id}")
+          
+                      except Exception as e:
+                          st.error(f"❌ Order Failed: {e}")
+          
+                  else:
+                      st.info("Trade not allowed: Qty = 0")
+          
+              else:
+                  st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")
+          
+            else:
+                st.warning("Signal time does not match today's date or is invalid.") 
+#==========================================================================================================
+     
 #--------------------------------ORDERS------------------------------------------------
             st.divider()
          #st.autorefresh(interval=5000)  # refresh every 5 seconds

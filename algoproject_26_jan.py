@@ -1521,13 +1521,13 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     # =========================
     # CORE LOGIC
     # =========================
-    MAX_TRADES = 3
+    MAX_TRADES = 4
     trade_count = 0
     last_break = None
     price_inside_base = True
     
     for _, c in day1_df.iterrows():
-        st.write("trade_count",trade_count)   
+        #st.write("trade_count",trade_count)   
         if trade_count >= MAX_TRADES:
             break
 

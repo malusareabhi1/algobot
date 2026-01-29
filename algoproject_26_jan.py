@@ -1078,7 +1078,7 @@ def trading_multi2_signal_all_conditions_5min(
 
     import pandas as pd
     from datetime import timedelta
-    #st.write("CANDELS") 
+    st.write("CANDELS Smin") 
     #st.write(df_5m.tail(5))
 
     df_5m = df_5m.copy()
@@ -11346,7 +11346,7 @@ elif MENU =="LIVE TRADE 3":
 
         def generate_signals_stepwise(df):
             all_signals = []
-            
+            st.write("called up")
             # We run strategy for each candle progressively
             for i in range(40, len(df)):   # start after enough candles
                 sub_df = df.iloc[:i].copy()

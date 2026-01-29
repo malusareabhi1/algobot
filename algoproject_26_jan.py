@@ -1425,7 +1425,52 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
 
     orb_high = orb_df['High_^NSEI'].max()
     orb_low  = orb_df['Low_^NSEI'].min()
+        # =========================
+    # LAST CANDLE STATUS (DISPLAY)
+    # =========================
+    last_candle = day1_df.iloc[-1]
 
+    last_close = last_candle['Close_^NSEI']
+    last_high  = last_candle['High_^NSEI']
+    last_low   = last_candle['Low_^NSEI']
+    last_time  = last_candle['Datetime']
+
+    inside_base = base_low < last_close < base_high
+    inside_or   = orb_low < last_close < orb_high
+
+    # ---- STREAMLIT DISPLAY ----
+    import streamlit as st
+
+    st.subheader("📍 Last Candle Check")
+
+    st.write({
+        "Datetime": last_time,
+        "Open": last_candle['Open_^NSEI'],
+        "High": last_high,
+        "Low": last_low,
+        "Close": last_close,
+        "Base Low": base_low,
+        "Base High": base_high,
+        "OR Low": orb_low,
+        "OR High": orb_high,
+        "Inside Base Zone": inside_base,
+        "Inside Opening Range": inside_or
+    })
+
+    # ---- HUMAN READABLE STATUS ----
+    if inside_base and inside_or:
+        st.success("🟢 Price is INSIDE Base Zone AND Opening Range")
+
+    elif inside_base:
+        st.info("🔵 Price is INSIDE Base Zone")
+
+    elif inside_or:
+        st.info("🟡 Price is INSIDE Opening Range")
+
+    else:
+        st.warning("🔴 Price is OUTSIDE Base Zone & Opening Range")
+ 
+    #============================================================================================================= 
     # =========================
     # HELPERS
     # =========================

@@ -11868,12 +11868,13 @@ elif MENU =="LIVE TRADE 3":
                         st.warning(
                             f"⏰ Old Signal Skipped | Signal Age: {diff_minutes:.1f} min"
                         )
-                        st.stop()     
+                    else:    #st.stop()     
                       # Check 3: Order placed only once
                         if qty>0: 
                               if has_open_position(kite):
                                   st.warning("⚠️ Open position exists. New trade not allowed.")                                  
                               else:
+                                    st.warning(" No Open position exists. New trade allowed.")
                                     if not st.session_state.order_executed:
                                         try:
                                             st.write("Placing Trade-") 
@@ -11906,8 +11907,8 @@ elif MENU =="LIVE TRADE 3":
                                         
                         else:
                                st.info("Trade Not Allowed Qty=0.")  
-                    else:
-                         st.info("Order already executed for this signal.")
+                    #else:
+                         #st.info("Order already executed for this signal.")
                  
                  else:
                        st.warning("Trading window closed. Orders allowed only between 9:30 AM and 2:30 PM.")

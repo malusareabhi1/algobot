@@ -496,13 +496,7 @@ def monitor_position_live_with_theta_table_and_exit1(
             st.dataframe(styled, use_container_width=True, hide_index=True)
     
         # ================= EXECUTION =================
-        if status == "⚠ PARTIAL EXIT":
-            exit_qty = max(lot_size, qty // 2)
-            place_exit_order(kite, symbol, exit_qty, status)
-            qty -= exit_qty
-            pprofit *= 2  # next target
-            tm.sleep(1)
-            continue
+        
         if status == "⚠ PARTIAL EXIT":
 
              # ================= LOT-SAFE PARTIAL EXIT =================

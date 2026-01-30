@@ -261,8 +261,8 @@ def trade_validation(
     option_type="CALL"
 ):  
     #============================================SHOW CHART===================================================
-    #df_option = get_option_ohlc(kite,symbol, interval="5minute")
-    df_option = get_option_ohlc_cached(kite, symbol)
+    df_option = get_option_ohlc(kite,symbol, interval="5minute")
+    #df_option = get_option_ohlc_cached(kite, symbol)
  
     #st.write("Option data",df_option)  
     initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)

@@ -64,6 +64,32 @@ if "lot_qty" not in st.session_state:
      
 if "last_candle_log" not in st.session_state:
     st.session_state.last_candle_log = []
+     
+if "signal_log" not in st.session_state:
+    st.session_state.signal_log = []
+#================================================Signal LOG=================================
+
+def append_signal(sig: dict):
+    if not sig:
+        return
+
+    # Ensure session key exists
+    if "signal_log" not in st.session_state:
+        st.session_state.signal_log = []
+
+    # Duplicate protection
+    exists = any(
+        s["entry_time"] == sig["entry_time"]
+        and s["option_type"] == sig["option_type"]
+        and s["condition"] == sig["condition"]
+        for s in st.session_state.signal_log
+    )
+
+    if not exists:
+        sig_copy = sig.copy()
+        sig_copy["logged_at"] = datetime.now(pytz.timezone("Asia/Kolkata"))
+        sig_copy["status"] = "NEW"
+        st.session_state.signal_log.append(sig_copy)
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -10521,6 +10547,16 @@ elif MENU == "My Account":
                         use_container_width=True,
                         hide_index=True
                     )
+                 
+                    st.subheader("🚦 Signal Log")
+
+                    signal_df = pd.DataFrame(st.session_state.signal_log)
+                    
+                    st.dataframe(
+                        signal_df.sort_values("entry_time", ascending=False),
+                        use_container_width=True,
+                        hide_index=True
+                    )
   
                     if isinstance(st.session_state.get("trades_signals"), pd.DataFrame):
                         st.subheader("📊 trades_signals Logs")
@@ -11335,6 +11371,7 @@ elif MENU =="LIVE TRADE 3":
         if signal and isinstance(signal, list):
               last_signal = signal[-1]
               st.success(f"✅ SIGNAL GENERATED: {last_signal['message']}")
+              append_signal(last_signal) 
  
         if signal is None:
             st.warning("⚠ No signal yet (conditions not met).")

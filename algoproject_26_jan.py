@@ -33,6 +33,12 @@ start = time(9, 15)   # 9:30 AM
 end = time(15, 0)    # 3:25 PM
 now = datetime.now(ist).time()    
 # Refresh only between 9:30–3:25
+with left_col:
+    chart_slot = st.empty()
+
+with right_col:
+    position_slot = st.empty()
+
 if start <= now <= end:
      st_autorefresh(interval=30000, key="refresh")  # 1 minute refresh
 #else:
@@ -70,6 +76,8 @@ if "signal_log" not in st.session_state:
 
 if "option_log" not in st.session_state:
     st.session_state.option_log = []
+
+
 #===============================================Option LOG++==================================
 
 OPTION_KEYS = [
@@ -11351,6 +11359,8 @@ elif MENU =="LIVE TRADE 3":
             ]
         )
     )
+        left_col, right_col = st.columns([3, 1])  # Chart | Positions
+ 
         chart_slot = st.empty() 
         import time
         if "last_chart_refresh" not in st.session_state:
@@ -11362,6 +11372,7 @@ elif MENU =="LIVE TRADE 3":
                   st.plotly_chart(fig, use_container_width=True)
           
               st.session_state.last_chart_refresh = now 
+             
         #st.plotly_chart(fig, use_container_width=True)
         #----------------------------------------------------------------------
         df_plot1 = df[df['Datetime'].dt.date.isin([last_day, today])]

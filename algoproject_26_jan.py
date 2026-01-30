@@ -2701,10 +2701,10 @@ def monitor_and_exit_paper_trades(kite):
 #=================================================SAFE GREEK =================================================
 
 def safe_option_greeks(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
-     from datetime import datetime, time
-     import pytz
-     from py_vollib.black_scholes.greeks.analytical import delta, gamma, theta, vega
-     IST = pytz.timezone("Asia/Kolkata")
+    from datetime import datetime, time
+    import pytz
+    from py_vollib.black_scholes.greeks.analytical import delta, gamma, theta, vega
+    IST = pytz.timezone("Asia/Kolkata")
  
     #st.write("S, K, expiry_dt, r, iv_percent, option_type", S, K, expiry_dt, r, iv_percent, option_type) 
     now = datetime.now()

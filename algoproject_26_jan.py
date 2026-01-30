@@ -1544,6 +1544,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
      }])
     candle_snapshot = {
          "Datetime": last_time,
+         "Logged_At": datetime.now(pytz.timezone("Asia/Kolkata")),  # ✅ log time
          "Open": last_candle['Open_^NSEI'],
          "High": last_high,
          "Low": last_low,

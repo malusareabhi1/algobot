@@ -2711,6 +2711,10 @@ def safe_option_greeks(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
     #st.write("strike value:", strike)
     #st.write("strike type:", type(strike))
     #K = float(df["strike"].values[0])
+    # ✅ expiry datetime @ 15:30 IST
+    expiry_dt = IST.localize(
+        datetime.combine(expiry_date, time(15, 30))
+    ) 
     seconds = max((expiry_dt - now).total_seconds(), 3600)
     T = seconds / (365 * 24 * 3660)
 

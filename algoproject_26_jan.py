@@ -69,6 +69,9 @@ if "GREEKvega" not in st.session_state:
 if "GREEKgamma" not in st.session_state:
     st.session_state.GREEKgamma = None
 
+if "option_iv" not in st.session_state:
+    st.session_state.option_iv = None
+
 
 
 if "position_size" not in st.session_state:

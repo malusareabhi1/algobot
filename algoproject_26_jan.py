@@ -88,6 +88,57 @@ if "signal_log" not in st.session_state:
 
 if "option_log" not in st.session_state:
     st.session_state.option_log = []
+from datetime import datetime
+
+def time_to_expiry_years(expiry_date):
+    now = datetime.now()
+    expiry = datetime.combine(expiry_date, datetime.max.time())
+    return max((expiry - now).total_seconds(), 0) / (365 * 24 * 60 * 60)
+
+#========================================================================================================================
+def get_nifty_spot_price(kite):
+    try:
+        data = kite.ltp("NSE:NIFTY 50")
+        return data["NSE:NIFTY 50"]["last_price"]
+    except Exception as e:
+        print("Spot price error:", e)
+        return None
+#=====================================================================================================================
+
+from py_vollib.black_scholes.implied_volatility import implied_volatility
+from py_vollib.black_scholes import black_scholes as bs
+from math import log, sqrt
+
+def calculate_option_iv(
+    option_price: float,
+    spot_price: float,
+    strike_price: float,
+    expiry_date,
+    option_type: str,
+    risk_free_rate: float = 0.065
+):
+    try:
+        t = time_to_expiry_years(expiry_date)
+
+        if t <= 0 or option_price <= 0 or spot_price <= 0:
+            return None
+
+        flag = "c" if option_type.upper() in ["CE", "CALL"] else "p"
+
+        iv = implied_volatility(
+            option_price,
+            spot_price,
+            strike_price,
+            t,
+            risk_free_rate,
+            flag
+        )
+
+        return round(iv * 100, 2)  # % IV
+
+    except Exception:
+        return None
+
 #========================================find_open_position_any=========================================================
 
 def find_open_position_any(
@@ -327,9 +378,23 @@ def monitor_position_live_with_theta_table_and_exit(
     
      # Final validated qty
     amount = entry_price * qty
-    greek_theta=st.session_state.GREEKtheta 
-    option_iv=st.session_state.option_iv
-
+    #greek_theta=st.session_state.GREEKtheta  #safe_option_greeks(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
+    #option_iv=st.session_state.option_iv  
+    #---------------------------------------------------------------------------------------------
+    option_ltp = safe_ltp(kite, "NFO", symbol)
+    spot = safe_ltp(kite, "NSE", "NIFTY 50")
+    r=0.65 
+    
+    option_iv = calculate_option_iv(
+         option_price=option_ltp,
+         spot_price=spot,
+         strike_price=strike,
+         expiry_date=expiry_date,
+         option_type="PE"
+     )
+    greeks = safe_option_greeks(spot, strike, expiry_date, r, option_iv, option_type="CALL") 
+    greek_theta=greeks['theta'] 
+    #-----------------------------------------------------------------------------------------------
     st.success("✅Monitor  Risk validation ")
     #st.write("Final Qty =", qty)
     st.write("Option Risk =", round(orisk, 2))

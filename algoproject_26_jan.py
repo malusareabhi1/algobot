@@ -10553,7 +10553,7 @@ elif MENU == "My Account":
                     signal_df = pd.DataFrame(st.session_state.signal_log)
                     
                     st.dataframe(
-                        signal_df.sort_values("entry_time", ascending=False),
+                        signal_df,
                         use_container_width=True,
                         hide_index=True
                     )

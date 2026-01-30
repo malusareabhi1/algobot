@@ -67,6 +67,52 @@ if "last_candle_log" not in st.session_state:
      
 if "signal_log" not in st.session_state:
     st.session_state.signal_log = []
+
+if "option_log" not in st.session_state:
+    st.session_state.option_log = []
+#===============================================Option LOG++==================================
+
+OPTION_KEYS = [
+    "tradingsymbol",
+    "instrument_token",
+    "strike",
+    "expiry",
+    "lot_size",
+    "option_type",
+    "spot_price",
+    "logged_at",
+    "status"
+]
+
+def append_option(option: dict, spot_price: float, option_type: str):
+    """
+    Append selected option details into session state (duplicate-safe)
+    """
+
+    if not option:
+        return
+
+    # Initialize option log
+    if "option_log" not in st.session_state:
+        st.session_state.option_log = []
+
+    # Normalize schema
+    option_row = {k: option.get(k, None) for k in OPTION_KEYS}
+
+    option_row["spot_price"] = spot_price
+    option_row["option_type"] = option_type
+    option_row["logged_at"] = datetime.now(pytz.timezone("Asia/Kolkata"))
+    option_row["status"] = "SELECTED"
+
+    # Duplicate protection (symbol + expiry)
+    exists = any(
+        o.get("tradingsymbol") == option_row["tradingsymbol"]
+        and o.get("expiry") == option_row["expiry"]
+        for o in st.session_state.option_log
+    )
+
+    if not exists:
+        st.session_state.option_log.append(option_row)
 #================================================Signal LOG=================================
 
 def append_signal(sig: dict):
@@ -10557,7 +10603,16 @@ elif MENU == "My Account":
                         use_container_width=True,
                         hide_index=True
                     )
-  
+                    st.subheader("📊 Option Log")
+
+                    option_df = pd.DataFrame(st.session_state.option_log)
+                    
+                    st.dataframe(
+                        option_df.sort_values("strike", ascending=False),
+                        use_container_width=True,
+                        hide_index=True
+                    )
+
                     if isinstance(st.session_state.get("trades_signals"), pd.DataFrame):
                         st.subheader("📊 trades_signals Logs")
                         st.dataframe(st.session_state.trades_signals, use_container_width=True)
@@ -11459,6 +11514,7 @@ elif MENU =="LIVE TRADE 3":
             #st.write("Option spot ",spot)
             try:
                 nearest_itm = find_nearest_itm_option(kite, spot, option_type)
+                append_option(nearest_itm, spot_price=spot, option_type=option_type) 
                 nearest_itm1 = pd.DataFrame([nearest_itm]) 
                 with colB:
                      st.subheader("📊 Option Log")

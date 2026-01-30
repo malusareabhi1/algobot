@@ -33,7 +33,13 @@ start = time(9, 15)   # 9:30 AM
 end = time(15, 0)    # 3:25 PM
 now = datetime.now(ist).time()    
 # Refresh only between 9:30–3:25
-
+ # STEP 1: Check kite object existence
+kite = st.session_state.get("kite")
+     
+if kite is None:
+         st.warning("Please login to access Algo Trading.")
+         st.stop()
+     
 
 if start <= now <= end:
      st_autorefresh(interval=30000, key="refresh")  # 1 minute refresh

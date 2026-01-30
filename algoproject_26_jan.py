@@ -11340,19 +11340,24 @@ elif MENU =="LIVE TRADE 3":
     if "order_executed" not in st.session_state:
         st.session_state.order_executed = False
         
-    if has_open_position(kite,product="MIS"):
+    if not has_open_position(kite,product="MIS"):
        st.warning("⚠️ Open position exists. New trade not allowed.")
        st.session_state.order_executed=True
        #show_open_positions(kite)
        #================================================================================================
-       nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")
-       if nifty_positions:
-              pos = nifty_positions[0]
-              qty = pos["qty"]
-              avg = pos["avg_price"]
-              pnl = pos["pnl"]
-          
-              st.success(f"Open Position: {pos['symbol']}")
+       #nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")
+       #if nifty_positions:
+              #pos = nifty_positions[0]
+              #qty = pos["qty"]
+              #avg = pos["avg_price"]
+              #pnl = pos["pnl"]
+              symbol="NIFTY2620325250PE"
+              qty=130
+              entry_price=130
+              strike=25260
+              expiry_date=date(2026,2,3)
+              #st.success(f"Open Position: {pos['symbol']}")
+              monitor_position_live_with_theta_table_and_exit( kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
        else:
               st.info("No open position")
   

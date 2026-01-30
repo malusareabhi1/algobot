@@ -11535,7 +11535,8 @@ elif MENU =="LIVE TRADE 3":
        monitor_position_live_with_theta_table_and_exit( kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
        #else:
               #st.info("No open position")
-  
+
+       stop()
 
        #===================================================================================================    
     else:

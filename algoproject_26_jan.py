@@ -384,7 +384,7 @@ def monitor_position_live_with_theta_table_and_exit(
     option_ltp = safe_ltp(kite, "NFO", symbol)
     spot = safe_ltp(kite, "NSE", "NIFTY 50")
     r=0.65 
-    
+    st.write("expiry_date",expiry_date)
     option_iv = calculate_option_iv(
          option_price=option_ltp,
          spot_price=spot,

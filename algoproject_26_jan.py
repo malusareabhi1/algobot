@@ -11176,7 +11176,42 @@ elif MENU =="LIVE TRADE 3":
     if has_open_position(kite):
        st.warning("⚠️ Open position exists. New trade not allowed.")
        st.session_state.order_executed=True
-       #show_open_positions(kite)  
+       #show_open_positions(kite)
+       #================================================================================================
+       pos = False 
+       import time   
+       last_order = get_last_buy_order(kite)
+            #st.write("Last Order",last_order)   
+       if last_order:
+              pos = get_open_position_for_symbol(
+                  kite,
+                  last_order["tradingsymbol"]
+              )
+              #st.write("POS",pos)
+       else:
+                 st.write("No Open Position Active")
+                 symbol=trending_symbol
+                 #symbol="NIFTY26JAN25150PE" 
+                 #qty=65  
+                 #entry_price=127.15
+                 #strike=25200
+                 #expiry_date=date(2026,1,27)
+
+                 #monitor_position_live_with_theta_table_and_exit(kite,symbol,qty,entry_price,strike,expiry,option_type="CALL")
+               
+          
+       if pos:
+                  st.subheader("🟢 Active Position")
+                  
+                  monitor_position_live_with_theta_table_and_exit(kite,symbol,qty,entry_price,strike,expiry,option_type="CALL")
+                  st.table(pd.DataFrame([{
+                      "Symbol": pos["tradingsymbol"],
+                      "Qty": pos["quantity"],
+                      "Avg Price": pos["average_price"],
+                      "PnL": pos["pnl"]
+                  }]))
+                 
+       #===================================================================================================    
     else:
        st.warning("⚠️No  Open position exists. New trade  allowed.")  
        st.session_state.order_executed=False

@@ -11488,7 +11488,7 @@ elif MENU =="LIVE TRADE 3":
             return all_signals
 #-------------------------------------Total signals-------------------------------------------
 
-        step_signals = generate_signals_stepwise(df_plot)
+        #step_signals = generate_signals_stepwise(df_plot)
         if step_signals:
                 #st.info(f"Total signals detected so far: {len(step_signals)}")
             

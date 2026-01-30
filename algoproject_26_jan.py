@@ -392,7 +392,8 @@ def monitor_position_live_with_theta_table_and_exit(
          expiry_date=expiry_date,
          option_type="PE"
      )
-    greeks = safe_option_greeks(spot, strike, expiry_date, r, option_iv, option_type="CALL") 
+    greeks = safe_option_greeks_new(spot, strike, expiry_date, r, option_iv, option_type="CALL")
+     
     greek_theta=greeks['theta'] 
     #-----------------------------------------------------------------------------------------------
     st.success("✅Monitor  Risk validation ")
@@ -2699,6 +2700,82 @@ def monitor_and_exit_paper_trades(kite):
         return trade
 
 #=================================================SAFE GREEK =================================================
+import math
+from datetime import datetime
+
+def safe_option_greeks_new(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
+    """
+    Safely calculate option Greeks (Delta, Gamma, Theta, Vega, Rho).
+    
+    Args:
+        S (float): Current underlying price
+        K (float): Strike price
+        expiry_dt (datetime.date or datetime.datetime): Option expiry date
+        r (float): Annual risk-free interest rate in decimal (e.g., 0.07)
+        iv_percent (float): Implied volatility in percent (e.g., 15 for 15%)
+        option_type (str): "CALL" or "PUT" (default "CALL")
+    
+    Returns:
+        dict: {'delta', 'gamma', 'theta', 'vega', 'rho'} each float or None if cannot compute
+    """
+    greeks = {'delta': None, 'gamma': None, 'theta': None, 'vega': None, 'rho': None}
+    
+    try:
+        # Convert IV to decimal
+        sigma = float(iv_percent) / 100
+        if sigma <= 0 or S <= 0 or K <= 0 or r < 0:
+            return greeks  # invalid input
+
+        # Compute time to expiry in years
+        now = datetime.now()
+        if isinstance(expiry_dt, datetime):
+            expiry = expiry_dt
+        else:
+            expiry = datetime.combine(expiry_dt, datetime.min.time())
+        T_days = (expiry - now).days
+        if T_days <= 0:
+            return greeks  # option expired
+
+        T = T_days / 365
+
+        sigma_sqrt_T = sigma * math.sqrt(T)
+        if sigma_sqrt_T == 0:
+            return greeks
+
+        # Black-Scholes d1 and d2
+        d1 = (math.log(S / K) + (r + 0.5 * sigma**2) * T) / sigma_sqrt_T
+        d2 = d1 - sigma_sqrt_T
+
+        # Standard normal CDF and PDF
+        def N(x):
+            return 0.5 * (1 + math.erf(x / math.sqrt(2)))
+        
+        def n(x):
+            return math.exp(-0.5 * x**2) / math.sqrt(2 * math.pi)
+
+        option_type = option_type.upper()
+        if option_type.startswith("C"):
+            greeks['delta'] = N(d1)
+            greeks['theta'] = (-S * n(d1) * sigma / (2 * math.sqrt(T)) 
+                               - r * K * math.exp(-r*T) * N(d2)) / 365
+            greeks['rho']   = K * T * math.exp(-r*T) * N(d2) / 100
+        elif option_type.startswith("P"):
+            greeks['delta'] = N(d1) - 1
+            greeks['theta'] = (-S * n(d1) * sigma / (2 * math.sqrt(T)) 
+                               + r * K * math.exp(-r*T) * N(-d2)) / 365
+            greeks['rho']   = -K * T * math.exp(-r*T) * N(-d2) / 100
+        else:
+            return greeks  # invalid option type
+
+        # Gamma and Vega (same for CALL and PUT)
+        greeks['gamma'] = n(d1) / (S * sigma_sqrt_T)
+        greeks['vega']  = S * n(d1) * math.sqrt(T) / 100
+
+    except Exception as e:
+        print("safe_option_greeks error:", e)
+        return greeks
+
+    return greeks
 
 def safe_option_greeks(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
     from datetime import datetime, time

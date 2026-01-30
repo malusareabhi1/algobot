@@ -11537,7 +11537,8 @@ elif MENU =="LIVE TRADE 3":
             iv_result=new_iv_result 
             #st.write("new_iv_result",new_iv_result) 
             result = "Pass" if 0.10 <= new_iv_result <= 0.35 else "Fail" 
-            add_param_row("IV ", round(new_iv_result, 2), "0.10 - 0.35", result) 
+            add_param_row("IV ", round(new_iv_result, 2), "0.10 - 0.35", result)
+            st.session_state.IV=new_iv_result 
 #-------------------------------------------------------------------------
            
         
@@ -11553,7 +11554,7 @@ elif MENU =="LIVE TRADE 3":
             result = "Pass" if vix_now > 10 else "Fail"
             vix_result  = result     
             add_param_row("VIX", round(vix_now, 2), " > 10", result)
-
+            st.session_state.VIX=vix_now   
  #------------------------------------------------------------------------------   
  
     #---------------------------------tIME-----------------------------------------------
@@ -11873,6 +11874,7 @@ elif MENU =="LIVE TRADE 3":
                         st.write("entry_time-",last_executed_signal_time)
                         st.write("Now Time-", now)
                         st.write("Qty*LOT=", qty) 
+                        st.session_state.diff_minutes=diff_minutes  
                     if diff_minutes > MAX_DELAY_MINUTES:
                         st.warning(
                             f"⏰ Old Signal Skipped | Signal Age: {diff_minutes:.1f} min"

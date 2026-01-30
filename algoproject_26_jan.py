@@ -10608,7 +10608,7 @@ elif MENU == "My Account":
                     option_df = pd.DataFrame(st.session_state.option_log)
                     
                     st.dataframe(
-                        option_df.sort_values("strike", ascending=False),
+                        option_df,
                         use_container_width=True,
                         hide_index=True
                     )

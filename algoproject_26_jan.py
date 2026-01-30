@@ -2751,6 +2751,59 @@ def exit_last_open_position(kite):
 #=================================================================================================
 
 def show_open_positions(kite):
+    try:
+        positions = kite.positions()["net"]
+    except Exception:
+        st.error("Failed to fetch positions")
+        return 0
+
+    # ✅ NIFTY F&O ONLY
+    open_pos = [
+        p for p in positions
+        if p["quantity"] != 0
+        and p.get("exchange") == "NFO"
+        and p.get("tradingsymbol", "").startswith("NIFTY")
+    ]
+
+    if not open_pos:
+        st.info("ℹ️ No Open NIFTY F&O Positions")
+        return 0
+
+    rows = []
+    total_pnl = 0
+
+    for p in open_pos:
+        symbol = p["tradingsymbol"]
+        qty = p["quantity"]
+        entry = p["average_price"]
+
+        ltp = safe_ltp(kite, "NFO", symbol)
+        if ltp is None:
+            continue
+
+        pnl = round((ltp - entry) * qty, 2)
+        pnl_pct = round(((ltp - entry) / entry) * 100, 2)
+
+        total_pnl += pnl
+
+        rows.append({
+            "Symbol": symbol,
+            "Qty": qty,
+            "Entry": round(entry, 2),
+            "LTP": round(ltp, 2),
+            "P&L (₹)": pnl,
+            "P&L %": pnl_pct
+        })
+
+    df = pd.DataFrame(rows)
+
+    st.subheader("📈 Open NIFTY F&O Positions")
+    st.dataframe(df, use_container_width=True)
+
+    st.metric("Open NIFTY P&L", f"₹ {total_pnl:,.2f}")
+    return total_pnl
+     
+def show_open_positionsz(kite):
     positions = kite.positions()["net"]
 
     open_pos = [p for p in positions if p["quantity"] != 0]

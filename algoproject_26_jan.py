@@ -11169,7 +11169,11 @@ elif MENU =="LIVE TRADE 3":
     if "order_executed" not in st.session_state:
         st.session_state.order_executed = False
         
-    
+    if has_open_position(kite):
+       st.warning("⚠️ Open position exists. New trade not allowed.")
+       st.session_state.order_executed=True
+    else
+       st.session_state.order_executed=False
     if "signal_time" not in st.session_state:
         st.session_state.signal_time = None
     # Add after data processing:
@@ -11179,7 +11183,7 @@ elif MENU =="LIVE TRADE 3":
             return True
         except:
             return False
-
+    
     
     st.set_page_config(layout="wide")
     # Place at the very top of your script (or just before plotting)

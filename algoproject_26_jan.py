@@ -326,6 +326,191 @@ def demo_place_order(symbol,qty):
                                             st.error(f"Order Failed: {e}")
 #===================================================================================================================
 
+def monitor_position_live_with_theta_table_and_exit1(
+    kite,
+    symbol,
+    qty,
+    entry_price,
+    strike,
+    expiry_date,
+    option_type="CALL"
+):  
+    #============================================SHOW CHART===================================================
+    df_option = get_option_ohlc(kite,symbol, interval="5minute")
+    #st.write("Option data",df_option)  
+    initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)
+    st.write("initial_sl,risk1",initial_sl,risk1)  
+    #st.write(df_option) 
+    #st.write("symbol, qty, entry_price,strike,expiry_date,option_type",symbol, qty, entry_price, strike,  expiry_date,  option_type)   
+    import time as tm 
+    ist = pytz.timezone("Asia/Kolkata")
+    placeholder = st.empty()
+    trailing_sl = entry_price * 0.30
+     
+    status = "LIVE"
+    amount=entry_price*qty
+    fund=get_fund_status(kite)
+    cash=fund['net'] 
+    cash=100000 
+    risk=cash*(5/100) 
+    orisk= (entry_price-initial_sl)*qty
+    #st.write("Total Capital(100%)=",cash)
+    #st.write("Capital RISK   (5%)  =",risk)
+    #st.write("Option AMOUNT   ()  =",amount) 
+    #st.write("Option RISK   (entry_price-initial_sl*QTY)  =",orisk) 
+    
+    #st.write("Qty=",qty) 
+    amount= entry_price*qty
+    orisk= (entry_price-initial_sl)*qty 
+    #st.write("New Option AMOUNT   ()  =",amount) 
+    pprofit=orisk+entry_price+2
+    #st.write("Partial pprofit=",pprofit) 
+    #st.write("New Option RISK   (entry_price-initial_sl*QTY)  =",orisk)  
+    #---------------------------------------------------------------------------------------SL------------  
+    # ------------------ RISK MANAGEMENT ------------------
+
+    lot_size = 65 #nearest_itm.get("lot_size", qty)
+     
+    max_capital_risk = cash * 0.05  # 5%
+    per_unit_risk = abs(entry_price - initial_sl)
+     
+    qty = int(qty)  # safety
+    orisk = per_unit_risk * qty
+     
+    
+     # Final validated qty
+    amount = entry_price * qty
+    #greek_theta=st.session_state.GREEKtheta  #safe_option_greeks(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
+    #option_iv=st.session_state.option_iv  
+    #---------------------------------------------------------------------------------------------
+    option_ltp = safe_ltp(kite, "NFO", symbol)
+    spot = safe_ltp(kite, "NSE", "NIFTY 50")
+    r=0.65 
+    st.write("expiry_date",expiry_date)
+    option_iv = calculate_option_iv(
+         option_price=option_ltp,
+         spot_price=spot,
+         strike_price=strike,
+         expiry_date=expiry_date,
+         option_type="PE"
+     )
+    greeks = safe_option_greeks_new(spot, strike, expiry_date, r, option_iv, option_type="CALL")
+     
+    greek_theta=greeks['theta'] 
+    #-----------------------------------------------------------------------------------------------
+    st.success("✅Monitor  Risk validation ")
+    #st.write("Final Qty =", qty)
+    st.write("Option Risk =", round(orisk, 2))
+    st.write("Capital Risk (5%) =", round(max_capital_risk, 2))
+    st.write("Position Value =", round(amount, 2))  
+    st.write("Partial Profit Value =", round(pprofit, 2))
+    st.write("Theta  Value =", round(greek_theta, 2))
+    st.write("IV Value =", round(option_iv, 2))
+    
+  
+    #show_option_chart_with_trade_levels( df_option, symbol, entry_price=180, stop_loss=120,trailing_sl=st.session_state.get("trailing_sl") )
+    #---------------------------------------------------------------------------------------SL------------
+     
+    #========================================================================================================== 
+    while True:
+        now = datetime.now(ist)
+    
+        # ================= LIVE PRICES =================
+        ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
+        spot = safe_ltp(kite, "NSE", "NIFTY 50")
+    
+        # ================= LIVE IV =================
+        option_iv = calculate_option_iv(
+            option_price=ltp,
+            spot_price=spot,
+            strike_price=strike,
+            expiry_date=expiry_date,
+            option_type="PE" if option_type == "PUT" else "CE"
+        )
+    
+        # ================= LIVE GREEKS =================
+        greeks = safe_option_greeks_new(
+            S=spot,
+            K=strike,
+            expiry_dt=expiry_date,
+            r=0.065,
+            iv_percent=option_iv,
+            option_type=option_type
+        )
+        greek_theta = greeks.get("theta", 0)
+    
+        # ================= LIVE PNL =================
+        if option_type == "CALL":
+            pnl = (ltp - entry_price) * qty
+        else:
+            pnl = (entry_price - ltp) * qty
+    
+        # ================= TRAILING SL =================
+        if ltp > entry_price * 1.01:
+            trailing_sl = max(trailing_sl, ltp * 0.97)
+    
+        # ================= STATUS RESET =================
+        status = "LIVE"
+    
+        # ================= EXIT RULES =================
+        if option_iv >= 50:
+            status = "❌ IV BLAST EXIT"
+        elif pnl >= pprofit:
+            status = "⚠ PARTIAL EXIT"
+        elif ltp <= trailing_sl:
+            status = "❌ SL HIT"
+        elif greek_theta <= -80:
+            status = "⚠ THETA EXIT"
+        elif now.hour == 15 and now.minute >= 20:
+            status = "🕒 EOD EXIT"
+    
+        # ================= DISPLAY =================
+        df = pd.DataFrame([{
+            "Symbol": symbol,
+            "Type": option_type,
+            "Qty": qty,
+            "Entry": round(entry_price, 2),
+            "LTP": round(ltp, 2),
+            "P&L": round(pnl, 2),
+            "Theta": round(greek_theta, 2),
+            "IV": round(option_iv, 2),
+            "Trailing SL": round(trailing_sl, 2),
+            "Status": status,
+            "Time": now.strftime("%H:%M:%S")
+        }])
+    
+        def color_pnl(v): return "color: green" if v > 0 else "color: red"
+        def color_status(v):
+            if "LIVE" in v: return "color: blue"
+            if "SL" in v or "EXIT" in v: return "color: red"
+            return "color: orange"
+    
+        styled = (
+            df.style
+            .applymap(color_pnl, subset=["P&L"])
+            .applymap(color_status, subset=["Status"])
+        )
+    
+        with placeholder.container():
+            st.subheader("📊 Live Option Monitor")
+            st.dataframe(styled, use_container_width=True, hide_index=True)
+    
+        # ================= EXECUTION =================
+        if status == "⚠ PARTIAL EXIT":
+            exit_qty = max(lot_size, qty // 2)
+            place_exit_order(kite, symbol, exit_qty, status)
+            qty -= exit_qty
+            pprofit *= 2  # next target
+            tm.sleep(1)
+            continue
+    
+        if status != "LIVE":
+            place_exit_order(kite, symbol, qty, status)
+            break
+    
+        tm.sleep(1)
+
+#================================================================================================================
 def monitor_position_live_with_theta_table_and_exit(
     kite,
     symbol,
@@ -11532,7 +11717,7 @@ elif MENU =="LIVE TRADE 3":
        strike=25260
        expiry_date=date(2026,2,3)
               #st.success(f"Open Position: {pos['symbol']}")
-       monitor_position_live_with_theta_table_and_exit( kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
+       monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
        #else:
               #st.info("No open position")
 

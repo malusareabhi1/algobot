@@ -2701,13 +2701,18 @@ def monitor_and_exit_paper_trades(kite):
 #=================================================SAFE GREEK =================================================
 
 def safe_option_greeks(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
+     from datetime import datetime, time
+     import pytz
+     from py_vollib.black_scholes.greeks.analytical import delta, gamma, theta, vega
+     IST = pytz.timezone("Asia/Kolkata")
+ 
     #st.write("S, K, expiry_dt, r, iv_percent, option_type", S, K, expiry_dt, r, iv_percent, option_type) 
     now = datetime.now()
     #st.write("strike value:", strike)
     #st.write("strike type:", type(strike))
     #K = float(df["strike"].values[0])
     seconds = max((expiry_dt - now).total_seconds(), 3600)
-    T = seconds / (365 * 24 * 60 * 60)
+    T = seconds / (365 * 24 * 3660)
 
     sigma = max(iv_percent / 100, 0.05)
 

@@ -12120,7 +12120,7 @@ elif MENU =="LIVE TRADE 3":
 #===========================================OPEN POSITION--------------------------------------
             st.divider()
 
-            open_pnl = show_open_positions(kite)
+            open_pnl = show_open_positions(kite,product="MIS")
             closed_pnl = show_closed_positions(kite)
                
             st.divider()

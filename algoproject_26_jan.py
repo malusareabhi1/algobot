@@ -527,6 +527,7 @@ def monitor_position_live_with_theta_table_and_exit1(
                  # qty == 65 → no partial possible
                  status = "❌ FINAL EXIT (LOT SIZE LIMIT)"
                  place_exit_order(kite, symbol, qty, status)
+                 qty = 0
                  break
 
     

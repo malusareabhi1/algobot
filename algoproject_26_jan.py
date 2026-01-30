@@ -72,6 +72,56 @@ if "signal_log" not in st.session_state:
 
 if "option_log" not in st.session_state:
     st.session_state.option_log = []
+#========================================find_open_position_any=========================================================
+
+def find_open_position_any(
+    kite,
+    symbol_contains=None,   # e.g. "NIFTY", "BANKNIFTY", "RELIANCE"
+    exchange=None,          # "NFO" / "NSE"
+    product=None            # "MIS" / "NRML" / "CNC"
+):
+    """
+    Returns list of matching open positions with full details
+    """
+
+    try:
+        positions = kite.positions()["net"]
+    except Exception as e:
+        print("❌ Failed to fetch positions:", e)
+        return []
+
+    matches = []
+
+    for p in positions:
+        qty = p.get("quantity", 0)
+        symbol = p.get("tradingsymbol", "")
+
+        if qty == 0:
+            continue
+
+        if symbol_contains and symbol_contains not in symbol:
+            continue
+
+        if exchange and p.get("exchange") != exchange:
+            continue
+
+        if product and p.get("product") != product:
+            continue
+
+        matches.append({
+            "symbol": symbol,
+            "exchange": p.get("exchange"),
+            "product": p.get("product"),
+            "instrument_type": p.get("instrument_type"),
+            "qty": qty,
+            "avg_price": p.get("average_price"),
+            "pnl": p.get("pnl"),
+            "buy_qty": p.get("buy_quantity"),
+            "sell_qty": p.get("sell_quantity"),
+            "multiplier": p.get("multiplier")
+        })
+
+    return matches
 
 #==============================================================================================
 
@@ -11295,7 +11345,18 @@ elif MENU =="LIVE TRADE 3":
        st.session_state.order_executed=True
        #show_open_positions(kite)
        #================================================================================================
-       
+       nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")
+       if nifty_positions:
+              pos = nifty_positions[0]
+              qty = pos["qty"]
+              avg = pos["avg_price"]
+              pnl = pos["pnl"]
+          
+              st.success(f"Open Position: {pos['symbol']}")
+       else:
+              st.info("No open position")
+  
+
        #===================================================================================================    
     else:
        st.warning("⚠️No  Open position exists. New trade  allowed.")  

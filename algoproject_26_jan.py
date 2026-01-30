@@ -61,6 +61,9 @@ if "position_size" not in st.session_state:
 
 if "lot_qty" not in st.session_state:
     st.session_state.lot_qty = 1
+     
+if "last_candle_log" not in st.session_state:
+    st.session_state.last_candle_log = []
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -1467,9 +1470,23 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
          "Inside Base Zone": inside_base,
          "Inside Opening Range": inside_or
      }])
-     
+    candle_snapshot = {
+         "Datetime": last_time,
+         "Open": last_candle['Open_^NSEI'],
+         "High": last_high,
+         "Low": last_low,
+         "Close": last_close,
+         "Base Low": base_low,
+         "Base High": base_high,
+         "OR Low": orb_low,
+         "OR High": orb_high,
+         "Inside Base Zone": inside_base,
+         "Inside Opening Range": inside_or
+     }
+    st.session_state.last_candle_log.append(candle_snapshot)
+
     st.dataframe(last_candle_table, use_container_width=True) 
-   
+    
 
     # ---- HUMAN READABLE STATUS ----
     if inside_base and inside_or:

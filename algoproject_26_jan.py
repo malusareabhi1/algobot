@@ -33,11 +33,7 @@ start = time(9, 15)   # 9:30 AM
 end = time(15, 0)    # 3:25 PM
 now = datetime.now(ist).time()    
 # Refresh only between 9:30–3:25
-with left_col:
-    chart_slot = st.empty()
 
-with right_col:
-    position_slot = st.empty()
 
 if start <= now <= end:
      st_autorefresh(interval=30000, key="refresh")  # 1 minute refresh

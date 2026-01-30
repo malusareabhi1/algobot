@@ -11996,6 +11996,8 @@ elif MENU =="LIVE TRADE 3":
                         st.write("Now Time-", now)
                         st.write("Qty*LOT=", qty) 
                         st.session_state.diff_minutes=diff_minutes  
+                    order_status=st.session_state.order_executed
+                    st.write("order_status",order_status)     
                     if diff_minutes > MAX_DELAY_MINUTES:
                         st.warning(
                             f"⏰ Old Signal Skipped | Signal Age: {diff_minutes:.1f} min"

@@ -503,6 +503,32 @@ def monitor_position_live_with_theta_table_and_exit1(
             pprofit *= 2  # next target
             tm.sleep(1)
             continue
+        if status == "⚠ PARTIAL EXIT":
+
+             # ================= LOT-SAFE PARTIAL EXIT =================
+            if qty >= 130:
+                 exit_qty = qty // 2
+         
+                 # Ensure exit_qty is a multiple of lot size
+                 exit_qty = (exit_qty // lot_size) * lot_size
+         
+                 # Safety fallback
+                 if exit_qty < lot_size:
+                     exit_qty = lot_size
+         
+                 place_exit_order(kite, symbol, exit_qty, status)
+         
+                 qty -= exit_qty           # remaining quantity
+                 pprofit *= 2              # next target
+                 tm.sleep(1)
+                 continue
+         
+            else:
+                 # qty == 65 → no partial possible
+                 status = "❌ FINAL EXIT (LOT SIZE LIMIT)"
+                 place_exit_order(kite, symbol, qty, status)
+                 break
+
     
         if status != "LIVE":
             place_exit_order(kite, symbol, qty, status)

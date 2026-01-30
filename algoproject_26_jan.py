@@ -2982,12 +2982,47 @@ def has_open_position0(kite):
             return True
     return False
 
-def has_open_position(kite, tradingsymbol=None):
+def has_open_position1(kite, tradingsymbol=None):
     positions = kite.positions()["net"]
     for p in positions:
         if p["quantity"] != 0:
             if tradingsymbol is None or p["tradingsymbol"] == tradingsymbol:
                 return True
+    return False
+     
+def has_open_position(kite, tradingsymbol=None, product=None):
+    """
+    Check if there is an open position.
+    
+    Args:
+        kite : Zerodha Kite instance
+        tradingsymbol (str, optional): e.g. 'NIFTY24JAN24500CE'
+        product (str, optional): 'MIS', 'NRML', 'CNC'
+    
+    Returns:
+        bool
+    """
+
+    try:
+        positions = kite.positions()["net"]
+    except Exception as e:
+        print(f"Kite error: {e}")
+        return False
+
+    for p in positions:
+        if p["quantity"] == 0:
+            continue
+
+        # Match symbol if provided
+        if tradingsymbol and p["tradingsymbol"] != tradingsymbol:
+            continue
+
+        # Match product type if provided
+        if product and p["product"] != product:
+            continue
+
+        return True
+
     return False
 
 
@@ -11173,7 +11208,7 @@ elif MENU =="LIVE TRADE 3":
     if "order_executed" not in st.session_state:
         st.session_state.order_executed = False
         
-    if has_open_position(kite):
+    if has_open_position(kite,product=MIS):
        st.warning("⚠️ Open position exists. New trade not allowed.")
        st.session_state.order_executed=True
        #show_open_positions(kite)

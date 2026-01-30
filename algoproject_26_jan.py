@@ -11173,6 +11173,7 @@ elif MENU =="LIVE TRADE 3":
        st.warning("⚠️ Open position exists. New trade not allowed.")
        st.session_state.order_executed=True
     else:
+       st.warning("⚠️No  Open position exists. New trade  allowed.")  
        st.session_state.order_executed=False
     if "signal_time" not in st.session_state:
         st.session_state.signal_time = None

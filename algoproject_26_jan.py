@@ -61,6 +61,13 @@ if "position_size" not in st.session_state:
 
 if "lot_qty" not in st.session_state:
     st.session_state.lot_qty = 1
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+@st.cache_data(ttl=300)  # cache for 5 minutes
+def get_option_ohlc_cached(kite, symbol, interval="5minute"):
+    return get_option_ohlc(kite, symbol, interval)
+
 #=====================================================Demo Place order=======================-====
 
 
@@ -254,7 +261,9 @@ def trade_validation(
     option_type="CALL"
 ):  
     #============================================SHOW CHART===================================================
-    df_option = get_option_ohlc(kite,symbol, interval="5minute")
+    #df_option = get_option_ohlc(kite,symbol, interval="5minute")
+    df_option = get_option_ohlc_cached(kite, symbol)
+ 
     #st.write("Option data",df_option)  
     initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)
     

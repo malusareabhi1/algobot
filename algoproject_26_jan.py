@@ -12004,9 +12004,11 @@ elif MENU =="LIVE TRADE 3":
                       # Check 3: Order placed only once
                         #if qty>0: 
                               if has_open_position(kite):
-                                  st.warning("⚠️ Open position exists. New trade not allowed.")                                  
+                                  st.warning("⚠️ Open position exists. New trade not allowed.")
+                                  st.session_state.order_executed=True 
                               else:
                                     st.warning(" No Open position exists. New trade allowed.")
+                                    st.session_state.order_executed=False 
                                     order_status=st.session_state.order_executed
                                     st.write(order_status)
                                     if not st.session_state.order_executed:

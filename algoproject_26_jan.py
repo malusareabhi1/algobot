@@ -11351,15 +11351,15 @@ elif MENU =="LIVE TRADE 3":
               #qty = pos["qty"]
               #avg = pos["avg_price"]
               #pnl = pos["pnl"]
-              symbol="NIFTY2620325250PE"
-              qty=130
-              entry_price=130
-              strike=25260
-              expiry_date=date(2026,2,3)
+       symbol="NIFTY2620325250PE"
+       qty=130
+       entry_price=130
+       strike=25260
+       expiry_date=date(2026,2,3)
               #st.success(f"Open Position: {pos['symbol']}")
-              monitor_position_live_with_theta_table_and_exit( kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
-       else:
-              st.info("No open position")
+       monitor_position_live_with_theta_table_and_exit( kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
+       #else:
+              #st.info("No open position")
   
 
        #===================================================================================================    

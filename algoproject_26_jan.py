@@ -12007,6 +12007,8 @@ elif MENU =="LIVE TRADE 3":
                                   st.warning("⚠️ Open position exists. New trade not allowed.")                                  
                               else:
                                     st.warning(" No Open position exists. New trade allowed.")
+                                    order_status=st.session_state.order_executed
+                                    st.write(order_status)
                                     if not st.session_state.order_executed:
                                         try:
                                             st.write("Placing Trade-") 

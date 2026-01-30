@@ -11176,6 +11176,7 @@ elif MENU =="LIVE TRADE 3":
     if has_open_position(kite):
        st.warning("⚠️ Open position exists. New trade not allowed.")
        st.session_state.order_executed=True
+       show_open_positions(kite)  
     else:
        st.warning("⚠️No  Open position exists. New trade  allowed.")  
        st.session_state.order_executed=False

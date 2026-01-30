@@ -57,6 +57,19 @@ if "NIFTY_TOKEN" not in st.session_state:
 
 if "signal_cache" not in st.session_state:
     st.session_state.signal_cache = {}
+     
+if "GREEKdelta" not in st.session_state:
+    st.session_state.GREEKdelta = None
+if "GREEKtheta" not in st.session_state:
+    st.session_state.GREEKtheta = None
+
+if "GREEKvega" not in st.session_state:
+    st.session_state.GREEKvega = None
+
+if "GREEKgamma" not in st.session_state:
+    st.session_state.GREEKgamma = None
+
+
 
 if "position_size" not in st.session_state:
     st.session_state.position_size = None

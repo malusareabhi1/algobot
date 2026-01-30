@@ -34,11 +34,7 @@ end = time(15, 0)    # 3:25 PM
 now = datetime.now(ist).time()    
 # Refresh only between 9:30–3:25
  # STEP 1: Check kite object existence
-kite = st.session_state.get("kite")
-     
-if kite is None:
-         st.warning("Please login to access Algo Trading.")
-         st.stop()
+
      
 
 if start <= now <= end:
@@ -10729,7 +10725,11 @@ elif MENU == "My Account":
         st.title("My Account")
         st.set_page_config(page_title="Zerodha Dashboard", layout="wide")
         #st.title("📊 Zerodha Orders & Holdings Dashboard")
+        kite = st.session_state.get("kite")
      
+        #if kite is None:
+                #st.warning("Please login to access Algo Trading.")
+                #st.stop()
         if not is_kite_connected(kite):
              st.warning("Please login first to access your account details.")
              st.stop()     # Stop page execution safely

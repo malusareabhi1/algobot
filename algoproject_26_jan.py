@@ -389,8 +389,10 @@ def monitor_position_live_with_theta_table_and_exit(
         if (status == "❌ Partial Exit"):
             if(qty==65):
                 qty=65
+                qty = int(qty)
             else:    
                 qty=qty/2
+                qty = int(qty) 
             place_exit_order(kite, symbol, qty, status)
             st.write("Placing Partial place_exit_order") 
             break

@@ -73,6 +73,32 @@ if "signal_log" not in st.session_state:
 if "option_log" not in st.session_state:
     st.session_state.option_log = []
 
+#==============================================================================================
+
+from kiteconnect.exceptions import NetworkException
+
+def safe_ltp(kite, exchange, symbol):
+    """
+    Safe LTP fetch with validation
+    """
+    try:
+        key = f"{exchange}:{symbol}"
+        data = kite.ltp(key)
+
+        if not data:
+            return None
+
+        if key not in data:
+            return None
+
+        return data[key].get("last_price")
+
+    except NetworkException:
+        return None
+
+    except Exception as e:
+        print("LTP ERROR:", e)
+        return None
 
 #===============================================Option LOG++==================================
 
@@ -2741,8 +2767,11 @@ def show_open_positions(kite):
         qty = p["quantity"]
         entry = p["average_price"]
 
-        ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
+        #ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
+        ltp = safe_ltp(kite, "NFO", symbol)
 
+        if ltp is None:
+              continue  # skip this position safely  
         pnl = round((ltp - entry) * qty, 2)
         pnl_pct = round(((ltp - entry) / entry) * 100, 2)
 

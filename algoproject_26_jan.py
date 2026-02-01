@@ -11891,7 +11891,7 @@ elif MENU =="LIVE TRADE 3":
         "close": "Close_^NSEI"
     })
 
-    
+    st.write(df)
     #st.write(df.columns)
     #st.write(df.head(10))
     

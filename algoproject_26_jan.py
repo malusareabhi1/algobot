@@ -11864,7 +11864,7 @@ elif MENU =="LIVE TRADE 3":
     # Add any other detected name if needed
     
     
-    st.write(df.columns)
+    st.write(df)
     #st.write(df.head(10))
     # Flatten columns if MultiIndex
     if isinstance(df.columns, pd.MultiIndex):

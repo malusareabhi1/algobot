@@ -11818,7 +11818,8 @@ elif MENU =="LIVE TRADE 3":
               expiry_date=get_expiry_from_symbol(symbol)
               strike=st.session_state.S
               symbol="NIFTY2620325350CE"
-              st.write("NIFTY2620325350CE-exp", get_expiry_from_symbol(symbol))
+              newdt=get_expiry_from_symbol(symbol)
+              st.write("NIFTY2620325350CE-exp", newdt)
               #qty=130
               #entry_price=130
               #strike=25260

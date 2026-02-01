@@ -11885,7 +11885,7 @@ elif MENU =="LIVE TRADE 3":
     df["Datetime"] = df.index
 
     
-    #st.write(df.columns)
+    st.write(df.columns)
     #st.write(df.head(10))
     
     # Filter for last two trading days to plot

@@ -11784,47 +11784,54 @@ elif MENU =="LIVE TRADE 3":
        #show_open_positions(kite)
        #==================================================================================================
        st.subheader("📊 Open Positions")
-               
-       try:
-                       positions = kite.positions()
-               
-                       # Combine day + net positions
-                       df_positions = pd.DataFrame(
-                           positions.get("net", [])
-                       )
-               
-                       if not df_positions.empty:
-                           # Optional: select useful columns only
-                           display_cols = [
-                               "tradingsymbol",
-                               "exchange",
-                               "product",
-                               "quantity",
-                               "average_price",
-                               "last_price",
-                               "pnl",
-                               "unrealised",
-                               "realised"
-                           ]
-               
-                           df_positions = df_positions[display_cols]
-               
-                           st.dataframe(
-                               df_positions,
-                               use_container_width=True
-                           )
-                       else:
-                           st.info("No open positions.")
-               
-       except Exception as e:
-                       st.error(f"Error fetching positions: {e}")
+       REFRESH_SEC = 1  # do NOT go below 1–2 sec (Zerodha rate limits)
+
+       if "last_pos_refresh" not in st.session_state:
+           st.session_state.last_pos_refresh = 0
+       
+       now = time.time()
+       
+       if now - st.session_state.last_pos_refresh >= REFRESH_SEC:         
+          try:
+                          positions = kite.positions()
+                  
+                          # Combine day + net positions
+                          df_positions = pd.DataFrame(
+                              positions.get("net", [])
+                          )
+                  
+                          if not df_positions.empty:
+                              # Optional: select useful columns only
+                              display_cols = [
+                                  "tradingsymbol",
+                                  "exchange",
+                                  "product",
+                                  "quantity",
+                                  "average_price",
+                                  "last_price",
+                                  "pnl",
+                                  "unrealised",
+                                  "realised"
+                              ]
+                  
+                              df_positions = df_positions[display_cols]
+                  
+                              st.dataframe(
+                                  df_positions,
+                                  use_container_width=True
+                              )
+                          else:
+                              st.info("No open positions.")
+                  
+          except Exception as e:
+                          st.error(f"Error fetching positions: {e}")
        #================================================================================================
        nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")
-       st.write("NIFTY POSITION ",nifty_positions)
-       symbol="NIFTY2620325350CE"
+       #st.write("NIFTY POSITION ",nifty_positions)
+       #symbol="NIFTY2620325350CE"
        #newdt=get_expiry_from_symbol(symbol)
-       newdt=get_expiry_from_instruments(symbol)
-       st.write("NIFTY2620325350CE-exp", newdt) 
+       #newdt=get_expiry_from_instruments(symbol)
+       #st.write("NIFTY2620325350CE-exp", newdt) 
        if nifty_positions:
               pos = nifty_positions[0]
               qty = pos["qty"]
@@ -11832,7 +11839,7 @@ elif MENU =="LIVE TRADE 3":
               pnl = pos["pnl"]
               symbol=pos["symbol"]
               option_type=pos["instrument_type"]
-              expiry_date=get_expiry_from_symbol(symbol)
+              expiry_date=get_expiry_from_instruments(symbol)
               strike=st.session_state.S
               #symbol="NIFTY2620325350CE"
               #newdt=get_expiry_from_symbol(symbol)

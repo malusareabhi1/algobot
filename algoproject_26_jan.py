@@ -11780,7 +11780,7 @@ elif MENU =="LIVE TRADE 3":
               symbol=pos["symbol"]
               option_type=pos["instrument_type"]
               expiry_date=get_expiry_from_symbol(symbol)
-              #strike=
+              strike=st.session_state.S
               #symbol="NIFTY2620325250PE"
               #qty=130
               #entry_price=130

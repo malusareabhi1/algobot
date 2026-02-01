@@ -11849,13 +11849,13 @@ elif MENU =="LIVE TRADE 3":
     # Download data for ^NSEI from start_date to end_date
     df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="15m")
     
-    if df.empty:
-        st.warning("No data downloaded for the selected range.")
-        st.stop()
+    #if df.empty:
+        #st.warning("No data downloaded for the selected range.")
+        #st.stop()
     if df.empty:
         st.warning("⚠️ Yahoo Finance does not support special NSE sessions. Switching to Zerodha data.")
-        df = get_data_from_kite()  # your Kite function
-        df.reset_index(inplace=True)
+        #df = get_data_from_kite()  # your Kite function
+        #df.reset_index(inplace=True)
     
     if 'Datetime_' in df.columns:
         df.rename(columns={'Datetime_': 'Datetime'}, inplace=True)

@@ -11892,7 +11892,7 @@ elif MENU =="LIVE TRADE 3":
     })
 
     st.write(df)
-    #st.write(df.columns)
+    st.write(df.columns)
     #st.write(df.head(10))
     
     # Filter for last two trading days to plot

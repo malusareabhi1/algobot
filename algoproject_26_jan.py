@@ -11883,6 +11883,13 @@ elif MENU =="LIVE TRADE 3":
         df.index = df.index.tz_convert("Asia/Kolkata")
     
     df["Datetime"] = df.index
+    # 3️⃣ Rename OHLC columns to Yahoo-style
+    df = df.rename(columns={
+        "open":  "Open_^NSEI",
+        "high":  "High_^NSEI",
+        "low":   "Low_^NSEI",
+        "close": "Close_^NSEI"
+    })
 
     
     st.write(df.columns)

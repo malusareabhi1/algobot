@@ -11769,6 +11769,42 @@ elif MENU =="LIVE TRADE 3":
        st.warning("⚠️ Open position exists. New trade not allowed.")
        st.session_state.order_executed=True
        #show_open_positions(kite)
+       #==================================================================================================
+       st.subheader("📊 Open Positions")
+               
+                   try:
+                       positions = kite.positions()
+               
+                       # Combine day + net positions
+                       df_positions = pd.DataFrame(
+                           positions.get("net", [])
+                       )
+               
+                       if not df_positions.empty:
+                           # Optional: select useful columns only
+                           display_cols = [
+                               "tradingsymbol",
+                               "exchange",
+                               "product",
+                               "quantity",
+                               "average_price",
+                               "last_price",
+                               "pnl",
+                               "unrealised",
+                               "realised"
+                           ]
+               
+                           df_positions = df_positions[display_cols]
+               
+                           st.dataframe(
+                               df_positions,
+                               use_container_width=True
+                           )
+                       else:
+                           st.info("No open positions.")
+               
+                   except Exception as e:
+                       st.error(f"Error fetching positions: {e}")
        #================================================================================================
        nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")
        st.write(nifty_positions)

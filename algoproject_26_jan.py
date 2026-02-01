@@ -11877,7 +11877,10 @@ elif MENU =="LIVE TRADE 3":
     #st.write(df.columns)
     # Convert to datetime & timezone aware
     #df['Datetime'] = pd.to_datetime(df['Datetime'])
-    if df['Datetime_'].dt.tz is None:
+    if df.index.tz is None:
+        df.index = df.index.tz_localize("Asia/Kolkata")
+
+    #if df['Datetime_'].dt.tz is None:
         df['Datetime'] = df['Datetime_'].dt.tz_localize('UTC').dt.tz_convert('Asia/Kolkata')
     else:
         df['Datetime'] = df['Datetime_'].dt.tz_convert('Asia/Kolkata')

@@ -11772,7 +11772,7 @@ elif MENU =="LIVE TRADE 3":
        #==================================================================================================
        st.subheader("📊 Open Positions")
                
-                   try:
+       try:
                        positions = kite.positions()
                
                        # Combine day + net positions
@@ -11803,7 +11803,7 @@ elif MENU =="LIVE TRADE 3":
                        else:
                            st.info("No open positions.")
                
-                   except Exception as e:
+       except Exception as e:
                        st.error(f"Error fetching positions: {e}")
        #================================================================================================
        nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")

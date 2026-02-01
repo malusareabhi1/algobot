@@ -11848,7 +11848,7 @@ elif MENU =="LIVE TRADE 3":
     
     # Download data for ^NSEI from start_date to end_date
     df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="15m")
-    st.write(df)
+    #st.write(df)
     #if df.empty:
         #st.warning("No data downloaded for the selected range.")
         #st.stop()
@@ -11864,7 +11864,7 @@ elif MENU =="LIVE TRADE 3":
     # Add any other detected name if needed
     
     
-    st.write(df)
+    #st.write(df)
     #st.write(df.head(10))
     # Flatten columns if MultiIndex
     if isinstance(df.columns, pd.MultiIndex):
@@ -11892,7 +11892,7 @@ elif MENU =="LIVE TRADE 3":
     })
 
     
-    st.write(df.columns)
+    #st.write(df.columns)
     #st.write(df.head(10))
     
     # Filter for last two trading days to plot

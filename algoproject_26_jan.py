@@ -96,7 +96,20 @@ def time_to_expiry_years(expiry_date):
     now = datetime.now()
     expiry = datetime.combine(expiry_date, datetime.max.time())
     return max((expiry - now).total_seconds(), 0) / (365 * 24 * 60 * 60)
-#========================================================================================================================
+
+#================================================get_expiry_from_instruments==================================================================
+
+def get_expiry_from_instruments(tradingsymbol):
+    df = st.session_state.instruments_df
+
+    row = df.loc[df["tradingsymbol"] == tradingsymbol]
+
+    if row.empty:
+        return None
+
+    return row.iloc[0]["expiry"]
+
+#====================================================get_data_from_kite====================================================================
 
 
 IST = pytz.timezone("Asia/Kolkata")
@@ -11809,7 +11822,8 @@ elif MENU =="LIVE TRADE 3":
        nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")
        st.write("NIFTY POSITION ",nifty_positions)
        symbol="NIFTY2620325350CE"
-       newdt=get_expiry_from_symbol(symbol)
+       #newdt=get_expiry_from_symbol(symbol)
+       newdt=get_expiry_from_instruments(symbol)
        st.write("NIFTY2620325350CE-exp", newdt) 
        if nifty_positions:
               pos = nifty_positions[0]

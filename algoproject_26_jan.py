@@ -100,9 +100,9 @@ def time_to_expiry_years(expiry_date):
 #================================================get_expiry_from_instruments==================================================================
 
 def get_expiry_from_instruments(tradingsymbol):
-    df = st.session_state.instruments_df
+    dfins = st.session_state.instruments
 
-    row = df.loc[df["tradingsymbol"] == tradingsymbol]
+    row = dfins.loc[dfins["tradingsymbol"] == tradingsymbol]
 
     if row.empty:
         return None

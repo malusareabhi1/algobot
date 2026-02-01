@@ -10,6 +10,7 @@ MARKET_END   = (15, 20)
 DEFAULT_IV = 0.18
 from datetime import time
 
+NIFTY_TOKEN = 256265
 
 IST_TIMEZONE = "Asia/Kolkata"
 

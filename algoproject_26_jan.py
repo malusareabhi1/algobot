@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 from math import log, sqrt, exp
 from scipy.stats import norm
 from config import QTY_PER_LOT
-
+from config import NIFTY_TOKEN
 # Auto-refresh every 30 seconds
 # Market hours condition
 #import pytz
@@ -11854,7 +11854,7 @@ elif MENU =="LIVE TRADE 3":
         #st.stop()
     if df.empty:
         st.warning("⚠️ Yahoo Finance does not support special NSE sessions. Switching to Zerodha data.")
-        #df = get_data_from_kite()  # your Kite function
+        df = get_data_from_kite(KITE,NIFTY_TOKEN)  # your Kite function
         #df.reset_index(inplace=True)
     
     if 'Datetime_' in df.columns:
@@ -11864,7 +11864,7 @@ elif MENU =="LIVE TRADE 3":
     # Add any other detected name if needed
     
     
-    #st.write(df.columns)
+    st.write(df.columns)
     #st.write(df.head(10))
     # Flatten columns if MultiIndex
     if isinstance(df.columns, pd.MultiIndex):

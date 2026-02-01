@@ -96,6 +96,50 @@ def time_to_expiry_years(expiry_date):
     now = datetime.now()
     expiry = datetime.combine(expiry_date, datetime.max.time())
     return max((expiry - now).total_seconds(), 0) / (365 * 24 * 60 * 60)
+#========================================================================================================================
+
+
+IST = pytz.timezone("Asia/Kolkata")
+
+def get_data_from_kite(
+    kite,
+    instrument_token: int,
+    interval: str = "15minute",
+    days: int = 7
+):
+    """
+    Fetch intraday OHLC data from Zerodha Kite API.
+    
+    Works on:
+    - Budget Sunday
+    - Muhurat trading
+    - Regular sessions
+    """
+
+    to_date = datetime.now(IST)
+    from_date = to_date - timedelta(days=days)
+
+    data = kite.historical_data(
+        instrument_token=instrument_token,
+        from_date=from_date,
+        to_date=to_date,
+        interval=interval,
+        continuous=False,
+        oi=False
+    )
+
+    if not data:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(data)
+
+    # Ensure datetime index in IST
+    df["date"] = pd.to_datetime(df["date"])
+    df.set_index("date", inplace=True)
+    df.index = df.index.tz_localize(None)  # Kite already returns IST
+
+    return df
+
 
 #========================================================================================================================
 def get_nifty_spot_price(kite):
@@ -11808,7 +11852,10 @@ elif MENU =="LIVE TRADE 3":
     if df.empty:
         st.warning("No data downloaded for the selected range.")
         st.stop()
-    df.reset_index(inplace=True)
+    if df.empty:
+        st.warning("⚠️ Yahoo Finance does not support special NSE sessions. Switching to Zerodha data.")
+        df = get_data_from_kite()  # your Kite function
+        df.reset_index(inplace=True)
     
     if 'Datetime_' in df.columns:
         df.rename(columns={'Datetime_': 'Datetime'}, inplace=True)

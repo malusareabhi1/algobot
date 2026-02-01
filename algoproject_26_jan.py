@@ -11807,7 +11807,10 @@ elif MENU =="LIVE TRADE 3":
                        st.error(f"Error fetching positions: {e}")
        #================================================================================================
        nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")
-       st.write(nifty_positions)
+       st.write("NIFTY POSITION ",nifty_positions)
+       symbol="NIFTY2620325350CE"
+       newdt=get_expiry_from_symbol(symbol)
+       st.write("NIFTY2620325350CE-exp", newdt) 
        if nifty_positions:
               pos = nifty_positions[0]
               qty = pos["qty"]
@@ -11817,9 +11820,9 @@ elif MENU =="LIVE TRADE 3":
               option_type=pos["instrument_type"]
               expiry_date=get_expiry_from_symbol(symbol)
               strike=st.session_state.S
-              symbol="NIFTY2620325350CE"
-              newdt=get_expiry_from_symbol(symbol)
-              st.write("NIFTY2620325350CE-exp", newdt)
+              #symbol="NIFTY2620325350CE"
+              #newdt=get_expiry_from_symbol(symbol)
+              #st.write("NIFTY2620325350CE-exp", newdt)
               #qty=130
               #entry_price=130
               #strike=25260

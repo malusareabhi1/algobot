@@ -11771,7 +11771,7 @@ elif MENU =="LIVE TRADE 3":
        #show_open_positions(kite)
        #================================================================================================
        nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")
-       expiry_date=get_expiry_from_symbol(tradingsymbol)
+       
        if nifty_positions:
               pos = nifty_positions[0]
               qty = pos["qty"]
@@ -11779,6 +11779,7 @@ elif MENU =="LIVE TRADE 3":
               pnl = pos["pnl"]
               symbol=pos["symbol"]
               option_type=pos["instrument_type"]
+              expiry_date=get_expiry_from_symbol(symbol)
               #symbol="NIFTY2620325250PE"
               #qty=130
               #entry_price=130

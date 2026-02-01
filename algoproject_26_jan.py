@@ -11769,7 +11769,7 @@ elif MENU =="LIVE TRADE 3":
     st.session_state.param_rows = []
     from streamlit_autorefresh import st_autorefresh
     import time             # Python's time module
-    from datetime import time  # datetime.time (conflict!)
+    from datetime #import time  # datetime.time (conflict!)
     # Initialize Kite in session_state
     if "kite" not in st.session_state:
         st.session_state.kite = None

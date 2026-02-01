@@ -439,7 +439,7 @@ def monitor_position_live_with_theta_table_and_exit1(
          option_type="PE"
      )
     greeks = safe_option_greeks_new(spot, strike, expiry_date, r, option_iv, option_type="CALL")
-     
+    st.write("Greek",greeks) 
     greek_theta=greeks['theta'] 
     #-----------------------------------------------------------------------------------------------
     st.success("✅Monitor  Risk validation ")

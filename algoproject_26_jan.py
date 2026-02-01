@@ -12532,7 +12532,9 @@ elif MENU =="LIVE TRADE 3":
                     qty = get_lot_qty(new_iv_result, vix_now, vix_result, pcr_result)
                     qty = qty * QTY_PER_LOT
                     strike = spot
-            
+                    entry_price=st.session_state.signal_price 
+                    entry_price=st.session_state.get('signal_price') 
+                 
                     qty=trade_validation(
                         kite,
                         trending_symbol,

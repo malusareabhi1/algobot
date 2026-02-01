@@ -11893,8 +11893,8 @@ elif MENU =="LIVE TRADE 3":
         "close": "Close_^NSEI"
     })
 
-    st.write(df)
-    st.write(df.columns)
+    #st.write(df)
+    #st.write(df.columns)
     #st.write(df.head(10))
     
     # Filter for last two trading days to plot

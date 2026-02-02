@@ -191,9 +191,9 @@ def calculate_option_iv(
 ):
     try:
         t = time_to_expiry_years(expiry_date)
-
+        st.write("t ",t)
         if t <= 0 or option_price <= 0 or spot_price <= 0:
-            return None
+            return 0
 
         flag = "c" if option_type.upper() in ["CE", "CALL"] else "p"
 
@@ -205,11 +205,11 @@ def calculate_option_iv(
             risk_free_rate,
             flag
         )
-
+        st.write("iv ",iv)  
         return round(iv * 100, 2)  # % IV
 
     except Exception:
-        return None
+        return 0
 
 #========================================find_open_position_any=========================================================
 
@@ -466,6 +466,7 @@ def monitor_position_live_with_theta_table_and_exit1(
          expiry_date=expiry_date,
          option_type="PE"
      )
+    st.write("option_iv",option_iv)
     greeks = safe_option_greeks_new(spot, strike, expiry_date, r, option_iv, option_type="CALL")
     st.write("Greek",greeks) 
     greek_theta=greeks['theta'] 

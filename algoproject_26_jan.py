@@ -487,7 +487,7 @@ def monitor_position_live_with_theta_table_and_exit1(
          spot_price=spot,
          strike_price=strike,
          expiry_date=expiry_date,
-         option_type="PE"
+         option_type=option_type
      )
     st.write("option_iv",option_iv)
     greeks = safe_option_greeks_new(spot, strike, expiry_date, r, option_iv, option_type="CALL")

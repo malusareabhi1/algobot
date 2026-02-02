@@ -12184,23 +12184,24 @@ elif MENU =="LIVE TRADE 3":
             S=last_signal["buy_price"] 
             SPOT=last_signal["buy_price"]  
             signal_entry_time=last_signal["entry_time"] 
-            st.write("signal_entry_time ",signal_entry_time)    
+            #st.write("signal_entry_time ",signal_entry_time)    
                 # Display as table
             #st.table(df_sig1) 
-            #st.write(df_sig1) 
-            colA, colB = st.columns(2)
-            st.divider()
-            with colA:
-                 
-                 st.subheader("📊 Signal Log")
-                 #st.write(df_sig1) 
-                 #st.dataframe(df_sig1, use_container_width=True, hide_index=True)
-                 cols = ["option_type", "buy_price", "entry_time"]
-                 st.dataframe(
-                        df_sig1[cols],
-                        use_container_width=True,
-                        hide_index=True
-                    )
+            #st.write(df_sig1)
+            with col_other:
+             colA, colB = st.columns(2)
+             st.divider()
+             with colA:
+                  
+                  st.subheader("📊 Signal Log")
+                  #st.write(df_sig1) 
+                  #st.dataframe(df_sig1, use_container_width=True, hide_index=True)
+                  cols = ["option_type", "buy_price", "entry_time"]
+                  st.dataframe(
+                         df_sig1[cols],
+                         use_container_width=True,
+                         hide_index=True
+                     )
                                 
 #======================================================================================================================
 

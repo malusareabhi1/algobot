@@ -12054,7 +12054,7 @@ elif MENU =="LIVE TRADE 3":
         xaxis=dict(
             rangebreaks=[
                 # Hide weekends (Saturday and Sunday)
-                dict(bounds=["sat", "mon"]),
+                #dict(bounds=["sat", "mon"]),
                 # Hide hours outside of trading hours (NSE trading hours 9:15 to 15:30)
                 dict(bounds=[15.5, 9.25], pattern="hour"),
             ]

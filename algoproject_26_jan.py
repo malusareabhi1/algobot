@@ -12081,8 +12081,13 @@ elif MENU =="LIVE TRADE 3":
         )
     )
         left_col, right_col = st.columns([3, 1])  # Chart | Positions
- 
-        chart_slot = st.empty() 
+        # Create 2 equal columns
+        col_chart, col_other = st.columns(2)
+        
+        # Placeholder ONLY inside left column
+        with col_chart:
+            chart_slot = st.empty()
+        #chart_slot = st.empty() 
         import time
         if "last_chart_refresh" not in st.session_state:
               st.session_state.last_chart_refresh = 0

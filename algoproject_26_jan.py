@@ -11746,6 +11746,9 @@ elif MENU =="LIVE TRADE 3":
        #newdt=get_expiry_from_symbol(symbol)
        expiry_date=get_expiry_from_instruments(symbol)
        parsed_symb=parse_nifty_symbol(symbol)
+       if parsed_symb is None:
+          st.error("Invalid option symbol")
+          st.stop()
        strike=parsed_symb["strike"] 
        option_type=parsed_symb["option_type"]
        qty=130

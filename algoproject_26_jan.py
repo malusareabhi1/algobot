@@ -11912,13 +11912,13 @@ elif MENU =="LIVE TRADE 3":
     end_date = selected_date + timedelta(days=1)
     
     # Download data for ^NSEI from start_date to end_date
-    df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="15m")
+    #df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="15m")
     #st.write(df)
     #if df.empty:
         #st.warning("No data downloaded for the selected range.")
         #st.stop()
-    if df.empty:
-        st.warning("⚠️ Yahoo Finance does not support special NSE sessions. Switching to Zerodha data.")
+    #if df.empty:
+        #st.warning("⚠️ Yahoo Finance does not support special NSE sessions. Switching to Zerodha data.")
     df = get_data_from_kite(kite,NIFTY_TOKEN)  # your Kite function
         #df.reset_index(inplace=True)
     
@@ -11938,7 +11938,7 @@ elif MENU =="LIVE TRADE 3":
     # Rename datetime column if needed
     if 'Datetime' not in df.columns and 'datetime' in df.columns:
         df.rename(columns={'datetime': 'Datetime'}, inplace=True)
-    #st.write(df.columns)
+    st.write(df)
     #st.write(df.columns)
     # Convert to datetime & timezone aware
     #df['Datetime'] = pd.to_datetime(df['Datetime'])
@@ -12609,7 +12609,7 @@ elif MENU =="LIVE TRADE 3":
                     )
                     if(qty==0):
                        qty=1
-                       qty = qty * QTY_PER_LOT
+                       #qty = qty * QTY_PER_LOT
             
             else:
                 st.write("No parameters added yet.")

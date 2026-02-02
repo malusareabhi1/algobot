@@ -1931,7 +1931,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     base_low = min(base_open, base_close)
     base_high = max(base_open, base_close)
     
-    st.write("candle_3pm-",candle_3pm)
+    #st.write("candle_3pm-",candle_3pm)
     st.write("BASE HIGH/LOW=",base_high,base_low)
     # =========================
     # CURRENT DAY DATA
@@ -1962,7 +1962,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
 
     orb_low = min(orb_open, orb_close)
     orb_high = max(orb_open, orb_close)
-    st.write("9.15 candle-",candle915am)
+    #st.write("9.15 candle-",candle915am)
     st.write("ORB HIGH/LOW=", orb_high,orb_low ) 
         # =========================
     # LAST CANDLE STATUS (DISPLAY)

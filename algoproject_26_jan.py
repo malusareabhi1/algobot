@@ -11938,7 +11938,7 @@ elif MENU =="LIVE TRADE 3":
     # Rename datetime column if needed
     if 'Datetime' not in df.columns and 'datetime' in df.columns:
         df.rename(columns={'datetime': 'Datetime'}, inplace=True)
-    st.write(df)
+    #st.write(df)
     #st.write(df.columns)
     # Convert to datetime & timezone aware
     #df['Datetime'] = pd.to_datetime(df['Datetime'])
@@ -12072,7 +12072,7 @@ elif MENU =="LIVE TRADE 3":
         #================================================5min DTAT=====================================================
         # 1️⃣ Download 5m data
         #df = yf.download("^NSEI", start=..., end=..., interval="5m")
-        df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="5m")
+        #df = yf.download("^NSEI", start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"), interval="15m")
          
         # ---- ENSURE NSEI COLUMN NAMES ----
         required_cols = ["Open_^NSEI", "High_^NSEI", "Low_^NSEI", "Close_^NSEI"]

@@ -11742,7 +11742,7 @@ elif MENU =="LIVE TRADE 3":
        #================================================================================================
        nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")
        #st.write("NIFTY POSITION ",nifty_positions)
-       symbol="NIFTY2620325350CE"
+       symbol="NIFTY26FEB24900CE"
        #newdt=get_expiry_from_symbol(symbol)
        expiry_date=get_expiry_from_instruments(symbol)
        parsed_symb=parse_nifty_symbol(symbol)
@@ -11753,7 +11753,7 @@ elif MENU =="LIVE TRADE 3":
        option_type=parsed_symb["option_type"]
        qty=130
        spot = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
-       entry_price=130
+       entry_price=423
        st.write("NIFTY2620325350CE-exp", expiry_date) 
        monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
        if nifty_positions:

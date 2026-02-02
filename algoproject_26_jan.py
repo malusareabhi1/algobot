@@ -1941,11 +1941,15 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     if candle915am.empty:
         return None
 
-    orb_high = candle915am['Open_^NSEI'].max()
-    orb_low  = candle915am['Close_^NSEI'].min()
+   
+    orb_open = candle915am.iloc[0]['Open_^NSEI']
+    orb_close = candle915am.iloc[0]['Close_^NSEI']
+    orb_high = candle915am.iloc[0]['High_^NSEI']
+    orb_low = candle915am.iloc[0]['Low_^NSEI']
+   
 
-    orb_low = min(orb_high, orb_low)
-    orb_low = max(orb_high, orb_low)
+    orb_low = min(orb_open, orb_close)
+    orb_high = max(orb_open, orb_close)
     st.write("9.15 candle-",candle915am)
     st.write("ORB HIGH/LOW=", orb_high,orb_low ) 
         # =========================

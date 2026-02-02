@@ -12607,7 +12607,7 @@ elif MENU =="LIVE TRADE 3":
                         expiry,
                         option_type="CALL"
                     )
-                    if(qty==0)
+                    if(qty==0):
                        qty=1
             
             else:

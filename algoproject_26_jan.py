@@ -1,4 +1,5 @@
 #upadtaed 26 jan
+from zerodha_emergency import emergency_exit_fno
 import time
 import base64
 import json
@@ -35,7 +36,10 @@ end = time(15, 0)    # 3:25 PM
 now = datetime.now(ist).time()    
 # Refresh only between 9:30–3:25
  # STEP 1: Check kite object existence
+KILL_FILE = "KILL.txt"
 
+if "kill_switch" not in st.session_state:
+    st.session_state.kill_switch = False
      
 
 if start <= now <= end:
@@ -99,7 +103,15 @@ def time_to_expiry_years(expiry_date):
     return max((expiry - now).total_seconds(), 0) / (365 * 24 * 60 * 60)
 
 #================================================get_expiry_from_instruments==================================================================
+import sys
 
+def check_kill_switch(kite):
+    if st.session_state.get("kill_switch") or os.path.exists("KILL.txt"):
+        st.error("🚨 Kill switch active. Closing all F&O positions.")
+        emergency_exit_fno(kite)
+        st.stop()  # Streamlit-safe exit
+
+#===================================================================================================
 def get_expiry_from_instruments(tradingsymbol):
     dfins = st.session_state.instruments
 
@@ -7492,7 +7504,7 @@ with st.sidebar:
 
     MENU = st.radio(
         "Navigate",
-        ["🏠 Home", "My Account", "Login Zerodha  API","Strategy Signals","Strategy Multi Signals", "Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","LIVE TRADE 3","Telegram","Moniter Position Test","Download Instrument","Download OPTION CHAIN","NIFTY 3:20 PM Intraday Strategy","Logout"],
+        ["🏠 Home", "My Account", "Login Zerodha  API","Strategy Signals","Strategy Multi Signals", "Backtest","Live Trade","Setting","Paper Trade", "Products", "Support","10.10 Strategy","LIVE TRADE 3","Telegram","Moniter Position Test","Download Instrument","Download OPTION CHAIN","NIFTY 3:20 PM Intraday Strategy","Logout","🧯 KILL SWITCH"],
         index=0,
     )
 
@@ -14576,6 +14588,19 @@ elif MENU=="Download OPTION CHAIN":
              except Exception as e:
                  st.write("❌ Error:", e)
                  time.sleep(10)
+
+
+elif MENU=="🧯 KILL SWITCH"
+     st.subheader("🧯 Emergency Kill Switch")
+     
+     if not st.session_state.kill_switch:
+         if st.button("🛑 ACTIVATE KILL SWITCH", type="primary"):
+             st.session_state.kill_switch = True
+             with open(KILL_FILE, "w") as f:
+                 f.write("STOP")
+             st.error("🚨 KILL SWITCH ACTIVATED")
+     else:
+         st.success("Kill switch already active")
 
 
 # ------------------------------------------------------------

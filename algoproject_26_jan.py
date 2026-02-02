@@ -12193,11 +12193,11 @@ elif MENU =="LIVE TRADE 3":
              st.divider()
              #with colA:
                   
-                  st.subheader("📊 Signal Log")
+             st.subheader("📊 Signal Log")
                   #st.write(df_sig1) 
                   #st.dataframe(df_sig1, use_container_width=True, hide_index=True)
-                  cols = ["option_type", "buy_price", "entry_time"]
-                  st.dataframe(
+             cols = ["option_type", "buy_price", "entry_time"]
+             st.dataframe(
                          df_sig1[cols],
                          use_container_width=True,
                          hide_index=True
@@ -12261,9 +12261,9 @@ elif MENU =="LIVE TRADE 3":
                 append_option(nearest_itm, spot_price=spot, option_type=option_type) 
                 nearest_itm1 = pd.DataFrame([nearest_itm]) 
                 #with colB:
-                     st.subheader("📊 Option Log")
+                st.subheader("📊 Option Log")
                      #st.table(nearest_itm1)
-                     st.table(nearest_itm1[["tradingsymbol", "strike", "expiry", "ltp"]])
+                st.table(nearest_itm1[["tradingsymbol", "strike", "expiry", "ltp"]])
                      #st.write(df[["tradingsymbol", "ltp", "expiry", "spot", "strike"]])
 
                 #S=nearest_itm1["ltp"]

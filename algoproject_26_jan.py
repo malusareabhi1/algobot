@@ -459,6 +459,8 @@ def monitor_position_live_with_theta_table_and_exit1(
     st.write("expiry_date ",expiry_date)
     st.write("option_ltp ",option_ltp)
     st.write("spot ", spot)
+    st.write("strike ", strike)
+    st.write("option_type ", option_type)
     option_iv = calculate_option_iv(
          option_price=option_ltp,
          spot_price=spot,

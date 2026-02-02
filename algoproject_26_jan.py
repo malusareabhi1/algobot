@@ -11746,8 +11746,8 @@ elif MENU =="LIVE TRADE 3":
        #newdt=get_expiry_from_symbol(symbol)
        expiry_date=get_expiry_from_instruments(symbol)
        parsed_symb=parse_nifty_symbol(symbol)
-       strike=parsed_symb['strike'] 
-       option_type=parsed_symb['option_type']
+       strike=parsed_symb["strike"] 
+       option_type=parsed_symb["option_type"]
        qty=130
        spot = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
        entry_price=130

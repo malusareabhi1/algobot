@@ -11979,7 +11979,7 @@ elif MENU =="LIVE TRADE 3":
         today = unique_days[-1]
     
         df_plot = df[df['Datetime'].dt.date.isin([last_day, today])]
-        st.write("df_plot",df_plot)
+        #st.write("df_plot",df_plot)
         # Get last day 3PM candle open and close
         candle_3pm = df_plot[(df_plot['Datetime'].dt.date == last_day) &
                              (df_plot['Datetime'].dt.hour == 15) &

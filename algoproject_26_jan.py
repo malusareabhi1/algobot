@@ -12619,7 +12619,7 @@ elif MENU =="LIVE TRADE 3":
                     )
                     if(qty==0):
                        qty=1
-                       #qty = qty * QTY_PER_LOT
+                       qty = qty * QTY_PER_LOT
             
             else:
                 st.write("No parameters added yet.")

@@ -111,7 +111,7 @@ def check_kill_switch(kite):
         emergency_exit_fno(kite)
         st.stop()  # Streamlit-safe exit
 
-#===================================================================================================
+#===============================================get_expiry_from_instruments====================================================
 def get_expiry_from_instruments(tradingsymbol):
     dfins = st.session_state.instruments
 
@@ -121,6 +121,26 @@ def get_expiry_from_instruments(tradingsymbol):
         return None
 
     return row.iloc[0]["expiry"]
+#===============================================get_strike_from_instruments====================================================
+def get_strike_from_instruments(tradingsymbol):
+    dfins = st.session_state.instruments
+
+    row = dfins.loc[dfins["tradingsymbol"] == tradingsymbol]
+
+    if row.empty:
+        return None
+
+    return row.iloc[0]["strike"]
+#===============================================get_instrument_type_from_instruments====================================================
+def get_instrument_type_from_instruments(tradingsymbol):
+    dfins = st.session_state.instruments
+
+    row = dfins.loc[dfins["tradingsymbol"] == tradingsymbol]
+
+    if row.empty:
+        return None
+
+    return row.iloc[0]["instrument_type"]
 
 #====================================================get_data_from_kite====================================================================
 
@@ -403,7 +423,7 @@ def monitor_position_live_with_theta_table_and_exit1(
     entry_price,
     strike,
     expiry_date,
-    option_type="CALL"
+    option_type
 ):  
     #============================================SHOW CHART===================================================
     df_option = get_option_ohlc(kite,symbol, interval="5minute")
@@ -11750,17 +11770,16 @@ elif MENU =="LIVE TRADE 3":
        symbol="NIFTY26FEB24900CE"
        #newdt=get_expiry_from_symbol(symbol)
        expiry_date=get_expiry_from_instruments(symbol)
-       parsed_symb=parse_nifty_symbol(symbol)
-       if parsed_symb is None:
-          st.error("Invalid option symbol")
-          st.stop()
-       strike=parsed_symb["strike"] 
-       option_type=parsed_symb["option_type"]
+       strike=get_strike_from_instruments(symbol)
+       instrument_type=get_instrument_type_from_instruments(symbol)
+      
+       #strike=parsed_symb["strike"] 
+       #option_type=parsed_symb["option_type"]
        qty=130
        spot = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
        entry_price=423
        st.write("option-NIFTY26FEB24900CE-exp-", expiry_date) 
-       monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
+       monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type)   
        if nifty_positions:
               pos = nifty_positions[0]
               qty = pos["qty"]

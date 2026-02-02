@@ -455,8 +455,10 @@ def monitor_position_live_with_theta_table_and_exit1(
     #---------------------------------------------------------------------------------------------
     option_ltp = safe_ltp(kite, "NFO", symbol)
     spot = safe_ltp(kite, "NSE", "NIFTY 50")
-    r=0.65 
-    st.write("expiry_date",expiry_date)
+    r=0.065 
+    st.write("expiry_date ",expiry_date)
+    st.write("option_ltp ",option_ltp)
+    st.write("spot ", spot)
     option_iv = calculate_option_iv(
          option_price=option_ltp,
          spot_price=spot,
@@ -11754,7 +11756,7 @@ elif MENU =="LIVE TRADE 3":
        qty=130
        spot = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
        entry_price=423
-       st.write("NIFTY2620325350CE-exp", expiry_date) 
+       st.write("option-NIFTY26FEB24900CE-exp-", expiry_date) 
        monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
        if nifty_positions:
               pos = nifty_positions[0]

@@ -230,8 +230,8 @@ def calculate_option_iv(
     risk_free_rate: float = 0.065
 ):
     st.write("option_price ,spot_price ,strike_price,expiry_date,option_type,risk_free_rate", option_price, spot_price,strike_price,expiry_date,option_type,risk_free_rate)
-    t = time_to_expiry_years(expiry_date)
-    st.write("t ",t)
+    #t = time_to_expiry_years(expiry_date)
+    #st.write("t ",t)
     try:
         t = time_to_expiry_years(expiry_date)
         st.write("t ",t)
@@ -512,7 +512,7 @@ def monitor_position_live_with_theta_table_and_exit1(
          option_type=option_type
      )
     st.write("option_iv",option_iv)
-    greeks = safe_option_greeks_new(spot, strike, expiry_date, r, option_iv, option_type="CALL")
+    greeks = safe_option_greeks_new(spot, strike, expiry_date, r, option_iv, option_type)
     st.write("Greek",greeks) 
     greek_theta=greeks['theta'] 
     #-----------------------------------------------------------------------------------------------
@@ -3038,8 +3038,73 @@ def monitor_and_exit_paper_trades(kite):
 #=================================================SAFE GREEK =================================================
 import math
 from datetime import datetime
+from datetime import datetime, date
+import math
 
-def safe_option_greeks_new(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
+def safe_option_greeks_new(S, K, expiry_dt, r, iv_percent, option_type):
+    greeks = {'delta': None, 'gamma': None, 'theta': None, 'vega': None, 'rho': None}
+
+    try:
+        # ---- Normalize inputs ----
+        sigma = float(iv_percent) / 100
+        if sigma <= 0 or S <= 0 or K <= 0:
+            return greeks
+
+        if isinstance(expiry_dt, str):
+            expiry_dt = datetime.strptime(expiry_dt, "%Y-%m-%d").date()
+
+        if isinstance(expiry_dt, datetime):
+            expiry = expiry_dt
+        elif isinstance(expiry_dt, date):
+            expiry = datetime.combine(expiry_dt, datetime.max.time())
+        else:
+            return greeks
+
+        now = datetime.now()
+        T = (expiry - now).total_seconds() / (365 * 24 * 3600)
+        if T <= 0:
+            return greeks
+
+        sigma_sqrt_T = sigma * math.sqrt(T)
+        if sigma_sqrt_T <= 0:
+            return greeks
+
+        # ---- Black-Scholes core ----
+        d1 = (math.log(S / K) + (r + 0.5 * sigma**2) * T) / sigma_sqrt_T
+        d2 = d1 - sigma_sqrt_T
+
+        def N(x):
+            return 0.5 * (1 + math.erf(x / math.sqrt(2)))
+
+        def n(x):
+            return math.exp(-0.5 * x**2) / math.sqrt(2 * math.pi)
+
+        option_type = option_type.upper()
+
+        if option_type.startswith("C"):
+            greeks['delta'] = N(d1)
+            greeks['theta'] = (-S * n(d1) * sigma / (2 * math.sqrt(T))
+                               - r * K * math.exp(-r*T) * N(d2)) / 365
+            greeks['rho']   = K * T * math.exp(-r*T) * N(d2) / 100
+
+        elif option_type.startswith("P"):
+            greeks['delta'] = N(d1) - 1
+            greeks['theta'] = (-S * n(d1) * sigma / (2 * math.sqrt(T))
+                               + r * K * math.exp(-r*T) * N(-d2)) / 365
+            greeks['rho']   = -K * T * math.exp(-r*T) * N(-d2) / 100
+        else:
+            return greeks
+
+        greeks['gamma'] = n(d1) / (S * sigma_sqrt_T)
+        greeks['vega']  = S * n(d1) * math.sqrt(T) / 100
+
+        return greeks
+
+    except Exception as e:
+        st.error(f"Greek calc error: {e}")
+        return greeks
+
+def safe_option_greeks_newz(S, K, expiry_dt, r, iv_percent, option_type):
     """
     Safely calculate option Greeks (Delta, Gamma, Theta, Vega, Rho).
     

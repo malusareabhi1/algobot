@@ -229,12 +229,12 @@ def calculate_option_iv(
     option_type: str,
     risk_free_rate: float = 0.065
 ):
-    st.write("option_price ,spot_price ,strike_price,expiry_date,option_type,risk_free_rate", option_price, spot_price,strike_price,expiry_date,option_type,risk_free_rate)
+    #st.write("option_price ,spot_price ,strike_price,expiry_date,option_type,risk_free_rate", option_price, spot_price,strike_price,expiry_date,option_type,risk_free_rate)
     #t = time_to_expiry_years(expiry_date)
     #st.write("t ",t)
     try:
         t = time_to_expiry_years(expiry_date)
-        st.write("t ",t)
+        #st.write("t ",t)
         if t <= 0 or option_price <= 0 or spot_price <= 0:
             return 0
 
@@ -248,7 +248,7 @@ def calculate_option_iv(
             risk_free_rate,
             flag
         )
-        st.write("iv ",iv)  
+        #st.write("iv ",iv)  
         return round(iv * 100, 2)  # % IV
 
     except Exception:
@@ -562,7 +562,7 @@ def monitor_position_live_with_theta_table_and_exit1(
             pnl = (ltp - entry_price) * qty
         else:
             pnl = (entry_price - ltp) * qty
-    
+        pnl=abs(pnl)
         # ================= TRAILING SL =================
         if ltp > entry_price * 1.01:
             trailing_sl = max(trailing_sl, ltp * 0.97)
@@ -11854,20 +11854,20 @@ elif MENU =="LIVE TRADE 3":
                           st.error(f"Error fetching positions: {e}")
        #================================================================================================
        nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")
-       #st.write("NIFTY POSITION ",nifty_positions)
+       
        symbol="NIFTY26FEB24900CE"
        #newdt=get_expiry_from_symbol(symbol)
-       expiry_date=get_expiry_from_instruments(symbol)
-       strike=get_strike_from_instruments(symbol)
-       instrument_type=get_instrument_type_from_instruments(symbol)
+       #expiry_date=get_expiry_from_instruments(symbol)
+       #strike=get_strike_from_instruments(symbol)
+       #instrument_type=get_instrument_type_from_instruments(symbol)
       
        #strike=parsed_symb["strike"] 
        #option_type=parsed_symb["option_type"]
-       qty=130
-       spot = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
-       entry_price=423
-       st.write("option-NIFTY26FEB24900CE-exp-", expiry_date) 
-       monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type)   
+       #qty=130
+       #spot = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
+       #entry_price=423
+       #st.write("option-NIFTY26FEB24900CE-exp-", expiry_date) 
+       #monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type)   
        if nifty_positions:
               pos = nifty_positions[0]
               qty = pos["qty"]
@@ -11875,17 +11875,12 @@ elif MENU =="LIVE TRADE 3":
               pnl = pos["pnl"]
               symbol=pos["symbol"]
               option_type=pos["instrument_type"]
+             
               expiry_date=get_expiry_from_instruments(symbol)
-              strike=st.session_state.S
-              #symbol="NIFTY2620325350CE"
-              #newdt=get_expiry_from_symbol(symbol)
-              #st.write("NIFTY2620325350CE-exp", newdt)
-              #qty=130
-              #entry_price=130
-              #strike=25260
-              #expiry_date=date(2026,2,3)
-              #st.success(f"Open Position: {pos['symbol']}")
-              monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
+              strike=get_strike_from_instruments(symbol)
+              instrument_type=get_instrument_type_from_instruments(symbol)
+              
+              monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type)      
        else:
               st.info("No open position")
 

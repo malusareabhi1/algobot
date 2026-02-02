@@ -14602,6 +14602,12 @@ elif MENU=="🧯 KILL SWITCH":
      else:
          st.success("Kill switch already active")
 
+     if st.button("🔓 RESET KILL SWITCH"):
+        st.session_state.kill_switch = False
+        if os.path.exists("KILL.txt"):
+            os.remove("KILL.txt")
+        st.success("Kill switch deactivated")
+
 
 # ------------------------------------------------------------
 # Footer

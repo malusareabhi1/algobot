@@ -1945,7 +1945,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     orb_low  = candle915am['Close_^NSEI'].min()
 
     orb_low = min(orb_high, orb_low)
-    base_high = max(orb_high, orb_low)
+    orb_low = max(orb_high, orb_low)
     st.write("9.15 candle-",candle915am)
     st.write("ORB HIGH/LOW=", orb_high,orb_low ) 
         # =========================

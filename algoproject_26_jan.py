@@ -1931,6 +1931,12 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
     # =========================
     # OPENING RANGE (9:15–9:30)
     # =========================
+    candle915am = df[
+        (df['Date'] == day1) &
+        (df['Datetime'].dt.hour == 9) &
+        (df['Datetime'].dt.minute == 15)
+    ]
+
     orb_df = day1_df[
         (day1_df['Datetime'].dt.time >= OR_START) &
         (day1_df['Datetime'].dt.time <= OR_END)
@@ -1944,7 +1950,7 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
 
     orb_low = min(orb_high, orb_low)
     base_high = max(orb_high, orb_low)
-    st.write("9.15 candle-",orb_df)
+    st.write("9.15 candle-",candle915am)
     st.write("ORB HIGH/LOW=", orb_high,orb_low ) 
         # =========================
     # LAST CANDLE STATUS (DISPLAY)

@@ -14590,7 +14590,7 @@ elif MENU=="Download OPTION CHAIN":
                  time.sleep(10)
 
 
-elif MENU=="🧯 KILL SWITCH"
+elif MENU=="🧯 KILL SWITCH":
      st.subheader("🧯 Emergency Kill Switch")
      
      if not st.session_state.kill_switch:

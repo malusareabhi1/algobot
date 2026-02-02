@@ -97,7 +97,27 @@ if "option_log" not in st.session_state:
     st.session_state.option_log = []
 from datetime import datetime
 
+from datetime import datetime, date
+
 def time_to_expiry_years(expiry_date):
+    # ---- SAFETY NORMALIZATION ----
+    if isinstance(expiry_date, str):
+        expiry_date = datetime.strptime(expiry_date, "%Y-%m-%d").date()
+
+    elif isinstance(expiry_date, datetime):
+        expiry_date = expiry_date.date()
+
+    elif not isinstance(expiry_date, date):
+        raise TypeError(f"Invalid expiry_date type: {type(expiry_date)}")
+
+    expiry = datetime.combine(expiry_date, datetime.max.time())
+    now = datetime.now()
+
+    t = (expiry - now).total_seconds() / (365 * 24 * 60 * 60)
+    return max(t, 0)
+
+
+def time_to_expiry_years0(expiry_date):
     now = datetime.now()
     expiry = datetime.combine(expiry_date, datetime.max.time())
     return max((expiry - now).total_seconds(), 0) / (365 * 24 * 60 * 60)

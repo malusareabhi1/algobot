@@ -3007,7 +3007,7 @@ def safe_option_greeks_new(S, K, expiry_dt, r, iv_percent, option_type="CALL"):
         dict: {'delta', 'gamma', 'theta', 'vega', 'rho'} each float or None if cannot compute
     """
     greeks = {'delta': None, 'gamma': None, 'theta': None, 'vega': None, 'rho': None}
-    
+    st.write("S, K, expiry_dt, r, iv_percent, option_type",S, K, expiry_dt, r, iv_percent, option_type)
     try:
         # Convert IV to decimal
         sigma = float(iv_percent) / 100

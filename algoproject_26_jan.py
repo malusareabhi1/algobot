@@ -210,6 +210,8 @@ def calculate_option_iv(
     risk_free_rate: float = 0.065
 ):
     st.write("option_price ,spot_price ,strike_price,expiry_date,option_type,risk_free_rate", option_price, spot_price,strike_price,expiry_date,option_type,risk_free_rate)
+    t = time_to_expiry_years(expiry_date)
+    st.write("t ",t)
     try:
         t = time_to_expiry_years(expiry_date)
         st.write("t ",t)

@@ -1937,16 +1937,12 @@ def trading_signal_all_conditions_final(df, quantity=10*65):
         (df['Datetime'].dt.minute == 15)
     ]
 
-    orb_df = day1_df[
-        (day1_df['Datetime'].dt.time >= OR_START) &
-        (day1_df['Datetime'].dt.time <= OR_END)
-    ]
-
-    if orb_df.empty:
+    
+    if candle915am.empty:
         return None
 
-    orb_high = orb_df['Open_^NSEI'].max()
-    orb_low  = orb_df['Close_^NSEI'].min()
+    orb_high = candle915am['Open_^NSEI'].max()
+    orb_low  = candle915am['Close_^NSEI'].min()
 
     orb_low = min(orb_high, orb_low)
     base_high = max(orb_high, orb_low)

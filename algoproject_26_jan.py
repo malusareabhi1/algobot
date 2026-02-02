@@ -11693,7 +11693,7 @@ elif MENU =="LIVE TRADE 3":
         st.session_state.order_executed = False
         
     if not has_open_position(kite,product="MIS"):
-       st.warning("⚠️ Open position exists. New trade not allowed.")
+       #st.warning("⚠️ Open position exists. New trade not allowed.")
        st.session_state.order_executed=True
        #show_open_positions(kite)
        #==================================================================================================
@@ -11742,10 +11742,10 @@ elif MENU =="LIVE TRADE 3":
        #================================================================================================
        nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")
        #st.write("NIFTY POSITION ",nifty_positions)
-       #symbol="NIFTY2620325350CE"
+       symbol="NIFTY2620325350CE"
        #newdt=get_expiry_from_symbol(symbol)
-       #newdt=get_expiry_from_instruments(symbol)
-       #st.write("NIFTY2620325350CE-exp", newdt) 
+       newdt=get_expiry_from_instruments(symbol)
+       st.write("NIFTY2620325350CE-exp", newdt) 
        if nifty_positions:
               pos = nifty_positions[0]
               qty = pos["qty"]

@@ -45,6 +45,9 @@ def send_greeks_to_telegram(greeks_param_df):
 
 
 
+# greeks.py
+
+
 def df_to_telegram_table(df, title):
     header = "| {:<14} | {:<12} | {:<18} | {:<6} |".format(
         "PARAMETER", "VALUE", "RANGE", "RESULT"
@@ -66,6 +69,7 @@ def df_to_telegram_table(df, title):
 
     return f"""
 🧮 *{title}*
+
 
 
 

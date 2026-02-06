@@ -12085,6 +12085,7 @@ elif MENU =="LIVE TRADE 3":
 
         # Create 2 equal columns
         col_chart, col_other = st.columns(2)
+        col_chart, col_other = st.columns([2.5, 1.5])  # adjust ratio if needed
         #col_chart, col_other = st.columns([2.5, 1.5])  # adjust ratio if needed
         
         # Placeholder ONLY inside left column

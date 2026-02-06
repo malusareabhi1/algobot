@@ -12184,6 +12184,7 @@ elif MENU =="LIVE TRADE 3":
             signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
             last_signal["signal_time"] = signal_time
             signal_time1=last_signal["signal_time"] 
+            st.session_state.last_signal_time=signal_time1
             S=last_signal["buy_price"] 
             SPOT=last_signal["buy_price"]  
             signal_entry_time=last_signal["entry_time"] 

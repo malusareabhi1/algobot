@@ -12081,11 +12081,11 @@ elif MENU =="LIVE TRADE 3":
         )
     )
         left_col, right_col = st.columns([3, 1])  # Chart | Positions
-        left_col, right_col = st.columns([2.5, 1.5])  # adjust ratio if needed
+        #left_col, right_col = st.columns([2.5, 1.5])  # adjust ratio if needed
 
         # Create 2 equal columns
         col_chart, col_other = st.columns(2)
-        col_chart, col_other = st.columns([2.5, 1.5])  # adjust ratio if needed
+        #col_chart, col_other = st.columns([2.5, 1.5])  # adjust ratio if needed
         
         # Placeholder ONLY inside left column
         with col_chart:

@@ -118,6 +118,23 @@ def time_to_expiry_years(expiry_date):
 
     t = (expiry - now).total_seconds() / (365 * 24 * 60 * 60)
     return max(t, 0)
+#===================================================================================================================================
+
+#from datetime import datetime
+
+def send_trade_signal(option_type, buy_price, entry_time):
+    msg = f"""
+📊 *NEW TRADE SIGNAL*
+
+📌 Instrument: NIFTY
+🧾 Option Type: {option_type}
+💰 Buy Price: {buy_price}
+⏰ Entry Time: {entry_time.strftime('%H:%M %p')}
+
+⚙️ Mode: Live Trade
+🛡 Risk management active
+"""
+    send_telegram_signal(msg)
 
 #==================================================================================================================================
 def send_telegram_signal(message):
@@ -11872,7 +11889,7 @@ elif MENU =="LIVE TRADE 3":
        #================================================================================================
        nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")
        
-       symbol="NIFTY26FEB24900CE"
+       #symbol="NIFTY26FEB24900CE"
        #newdt=get_expiry_from_symbol(symbol)
        #expiry_date=get_expiry_from_instruments(symbol)
        #strike=get_strike_from_instruments(symbol)
@@ -12224,6 +12241,7 @@ elif MENU =="LIVE TRADE 3":
                          use_container_width=True,
                          hide_index=True
                      )
+              
              st.divider()                   
 #======================================================================================================================
 
@@ -12277,6 +12295,7 @@ elif MENU =="LIVE TRADE 3":
             option_type = last_signal["option_type"]     # CALL / PUT
             #st.write("Option type ",option_type)
             spot = last_signal["buy_price"]
+            send_trade_signal(option_type, spot, signal_time) 
             #st.write("Option spot ",spot)
             try:
                 nearest_itm = find_nearest_itm_option(kite, spot, option_type)

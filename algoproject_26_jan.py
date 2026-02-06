@@ -687,7 +687,7 @@ def monitor_position_live_with_theta_table_and_exit(
     amount= entry_price*qty
     orisk= (entry_price-initial_sl)*qty 
     #st.write("New Option AMOUNT   ()  =",amount) 
-    pprofit=orisk+entry_price+2
+    pprofit=risk1+entry_price+2
     #st.write("Partial pprofit=",pprofit) 
     #st.write("New Option RISK   (entry_price-initial_sl*QTY)  =",orisk)  
     #---------------------------------------------------------------------------------------SL------------  
@@ -709,7 +709,7 @@ def monitor_position_live_with_theta_table_and_exit(
     #---------------------------------------------------------------------------------------------
     option_ltp = safe_ltp(kite, "NFO", symbol)
     spot = safe_ltp(kite, "NSE", "NIFTY 50")
-    r=0.65 
+    r=0.065 
     st.write("expiry_date",expiry_date)
     option_iv = calculate_option_iv(
          option_price=option_ltp,
@@ -1107,7 +1107,7 @@ def get_initial_sl_and_risk(df, entry_price, option_type):
         initial_sl = candle_915["low"].iloc[0]
         risk = entry_price - initial_sl
     else:
-        initial_sl = candle_915["high"].iloc[0]
+        initial_sl = candle_915["low"].iloc[0]
         risk = initial_sl - entry_price
     #st.write("initial_sl,risk",initial_sl,risk)
     # ❌ Invalid trade → skip safely

@@ -38,6 +38,9 @@ now = datetime.now(ist).time()
  # STEP 1: Check kite object existence
 KILL_FILE = "KILL.txt"
 
+if "last_signal_time" not in st.session_state:
+    st.session_state.last_signal_time = None
+ 
 if "kill_switch" not in st.session_state:
     st.session_state.kill_switch = False
      
@@ -12185,7 +12188,7 @@ elif MENU =="LIVE TRADE 3":
             signal_time = df_plot["Datetime"].iloc[-1]   # last candle timestamp
             last_signal["signal_time"] = signal_time
             signal_time1=last_signal["signal_time"] 
-            st.session_state.last_signal_time=signal_time1
+            st.session_state.last_signal_time=signal_time
             S=last_signal["buy_price"] 
             SPOT=last_signal["buy_price"]  
             signal_entry_time=last_signal["entry_time"] 
@@ -12195,7 +12198,7 @@ elif MENU =="LIVE TRADE 3":
             #st.write(df_sig1)
             with col_other:
              #colA, colB = st.columns(2)
-             st.divider()
+             
              #with colA:
              with st.container():     
                   st.subheader("📊 Signal Log")
@@ -12207,7 +12210,7 @@ elif MENU =="LIVE TRADE 3":
                          use_container_width=True,
                          hide_index=True
                      )
-                                
+             st.divider()                   
 #======================================================================================================================
 
 
@@ -12767,35 +12770,36 @@ elif MENU =="LIVE TRADE 3":
                                     st.session_state.order_executed=False 
                                     order_status=st.session_state.order_executed
                                     st.write(order_status)
-                                    if not st.session_state.order_executed:
-                                        try:
-                                            st.write("Placing Trade-") 
-                                            order_id = kite.place_order(
-                                                    tradingsymbol=trending_symbol,
-                                                    exchange=kite.EXCHANGE_NFO,
-                                                    transaction_type=kite.TRANSACTION_TYPE_BUY,
-                                                    quantity=qty,
-                                                    order_type=kite.ORDER_TYPE_MARKET,
-                                                    variety=kite.VARIETY_REGULAR,
-                                                    product=kite.PRODUCT_MIS
-                                                )
-                                
-                                            st.session_state.order_executed = True   # Mark executed
-                                            #st.session_state.order_executed = True
-                                            st.session_state.last_order_id = order_id
-                                   
-                                           # ✅ Mark trade active
-                                            st.session_state.trade_active = True
-                                            st.session_state.entry_price = ltp
-                                            st.session_state.entry_time = datetime.now()
-                                            st.session_state.qty = qty
-                                            st.session_state.tradingsymbol = trending_symbol 
-                                            st.success(f"Order Placed Successfully! Order ID: {order_id}")
-                                            st.session_state["last_order_id"] = order_id
-                                            st.session_state.last_executed_signal_time = signal_time
-                                            st.session_state.last_option_entry_price = entry_price     
-                                        except Exception as e:
-                                            st.error(f"Order Failed: {e}")
+                                    if signal_time != st.session_state.last_signal_time:
+                                     if not st.session_state.order_executed:
+                                         try:
+                                             st.write("Placing Trade-") 
+                                             order_id = kite.place_order(
+                                                     tradingsymbol=trending_symbol,
+                                                     exchange=kite.EXCHANGE_NFO,
+                                                     transaction_type=kite.TRANSACTION_TYPE_BUY,
+                                                     quantity=qty,
+                                                     order_type=kite.ORDER_TYPE_MARKET,
+                                                     variety=kite.VARIETY_REGULAR,
+                                                     product=kite.PRODUCT_MIS
+                                                 )
+                                             st.session_state.last_signal_time = signal_time
+                                             st.session_state.order_executed = True   # Mark executed
+                                             #st.session_state.order_executed = True
+                                             st.session_state.last_order_id = order_id
+                                    
+                                            # ✅ Mark trade active
+                                             st.session_state.trade_active = True
+                                             st.session_state.entry_price = ltp
+                                             st.session_state.entry_time = datetime.now()
+                                             st.session_state.qty = qty
+                                             st.session_state.tradingsymbol = trending_symbol 
+                                             st.success(f"Order Placed Successfully! Order ID: {order_id}")
+                                             st.session_state["last_order_id"] = order_id
+                                             st.session_state.last_executed_signal_time = signal_time
+                                             st.session_state.last_option_entry_price = entry_price     
+                                         except Exception as e:
+                                             st.error(f"Order Failed: {e}")
                                         
                         #else:
                                #st.info("Trade Not Allowed Qty=0.")  

@@ -119,7 +119,17 @@ def time_to_expiry_years(expiry_date):
     t = (expiry - now).total_seconds() / (365 * 24 * 60 * 60)
     return max(t, 0)
 
-
+#==================================================================================================================================
+def send_telegram_signal(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": message,
+        "parse_mode": "Markdown"
+    }
+    r = requests.post(url, data=payload, timeout=5)
+    return r.json()
+#===================================================================================================================================
 def time_to_expiry_years0(expiry_date):
     now = datetime.now()
     expiry = datetime.combine(expiry_date, datetime.max.time())
@@ -11091,9 +11101,9 @@ elif MENU == "Telegram":
     
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-    st.write(TELEGRAM_BOT_TOKEN)
-    st.write(TELEGRAM_CHAT_ID) 
-    #send_telegram_message("✅ Telegram bot is working!")
+    #st.write(TELEGRAM_BOT_TOKEN)
+    #st.write(TELEGRAM_CHAT_ID) 
+    send_telegram_message("✅ Telegram bot is working!")
 
        
 

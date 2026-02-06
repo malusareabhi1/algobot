@@ -26,6 +26,9 @@ from math import log, sqrt, exp
 from scipy.stats import norm
 from config import QTY_PER_LOT
 from config import NIFTY_TOKEN
+from greeks  import  send_greeks_to_telegram
+from greeks  import  df_to_telegram_table
+
 # Auto-refresh every 30 seconds
 # Market hours condition
 #import pytz
@@ -12732,6 +12735,8 @@ elif MENU =="LIVE TRADE 3":
                         use_container_width=True,
                         hide_index=True
                     )
+                    send_greeks_to_telegram(greeks_param_df)
+                 
             
                 # ---------------- COL 3 ----------------
                 with col3:

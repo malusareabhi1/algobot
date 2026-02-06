@@ -122,6 +122,35 @@ def time_to_expiry_years(expiry_date):
     t = (expiry - now).total_seconds() / (365 * 24 * 60 * 60)
     return max(t, 0)
 
+#=========================================================================================================
+
+def send_trade_placed_to_telegram(tradingsymbol, qty, order_id, signal_time):
+
+    # Safe time handling
+    if isinstance(signal_time, str):
+        signal_time = pd.to_datetime(signal_time)
+    elif isinstance(signal_time, pd.Timestamp):
+        signal_time = signal_time.to_pydatetime()
+    elif signal_time is None:
+        signal_time = datetime.now()
+
+    msg = f"""
+✅ *TRADE PLACED SUCCESSFULLY*
+
+🧾 Symbol: {tradingsymbol}
+📦 Quantity: {qty}
+🆔 Order ID: {order_id}
+⏰ Time: {signal_time.strftime('%H:%M %p')}
+
+⚙️ Order Type: MARKET
+📊 Product: MIS
+"""
+    send_telegram_signal(msg)
+
+
+
+
+#==========================================================================================================
 def send_greeks_snapshot_to_telegram():
     delta = st.session_state.get("GREEKdelta")
     gamma = st.session_state.get("GREEKgamma")
@@ -12820,6 +12849,8 @@ elif MENU =="LIVE TRADE 3":
            
                 # Check 1: Only run if current time is within trading window
             st.write("entry_time",entry_time) 
+            order_id1=1212454554
+            send_trade_placed_to_telegram(trending_symbol, qty,order_id1, signal_time)
             if is_valid_signal_time(entry_time):
                  st.warning("Signal time  match today's date .") 
                  if start_time <= now <= end_time:
@@ -12913,7 +12944,7 @@ elif MENU =="LIVE TRADE 3":
                                              st.session_state.order_executed = True   # Mark executed
                                              #st.session_state.order_executed = True
                                              st.session_state.last_order_id = order_id
-                                    
+                                             send_trade_placed_to_telegram(trending_symbol, qty,order_id, signal_time)
                                             # ✅ Mark trade active
                                              st.session_state.trade_active = True
                                              st.session_state.entry_price = ltp

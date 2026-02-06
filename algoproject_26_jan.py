@@ -120,16 +120,28 @@ def time_to_expiry_years(expiry_date):
     return max(t, 0)
 #===================================================================================================================================
 
-#from datetime import datetime
+def send_trade_signal(
+    option_type,
+    buy_price,
+    entry_time,
+    tradingsymbol,
+    expiry,
+    ltp
+):
 
-def send_trade_signal(option_type, buy_price, entry_time):
-     # ---- FIX ENTRY TIME ----
+    # ---- SAFE TIME HANDLING ----
     if isinstance(entry_time, str):
         entry_time = pd.to_datetime(entry_time)
     elif isinstance(entry_time, pd.Timestamp):
         entry_time = entry_time.to_pydatetime()
     elif entry_time is None:
         entry_time = datetime.now()
+
+    if isinstance(expiry, str):
+        expiry = pd.to_datetime(expiry)
+    elif isinstance(expiry, pd.Timestamp):
+        expiry = expiry.to_pydatetime()
+
     msg = f"""
 📊 *NEW TRADE SIGNAL*
 
@@ -137,6 +149,11 @@ def send_trade_signal(option_type, buy_price, entry_time):
 🧾 Option Type: {option_type}
 💰 Buy Price: {buy_price}
 ⏰ Entry Time: {entry_time.strftime('%H:%M %p')}
+
+📄 *OPTION LOG*
+🔖 Symbol: {tradingsymbol}
+📅 Expiry: {expiry.strftime('%d %b %Y')}
+📈 LTP: {ltp}
 
 ⚙️ Mode: Live Trade
 🛡 Risk management active
@@ -12302,7 +12319,7 @@ elif MENU =="LIVE TRADE 3":
             option_type = last_signal["option_type"]     # CALL / PUT
             #st.write("Option type ",option_type)
             spot = last_signal["buy_price"]
-            send_trade_signal(option_type, spot, signal_time) 
+            #send_trade_signal(option_type, spot, signal_time) 
             #st.write("Option spot ",spot)
             try:
                 nearest_itm = find_nearest_itm_option(kite, spot, option_type)
@@ -12314,7 +12331,8 @@ elif MENU =="LIVE TRADE 3":
                      #st.table(nearest_itm1)
                      st.table(nearest_itm1[["tradingsymbol","expiry", "ltp"]])
                      #st.write(df[["tradingsymbol", "ltp", "expiry", "spot", "strike"]])
-
+                
+                     
                 #S=nearest_itm1["ltp"]
                 K=nearest_itm1["strike"] 
                 #st.write("S, K=",S,K)  
@@ -12330,8 +12348,10 @@ elif MENU =="LIVE TRADE 3":
                 st.session_state.signal_price = nearest_itm['ltp']   # LTP at signal candle
                 st.session_state.symbol = trending_symbol 
                 st.session_state.expiry = nearest_itm['expiry']
+                expiry=nearest_itm['expiry'] 
+                ltp=nearest_itm['ltp'] 
              #==================================================================================================
-        
+                send_trade_signal(option_type, spot, signal_time,trending_symbol,expiry,ltp)
             except Exception as e:
                 st.error(f"Failed to fetch option: {e}")
 

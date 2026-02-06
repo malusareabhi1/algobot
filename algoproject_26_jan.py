@@ -8919,6 +8919,8 @@ elif MENU == "Login Zerodha  API":
             st.session_state.connected_broker = "Zerodha"
 
             st.success("🎉 Zerodha Connected Successfully!")
+            send_telegram_signal("🟢 *ALGO STATUS: LIVE* !")
+
             #st.info("Downloading latest instruments.csv…")
 
 

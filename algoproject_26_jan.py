@@ -14826,6 +14826,15 @@ elif MENU=="🧯 KILL SWITCH":
              with open(KILL_FILE, "w") as f:
                  f.write("STOP")
              st.error("🚨 KILL SWITCH ACTIVATED")
+             send_telegram_message(
+                f"""
+                🚨 *KILL SWITCH ACTIVATED*
+                
+                🕒 Time: {now}
+                🧯 Status: ALL TRADES STOPPED
+                ⚠️ Action: Manual Intervention Required
+                """
+                            )
      else:
          st.success("Kill switch already active")
 
@@ -14834,6 +14843,14 @@ elif MENU=="🧯 KILL SWITCH":
         if os.path.exists("KILL.txt"):
             os.remove("KILL.txt")
         st.success("Kill switch deactivated")
+        send_telegram_message(
+                    f"""
+        ✅ *KILL SWITCH RESET*
+        
+        🕒 Time: {now}
+        🟢 Status: Trading Resumed
+        """
+                ) 
 
 
 # ------------------------------------------------------------

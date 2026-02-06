@@ -648,7 +648,27 @@ def monitor_position_live_with_theta_table_and_exit1(
     pprofit=risk1+entry_price+2
     #st.write("Partial pprofit=",pprofit) 
     #st.write("New Option RISK   (entry_price-initial_sl*QTY)  =",orisk)  
-    #---------------------------------------------------------------------------------------SL------------  
+    #-----------------------------------TELEGRAM UPDATES----------------------------------------SL------------ 
+    msg = f"""
+    📌 *NEW OPTION TRADE*
+    
+    🧾 *Symbol:* {symbol}
+    📥 *Entry Price:* {entry_price}
+    🔢 *Quantity:* {qty}
+    
+    🛑 *Initial SL:* {round(initial_sl, 2)}
+    🔁 *Trailing SL (30%):* {round(trailing_sl, 2)}
+    🎯 *Target:* {round(target, 2)}
+    
+    ⚠️ *Option Risk:* ₹{round(option_risk, 2)}
+    💰 *Capital Used:* ₹{round(entry_price * qty, 2)}
+    
+    ⏰ *Status:* LIVE
+    """
+    
+    send_telegram_message(msg)
+  
+ 
     # ------------------ RISK MANAGEMENT ------------------
 
     lot_size = 65 #nearest_itm.get("lot_size", qty)
@@ -12875,8 +12895,8 @@ elif MENU =="LIVE TRADE 3":
            
                 # Check 1: Only run if current time is within trading window
             st.write("entry_time",entry_time) 
-            order_id1=1212454554
-            send_trade_placed_to_telegram(trending_symbol, qty,order_id1, entry_time)
+            #order_id1=1212454554
+            #send_trade_placed_to_telegram(trending_symbol, qty,order_id1, entry_time)
             if is_valid_signal_time(entry_time):
                  st.warning("Signal time  match today's date .") 
                  if start_time <= now <= end_time:

@@ -122,6 +122,24 @@ def time_to_expiry_years(expiry_date):
     t = (expiry - now).total_seconds() / (365 * 24 * 60 * 60)
     return max(t, 0)
 
+def send_greeks_snapshot_to_telegram():
+    delta = st.session_state.get("GREEKdelta")
+    gamma = st.session_state.get("GREEKgamma")
+    theta = st.session_state.get("GREEKtheta")
+    vega  = st.session_state.get("GREEKvega")
+
+    if any(v is None for v in [delta, gamma, theta, vega]):
+        return  # do not send incomplete data
+
+    msg = f"""
+🧮 *GREEKS SNAPSHOT*
+
+Δ Delta : {delta:.4f}
+Γ Gamma : {gamma:.6f}
+Θ Theta : {theta:.2f}
+ν Vega  : {vega:.2f}
+"""
+    send_telegram_signal(msg)
 
 
 
@@ -12739,7 +12757,8 @@ elif MENU =="LIVE TRADE 3":
                     )
                  
                     #send_greeks_to_telegram(greeks_param_df)
-                 
+                    #send_greeks_snapshot_to_telegram(greeks["Delta"],greeks["Gamma"], greeks["Theta"],greeks["Vega"]) 
+                    send_greeks_snapshot_to_telegram() 
             
                 # ---------------- COL 3 ----------------
                 with col3:

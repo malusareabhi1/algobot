@@ -26,8 +26,8 @@ from math import log, sqrt, exp
 from scipy.stats import norm
 from config import QTY_PER_LOT
 from config import NIFTY_TOKEN
-from greeks  import  send_greeks_to_telegram
-from greeks  import  df_to_telegram_table
+#from greeks  import  send_greeks_to_telegram
+#from greeks  import  df_to_telegram_table
 
 # Auto-refresh every 30 seconds
 # Market hours condition
@@ -121,6 +121,8 @@ def time_to_expiry_years(expiry_date):
 
     t = (expiry - now).total_seconds() / (365 * 24 * 60 * 60)
     return max(t, 0)
+
+
 
 
 
@@ -12735,7 +12737,8 @@ elif MENU =="LIVE TRADE 3":
                         use_container_width=True,
                         hide_index=True
                     )
-                    send_greeks_to_telegram(greeks_param_df)
+                 
+                    #send_greeks_to_telegram(greeks_param_df)
                  
             
                 # ---------------- COL 3 ----------------

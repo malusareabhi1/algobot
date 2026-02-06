@@ -120,30 +120,6 @@ def time_to_expiry_years(expiry_date):
     return max(t, 0)
 
 
-#=====================================================================================================================
-def df_to_telegram_table(df, title):
-    header = "| {:<14} | {:<12} | {:<18} | {:<6} |".format(
-        "PARAMETER", "VALUE", "RANGE", "RESULT"
-    )
-    separator = "|" + "-"*16 + "|" + "-"*14 + "|" + "-"*20 + "|" + "-"*8 + "|"
-
-    rows = []
-    for _, row in df.iterrows():
-        rows.append(
-            "| {:<14} | {:<12} | {:<18} | {:<6} |".format(
-                str(row["Parameter"])[:14],
-                str(row["Value"])[:12],
-                str(row["Range"])[:18],
-                str(row["Result"])[:6]
-            )
-        )
-
-    table = "\n".join([header, separator] + rows)
-
-    return f"""
-🧮 *{title}*
-
-
 
 #======================================================================================================================
 

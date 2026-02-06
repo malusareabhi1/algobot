@@ -118,6 +118,40 @@ def time_to_expiry_years(expiry_date):
 
     t = (expiry - now).total_seconds() / (365 * 24 * 60 * 60)
     return max(t, 0)
+
+#======================================================================================================================
+
+def dataframe_to_telegram_table(df):
+    header = "| {:<12} | {:<6} | {:<16} | {:<6} |".format(
+        "PARAMETER", "VALUE", "RANGE", "RESULT"
+    )
+    separator = "|" + "-"*14 + "|" + "-"*8 + "|" + "-"*18 + "|" + "-"*8 + "|"
+
+    rows = []
+    for _, row in df.iterrows():
+        rows.append(
+            "| {:<12} | {:<6} | {:<16} | {:<6} |".format(
+                str(row["Parameters"])[:12],
+                str(row["Values"])[:6],
+                str(row["Range"])[:16],
+                str(row["Result"])[:6]
+            )
+        )
+
+    table = "\n".join([header, separator] + rows)
+    return f"```\n{table}\n```"
+
+def send_parameters_df_to_telegram(df):
+    table_text = dataframe_to_telegram_table(df)
+
+    msg = f"""
+🚦 *PARAMETERS CHECK*
+
+{table_text}
+"""
+    send_telegram_signal(msg)
+
+
 #===================================================================================================================================
 
 def send_trade_signal(
@@ -12604,6 +12638,7 @@ elif MENU =="LIVE TRADE 3":
                 with col1:
                     st.subheader("🚦 Parameters")
                     st.table(df)
+                    send_parameters_df_to_telegram(df)
             
                 # ---------------- COL 2 ----------------
                 with col2:

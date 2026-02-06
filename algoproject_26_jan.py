@@ -11794,7 +11794,8 @@ elif MENU =="LIVE TRADE 3":
     if not is_kite_connected(kite):
          st.warning("Kite session not active. Please login again.")
          st.stop()
-     
+    send_telegram_signal("▶️ Live Trade Starting !")
+ 
      # ✅ SAFE TO CONTINUE LIVE TRADING BELOW
 
 

@@ -11127,7 +11127,8 @@ elif MENU == "Logout":
             # Remove Zerodha kite object if present
             if "kite" in st.session_state:
                 st.session_state.kite = None
-    
+            send_telegram_signal("⏹ ALGO STOPPED !")
+
             st.success("You have been logged out successfully.")
             st.info("Please reconnect your broker from the 'Zerodha Broker API' menu.")
     

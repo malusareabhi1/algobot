@@ -121,6 +121,31 @@ def time_to_expiry_years(expiry_date):
 
     t = (expiry - now).total_seconds() / (365 * 24 * 60 * 60)
     return max(t, 0)
+#=======================================================================================================
+
+def send_nifty_positions_to_telegram(nifty_positions):
+
+    if not nifty_positions:
+        send_telegram_signal("ℹ️ *NO OPEN NIFTY POSITIONS*")
+        return
+
+    # If single dict → make it list
+    if isinstance(nifty_positions, dict):
+        nifty_positions = [nifty_positions]
+
+    msgs = ["📌 *OPEN NIFTY POSITIONS*"]
+
+    for pos in nifty_positions:
+        msg = f"""
+🧾 Symbol : {pos.get('tradingsymbol')}
+📦 Qty    : {pos.get('quantity')}
+💰 Avg    : {pos.get('average_price')}
+📈 LTP    : {pos.get('last_price')}
+📊 PnL    : {round(pos.get('pnl', 0), 2)}
+"""
+        msgs.append(msg)
+
+    send_telegram_signal("\n".join(msgs))
 
 #=========================================================================================================
 
@@ -12017,6 +12042,7 @@ elif MENU =="LIVE TRADE 3":
        #st.write("option-NIFTY26FEB24900CE-exp-", expiry_date) 
        #monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type)   
        if nifty_positions:
+              send_nifty_positions_to_telegram(nifty_positions) 
               pos = nifty_positions[0]
               qty = pos["qty"]
               entry_price = pos["avg_price"]
@@ -12850,7 +12876,7 @@ elif MENU =="LIVE TRADE 3":
                 # Check 1: Only run if current time is within trading window
             st.write("entry_time",entry_time) 
             order_id1=1212454554
-            send_trade_placed_to_telegram(trending_symbol, qty,order_id1, signal_time)
+            send_trade_placed_to_telegram(trending_symbol, qty,order_id1, entry_time)
             if is_valid_signal_time(entry_time):
                  st.warning("Signal time  match today's date .") 
                  if start_time <= now <= end_time:
@@ -12944,7 +12970,7 @@ elif MENU =="LIVE TRADE 3":
                                              st.session_state.order_executed = True   # Mark executed
                                              #st.session_state.order_executed = True
                                              st.session_state.last_order_id = order_id
-                                             send_trade_placed_to_telegram(trending_symbol, qty,order_id, signal_time)
+                                             send_trade_placed_to_telegram(trending_symbol, qty,order_id, entry_time)
                                             # ✅ Mark trade active
                                              st.session_state.trade_active = True
                                              st.session_state.entry_price = ltp
@@ -13043,7 +13069,7 @@ elif MENU =="LIVE TRADE 3":
             if pos:
                   st.subheader("🟢 Active Position")
                   
-                  monitor_position_live_with_theta_table_and_exit(kite,symbol,qty,entry_price,strike,expiry,option_type="CALL")
+                  #monitor_position_live_with_theta_table_and_exit(kite,symbol,qty,entry_price,strike,expiry,option_type="CALL")
                   st.table(pd.DataFrame([{
                       "Symbol": pos["tradingsymbol"],
                       "Qty": pos["quantity"],
@@ -13053,7 +13079,7 @@ elif MENU =="LIVE TRADE 3":
           
                  
 
-            df_plot1 = fetch_nifty_daily_last_7_days(kite)
+            #df_plot1 = fetch_nifty_daily_last_7_days(kite)
              
             #monitor_position_live_with_theta_table(kite,symbol,qty,entry_price,strike,expiry_date,option_type="CALL")   
             #monitor_all_open_positions_live(kite)

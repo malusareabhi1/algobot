@@ -123,6 +123,13 @@ def time_to_expiry_years(expiry_date):
 #from datetime import datetime
 
 def send_trade_signal(option_type, buy_price, entry_time):
+     # ---- FIX ENTRY TIME ----
+    if isinstance(entry_time, str):
+        entry_time = pd.to_datetime(entry_time)
+    elif isinstance(entry_time, pd.Timestamp):
+        entry_time = entry_time.to_pydatetime()
+    elif entry_time is None:
+        entry_time = datetime.now()
     msg = f"""
 📊 *NEW TRADE SIGNAL*
 
@@ -11811,7 +11818,7 @@ elif MENU =="LIVE TRADE 3":
     if not is_kite_connected(kite):
          st.warning("Kite session not active. Please login again.")
          st.stop()
-    send_telegram_signal("▶️ Live Trade Starting !")
+    #send_telegram_signal("▶️ Live Trade Starting !")
  
      # ✅ SAFE TO CONTINUE LIVE TRADING BELOW
 

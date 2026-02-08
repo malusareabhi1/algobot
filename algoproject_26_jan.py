@@ -618,6 +618,7 @@ def monitor_position_live_with_theta_table_and_exit1(
     option_type
 ):  
     #============================================SHOW CHART===================================================
+    send_telegram_signal("Monitoring Open Position !")
     df_option = get_option_ohlc(kite,symbol, interval="5minute")
     #st.write("Option data",df_option)  
     initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)
@@ -12001,6 +12002,7 @@ elif MENU =="LIVE TRADE 3":
     if  has_open_position(kite,product="MIS"):
        #st.warning("⚠️ Open position exists. New trade not allowed.")
        st.session_state.order_executed=True
+       send_telegram_signal("▶️ Algo Have Open Position !")
        #show_open_positions(kite)
        #==================================================================================================
        st.subheader("📊 Open Positions")

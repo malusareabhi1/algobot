@@ -11342,7 +11342,8 @@ elif MENU == "My Account":
                     holdings = kite.holdings()
                     positions = kite.positions()["net"]
                     orders = kite.orders()
-            
+                    message = f"💰 Available Funds: ₹{funds}"
+                    send_telegram_signal(message)
                     return funds, holdings, positions, orders
             
                 except Exception as e:

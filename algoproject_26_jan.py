@@ -41,6 +41,7 @@ now = datetime.now(ist).time()
  # STEP 1: Check kite object existence
 KILL_FILE = "KILL.txt"
 last_15m_candle_time = None
+last_sent_minute = None
 if "last_signal_time" not in st.session_state:
     st.session_state.last_signal_time = None
  
@@ -12498,9 +12499,12 @@ elif MENU =="LIVE TRADE 3":
 
         df_plot1["Datetime"] = pd.to_datetime(df_plot1["Datetime"])
         latest_candle_time = df_plot1["Datetime"].iloc[-1]
+        now = datetime.now(pytz.timezone("Asia/Kolkata"))
+        minute = now.minute
     
-        if last_15m_candle_time != latest_candle_time:
-            last_15m_candle_time = latest_candle_time
+        if minute % 15 == 0 and minute != last_sent_minute:
+            last_sent_minute = minute
+        
             msg = "📊 NIFTY Live Chart\nBase Zone + OR Breakout"
             chart_file = save_nifty_candle_chart_with_levels(df_plot1)
             send_telegram_photo(chart_file, msg)

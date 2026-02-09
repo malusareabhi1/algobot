@@ -105,6 +105,29 @@ from datetime import datetime
 
 from datetime import datetime, date
 
+#==============================SAVE NIFTY CHART===============================================
+import matplotlib
+matplotlib.use("Agg")
+
+import matplotlib.pyplot as plt
+def save_nifty_chart(df):
+    """
+    df must contain columns: Datetime, Close
+    """
+    plt.figure(figsize=(10,5))
+    plt.plot(df["Datetime"], df["Close"])
+    plt.title("NIFTY Live Chart")
+    plt.xlabel("Time")
+    plt.ylabel("Price")
+    plt.grid(True)
+
+    file_path = "nifty_chart.png"
+    plt.savefig(file_path)
+    plt.close()
+
+    return file_path
+ #=============================================================================================================
+ 
 def time_to_expiry_years(expiry_date):
     # ---- SAFETY NORMALIZATION ----
     if isinstance(expiry_date, str):

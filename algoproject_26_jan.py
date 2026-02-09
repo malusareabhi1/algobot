@@ -114,7 +114,7 @@ def save_nifty_chart(df):
     """
     df must contain columns: Datetime, Close
     """
-    st.write(df)
+    #st.write(df)
     plt.figure(figsize=(10,5))
     plt.plot(df["Datetime"], df["Close_^NSEI"])
     plt.title("NIFTY Live Chart")

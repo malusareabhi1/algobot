@@ -111,7 +111,68 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import mplfinance as mpf
+def save_nifty_candle_chart_with_levels(df):
 
+    df = df.copy()
+
+    # ------------------ STANDARDIZE COLUMNS ------------------
+    rename_map = {}
+    for col in df.columns:
+        c = col.lower()
+        if "open" in c:
+            rename_map[col] = "Open"
+        elif "high" in c:
+            rename_map[col] = "High"
+        elif "low" in c:
+            rename_map[col] = "Low"
+        elif "close" in c:
+            rename_map[col] = "Close"
+        elif "volume" in c:
+            rename_map[col] = "Volume"
+
+    df.rename(columns=rename_map, inplace=True)
+
+    # ------------------ DATETIME INDEX ------------------
+    df["Datetime"] = pd.to_datetime(df["Datetime"])
+    df.set_index("Datetime", inplace=True)
+
+    # ------------------ FIND LEVELS ------------------
+    last_day = df.index.date[-2]
+    today = df.index.date[-1]
+
+    last_3pm = df[(df.index.date == last_day) & (df.index.hour == 15) & (df.index.minute == 0)]
+    today_915 = df[(df.index.date == today) & (df.index.hour == 9) & (df.index.minute == 15)]
+
+    addplots = []
+
+    if not last_3pm.empty:
+        o = last_3pm["Open"].iloc[0]
+        c = last_3pm["Close"].iloc[0]
+
+        addplots.append(mpf.make_addplot([o]*len(df), color="green"))
+        addplots.append(mpf.make_addplot([c]*len(df), color="green", linestyle="dashed"))
+
+    if not today_915.empty:
+        o = today_915["Open"].iloc[0]
+        c = today_915["Close"].iloc[0]
+
+        addplots.append(mpf.make_addplot([o]*len(df), color="orange"))
+        addplots.append(mpf.make_addplot([c]*len(df), color="orange", linestyle="dashed"))
+
+    file_path = "nifty_levels.png"
+
+    mpf.plot(
+        df,
+        type="candle",
+        style="yahoo",
+        addplot=addplots,
+        title="NIFTY | Prev 3PM & Today 9:15 Levels",
+        volume=False,
+        savefig=file_path
+    )
+
+    return file_path
+ 
 def save_nifty_candle_chart(df):
 
     df = df.copy()
@@ -12424,7 +12485,7 @@ elif MENU =="LIVE TRADE 3":
         #st.write(df_plot1)
         #==============================send chart to telegram=================================================================  
         msg = "📊 NIFTY Live Chart\nBase Zone + OR Breakout"
-        chart_file = save_nifty_candle_chart(df_plot1)
+        chart_file = save_nifty_candle_chart_with_levels(df_plot1)
         send_telegram_photo(chart_file, msg)
           # 5️⃣ Call strategy  
         #==================================================================================================== 

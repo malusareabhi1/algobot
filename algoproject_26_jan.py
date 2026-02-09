@@ -12394,7 +12394,7 @@ elif MENU =="LIVE TRADE 3":
         #st.write(df_plot1)
         #==============================send chart to telegram=================================================================  
         msg = "📊 NIFTY Live Chart\nBase Zone + OR Breakout"
-        chart_file = save_nifty_chart(df_plot)
+        chart_file = save_nifty_chart(df_plot1)
         send_telegram_photo(chart_file, msg)
           # 5️⃣ Call strategy  
         #==================================================================================================== 

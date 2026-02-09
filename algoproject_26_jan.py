@@ -12493,10 +12493,17 @@ elif MENU =="LIVE TRADE 3":
          
         #st.write("15 MIn Data")
         #st.write(df_plot1)
-        #==============================send chart to telegram=================================================================  
-        msg = "📊 NIFTY Live Chart\nBase Zone + OR Breakout"
-        chart_file = save_nifty_candle_chart_with_levels(df_plot1)
-        send_telegram_photo(chart_file, msg)
+        #==============================send chart to telegram================================================================= 
+        global last_15m_candle_time
+
+        df_plot1["Datetime"] = pd.to_datetime(df_plot1["Datetime"])
+        latest_candle_time = df_plot1["Datetime"].iloc[-1]
+    
+        if last_15m_candle_time != latest_candle_time:
+            last_15m_candle_time = latest_candle_time
+            msg = "📊 NIFTY Live Chart\nBase Zone + OR Breakout"
+            chart_file = save_nifty_candle_chart_with_levels(df_plot1)
+            send_telegram_photo(chart_file, msg)
           # 5️⃣ Call strategy  
         #==================================================================================================== 
         #signal = trading_signal_all_conditions_final(df_plot) 

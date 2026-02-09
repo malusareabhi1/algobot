@@ -141,6 +141,8 @@ def save_nifty_candle_chart_with_levels(df):
     today = df.index.date[-1]
     # PREVIOUS DAY LAST CANDLE
     prev_day_df = df[df.index.date == last_day]
+    prev_day = df.index.date[-2]
+    prev_df = df[df.index.date == prev_day]
     #last_3pm = prev_day_df.tail(1)
     last_3pm = prev_df[
     ((prev_df.index.hour == 14) & (prev_df.index.minute.isin([45,55]))) |

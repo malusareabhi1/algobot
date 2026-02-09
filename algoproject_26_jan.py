@@ -126,6 +126,18 @@ def save_nifty_chart(df):
     plt.close()
 
     return file_path
+
+ def send_telegram_photo(photo_path, caption):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
+
+    with open(photo_path, "rb") as photo:
+        requests.post(
+            url,
+            data={"chat_id": CHAT_ID, "caption": caption},
+            files={"photo": photo}
+        )
+
+
  #=============================================================================================================
  
 def time_to_expiry_years(expiry_date):
@@ -12378,7 +12390,10 @@ elif MENU =="LIVE TRADE 3":
          
         #st.write("15 MIn Data")
         #st.write(df_plot1)
-         
+        #==============================send chart to telegram=================================================================  
+        msg = "📊 NIFTY Live Chart\nBase Zone + OR Breakout"
+        chart_file = save_nifty_chart(df_plot)
+        send_telegram_photo(chart_file, msg)
           # 5️⃣ Call strategy  
         #==================================================================================================== 
         #signal = trading_signal_all_conditions_final(df_plot) 

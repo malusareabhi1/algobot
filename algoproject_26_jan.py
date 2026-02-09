@@ -139,9 +139,14 @@ def save_nifty_candle_chart_with_levels(df):
     # ------------------ FIND LEVELS ------------------
     last_day = df.index.date[-2]
     today = df.index.date[-1]
-
-    last_3pm = df[(df.index.date == last_day) & (df.index.hour == 15) & (df.index.minute == 0)]
-    today_915 = df[(df.index.date == today) & (df.index.hour == 9) & (df.index.minute == 15)]
+    # PREVIOUS DAY LAST CANDLE
+    prev_day_df = df[df.index.date == last_day]
+    last_3pm = prev_day_df.tail(1)
+    
+    # TODAY 9:15 CANDLE
+    today_915 = df[(df.index.date == today) &(df.index.hour == 9) &(df.index.minute == 15)]
+    #last_3pm = df[(df.index.date == last_day) & (df.index.hour == 15) & (df.index.minute == 0)]
+    #today_915 = df[(df.index.date == today) & (df.index.hour == 9) & (df.index.minute == 15)]
 
     addplots = []
 

@@ -113,14 +113,37 @@ import matplotlib.pyplot as plt
 import mplfinance as mpf
 
 def save_nifty_candle_chart(df):
-    """
-    df must contain columns:
-    Datetime, Open, High, Low, Close, Volume (optional)
-    """
 
     df = df.copy()
-    df["Datetime"] = pd.to_datetime(df["Datetime"])
-    df.set_index("Datetime", inplace=True)
+
+    # ---------------- FIX COLUMN NAMES ----------------
+    rename_map = {}
+
+    for col in df.columns:
+        c = col.lower()
+        if "open" in c:
+            rename_map[col] = "Open"
+        elif "high" in c:
+            rename_map[col] = "High"
+        elif "low" in c:
+            rename_map[col] = "Low"
+        elif "close" in c:
+            rename_map[col] = "Close"
+        elif "volume" in c:
+            rename_map[col] = "Volume"
+
+    df.rename(columns=rename_map, inplace=True)
+
+    # ---------------- CHECK REQUIRED ----------------
+    required = ["Open","High","Low","Close"]
+    for col in required:
+        if col not in df.columns:
+            raise ValueError(f"Missing column: {col}")
+
+    # ---------------- DATETIME INDEX ----------------
+    if "Datetime" in df.columns:
+        df["Datetime"] = pd.to_datetime(df["Datetime"])
+        df.set_index("Datetime", inplace=True)
 
     file_path = "nifty_candle.png"
 
@@ -134,7 +157,6 @@ def save_nifty_candle_chart(df):
     )
 
     return file_path
-
 
 def send_telegram_photo(photo_path, caption):
     #url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"

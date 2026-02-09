@@ -135,7 +135,7 @@ def send_telegram_photo(photo_path, caption):
     with open(photo_path, "rb") as photo:
         requests.post(
             url,
-            data={"chat_id": CHAT_ID, "caption": caption},
+            data={"chat_id": TELEGRAM_CHAT_ID, "caption": caption},
             files={"photo": photo}
         )
 

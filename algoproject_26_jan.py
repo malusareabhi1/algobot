@@ -129,7 +129,8 @@ def save_nifty_chart(df):
     return file_path
 
 def send_telegram_photo(photo_path, caption):
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
+    #url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
 
     with open(photo_path, "rb") as photo:
         requests.post(

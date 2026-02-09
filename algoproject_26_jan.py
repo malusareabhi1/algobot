@@ -110,23 +110,31 @@ import matplotlib
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
-def save_nifty_chart(df):
-    """
-    df must contain columns: Datetime, Close
-    """
-    #st.write(df)
-    plt.figure(figsize=(10,5))
-    plt.plot(df["Datetime"], df["Close_^NSEI"])
-    plt.title("NIFTY Live Chart")
-    plt.xlabel("Time")
-    plt.ylabel("Price")
-    plt.grid(True)
+import mplfinance as mpf
 
-    file_path = "nifty_chart.png"
-    plt.savefig(file_path)
-    plt.close()
+def save_nifty_candle_chart(df):
+    """
+    df must contain columns:
+    Datetime, Open, High, Low, Close, Volume (optional)
+    """
+
+    df = df.copy()
+    df["Datetime"] = pd.to_datetime(df["Datetime"])
+    df.set_index("Datetime", inplace=True)
+
+    file_path = "nifty_candle.png"
+
+    mpf.plot(
+        df,
+        type="candle",
+        style="yahoo",
+        volume=False,
+        title="NIFTY 15m Candles",
+        savefig=file_path
+    )
 
     return file_path
+
 
 def send_telegram_photo(photo_path, caption):
     #url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"

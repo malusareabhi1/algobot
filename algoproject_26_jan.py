@@ -40,7 +40,7 @@ now = datetime.now(ist).time()
 # Refresh only between 9:30–3:25
  # STEP 1: Check kite object existence
 KILL_FILE = "KILL.txt"
-
+last_15m_candle_time = None
 if "last_signal_time" not in st.session_state:
     st.session_state.last_signal_time = None
  

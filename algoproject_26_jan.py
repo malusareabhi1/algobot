@@ -803,7 +803,7 @@ def monitor_position_live_with_theta_table_and_exit1(
     🔁 *Trailing SL (30%):* {round(trailing_sl, 2)}
     🎯 *Target:* {round(target, 2)}
     
-    ⚠️ *Option Risk:* ₹{round(option_risk, 2)}
+    ⚠️ *Option Risk:* ₹{round(orisk, 2)}
     💰 *Capital Used:* ₹{round(entry_price * qty, 2)}
     
     ⏰ *Status:* LIVE

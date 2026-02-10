@@ -763,7 +763,7 @@ def monitor_position_live_with_theta_table_and_exit1(
     initial_sl,risk1=get_initial_sl_and_risk(df_option, entry_price, option_type)
     st.write("initial_sl,risk1",initial_sl,risk1)  
     #st.write(df_option) 
-    #st.write("symbol, qty, entry_price,strike,expiry_date,option_type",symbol, qty, entry_price, strike,  expiry_date,  option_type)   
+    st.write("symbol, qty, entry_price,strike,expiry_date,option_type",symbol, qty, entry_price, strike,  expiry_date,  option_type)   
     import time as tm 
     ist = pytz.timezone("Asia/Kolkata")
     placeholder = st.empty()

@@ -1,8 +1,14 @@
 from telegram.ext import Updater, CommandHandler
 import threading
 
-BOT_TOKEN = "YOUR_BOT_TOKEN"
-CHAT_ID = "YOUR_CHAT_ID"
+
+from dotenv import load_dotenv  # pip install python-dotenv
+import os
+
+load_dotenv()  # this will read your .env and put values into os.environ[web:22][web:23]
+
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 algo_running = False
 algo_thread = None

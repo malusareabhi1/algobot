@@ -1,4 +1,4 @@
-#from telegram.ext import Updater, CommandHandler
+from telegram.ext import Updater, CommandHandler
 import threading
 
 

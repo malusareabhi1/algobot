@@ -29,3 +29,4 @@ kiteconnect
 holidays
 py_vollib
 mplfinance
+python-telegram-bot==13.15

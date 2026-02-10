@@ -787,6 +787,8 @@ def monitor_position_live_with_theta_table_and_exit1(
     orisk= (entry_price-initial_sl)*qty 
     #st.write("New Option AMOUNT   ()  =",amount) 
     pprofit=risk1+entry_price+2
+    target = pprofit
+
     #st.write("Partial pprofit=",pprofit) 
     #st.write("New Option RISK   (entry_price-initial_sl*QTY)  =",orisk)  
     #-----------------------------------TELEGRAM UPDATES----------------------------------------SL------------ 

@@ -12580,7 +12580,7 @@ elif MENU =="LIVE TRADE 3":
                       signal_time=signal_entry_time,
                       trending_symbol="NIFTY",
                       expiry=expry,
-                      ltp=S
+                      ltp=SPOT
                   )
                   
                   st.write("Trade signal inserted successfully!")

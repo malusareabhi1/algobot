@@ -109,6 +109,43 @@ from datetime import datetime
 
 from datetime import datetime, date
 
+
+
+#===============================================================TSL===================================
+
+def calculate_trailing_sl(df_option, option_type, buffer=0.0):
+    """
+    df_option: DataFrame with 5-min OHLC (datetime index)
+    option_type: "CALL" or "PUT"
+    buffer: small buffer to place SL below/above the swing point
+    """
+    if df_option.empty:
+        return None
+
+    df = df.copy()
+    
+    # Ensure datetime index
+    if not isinstance(df.index, pd.DatetimeIndex):
+        if "datetime" in df.columns:
+            df["datetime"] = pd.to_datetime(df["datetime"])
+            df.set_index("datetime", inplace=True)
+        else:
+            return None
+
+    if option_type == "CALL":
+        # Higher highs & higher lows → trailing SL below last low of swing
+        # Take last N candles (e.g., 10)
+        recent = df.tail(10)
+        trailing_sl = recent["low"].min() - buffer
+    elif option_type == "PUT":
+        # Lower highs & lower lows → trailing SL above last high of swing
+        recent = df.tail(10)
+        trailing_sl = recent["high"].max() + buffer
+    else:
+        return None
+
+    return trailing_sl
+
 #==============================SAVE NIFTY CHART===============================================
 import matplotlib
 matplotlib.use("Agg")
@@ -749,6 +786,177 @@ def demo_place_order(symbol,qty):
      except Exception as e:
                                             st.error(f"Order Failed: {e}")
 #===================================================================================================================
+import pandas as pd
+import pytz
+from datetime import datetime
+import time as tm
+
+def monitor_position_live_with_theta_table_and_exit2(
+    kite,
+    symbol,
+    qty,
+    entry_price,
+    strike,
+    expiry_date,
+    option_type,
+    lot_size=65,
+    check_interval=5  # seconds
+):
+    """
+    Monitors a live option position with:
+    - Swing-based trailing stop loss
+    - Multi-level partial exits
+    - Trend-aware exit rules
+    - Theta-adjusted P&L
+    """
+
+    # ---------------------------- INIT -----------------------------
+    send_telegram_signal(f"Monitoring Open Position: {symbol} {option_type} @ {entry_price}")
+    df_option = get_option_ohlc(kite, symbol, interval="5minute")
+    
+    initial_sl, risk1 = get_initial_sl_and_risk(df_option, entry_price, option_type)
+    if initial_sl is None:
+        st.error("Initial SL could not be calculated. Skipping monitoring.")
+        return
+
+    ist = pytz.timezone("Asia/Kolkata")
+    placeholder = st.empty()
+
+    trailing_sl = entry_price * 0.95  # initial safe buffer
+    target1 = entry_price + (risk1 if option_type == "CALL" else -risk1)
+    target2 = entry_price + 2*(risk1 if option_type == "CALL" else -risk1)
+    remaining_qty = qty
+
+    fund = get_fund_status(kite)
+    cash = fund.get("net", 100000)
+    max_capital_risk = cash * 0.05
+
+    send_telegram_message(f"✅ Trade Init: {symbol} {option_type} Qty={qty}, Entry={entry_price}, Initial SL={initial_sl}, Targets={target1},{target2}")
+
+    # ---------------------------- MONITOR LOOP -----------------------------
+    while remaining_qty > 0:
+        now = datetime.now(ist)
+        ltp = kite.ltp(f"NFO:{symbol}")[f"NFO:{symbol}"]["last_price"]
+        spot = safe_ltp(kite, "NSE", "NIFTY 50")
+
+        # Calculate IV & Greeks
+        option_iv = calculate_option_iv(
+            option_price=ltp,
+            spot_price=spot,
+            strike_price=strike,
+            expiry_date=expiry_date,
+            option_type="PE" if option_type=="PUT" else "CE"
+        )
+        greeks = safe_option_greeks_new(spot, strike, expiry_date, 0.065, option_iv, option_type)
+        greek_theta = greeks.get("theta", 0)
+
+        # ---------------- P&L ----------------
+        pnl = (ltp - entry_price) * remaining_qty if option_type=="CALL" else (entry_price - ltp) * remaining_qty
+        pnl_adjusted = pnl + (greek_theta * remaining_qty) / 100  # simple theta adjustment
+
+        # ---------------- Swing-Based Trailing SL ----------------
+        recent = df_option.tail(10)
+        if option_type == "CALL":
+            swing_low = recent['low'].min()
+            trailing_sl = max(trailing_sl, swing_low - 0.2)
+        else:
+            swing_high = recent['high'].max()
+            trailing_sl = min(trailing_sl, swing_high + 0.2)
+
+        # ---------------- Trend Detection ----------------
+        highs = recent['high'].tolist()
+        lows = recent['low'].tolist()
+        uptrend = all(x < y for x, y in zip(highs, highs[1:])) and all(x < y for x, y in zip(lows, lows[1:]))
+        downtrend = all(x > y for x, y in zip(highs, highs[1:])) and all(x > y for x, y in zip(lows, lows[1:]))
+
+        # Only tighten SL if trend reverses
+        if option_type=="CALL" and not uptrend:
+            trailing_sl = max(trailing_sl, swing_low - 0.2)
+        elif option_type=="PUT" and not downtrend:
+            trailing_sl = min(trailing_sl, swing_high + 0.2)
+
+        # ---------------- EXIT RULES ----------------
+        status = "LIVE"
+        exit_qty = 0
+
+        if option_iv >= 50:
+            status = "❌ IV BLAST EXIT"
+            exit_qty = remaining_qty
+        elif option_type=="CALL" and ltp >= target1:
+            status = "⚠ PARTIAL EXIT LEVEL1"
+            exit_qty = max(lot_size, remaining_qty // 2)
+        elif option_type=="CALL" and ltp >= target2:
+            status = "⚠ PARTIAL EXIT LEVEL2"
+            exit_qty = remaining_qty  # final exit
+        elif option_type=="PUT" and ltp <= target1:
+            status = "⚠ PARTIAL EXIT LEVEL1"
+            exit_qty = max(lot_size, remaining_qty // 2)
+        elif option_type=="PUT" and ltp <= target2:
+            status = "⚠ PARTIAL EXIT LEVEL2"
+            exit_qty = remaining_qty
+        elif (option_type=="CALL" and ltp <= trailing_sl) or (option_type=="PUT" and ltp >= trailing_sl):
+            status = "❌ TRAILING SL HIT"
+            exit_qty = remaining_qty
+        elif greek_theta <= -80:
+            status = "⚠ THETA EXIT"
+            exit_qty = remaining_qty
+        elif now.hour==15 and now.minute>=20:
+            status = "🕒 EOD EXIT"
+            exit_qty = remaining_qty
+
+        # ---------------- EXECUTE EXIT ----------------
+        if exit_qty > 0:
+            place_exit_order(kite, symbol, exit_qty, status)
+            remaining_qty -= exit_qty
+            insert_signal_log(
+                condition="Auto Exit",
+                option_type=option_type,
+                buy_price=entry_price,
+                stoploss=trailing_sl,
+                quantity=exit_qty,
+                expiry=expiry_date,
+                entry_time=now.strftime("%H:%M:%S"),
+                message=status,
+                exit_price=ltp,
+                status=status
+            )
+            if remaining_qty <= 0:
+                break
+            else:
+                # adjust next target for remaining qty
+                if option_type=="CALL":
+                    target1 += risk1
+                    target2 += risk1
+                else:
+                    target1 -= risk1
+                    target2 -= risk1
+
+        # ---------------- DISPLAY ----------------
+        df = pd.DataFrame([{
+            "Symbol": symbol,
+            "Type": option_type,
+            "Qty": remaining_qty,
+            "Entry": round(entry_price,2),
+            "LTP": round(ltp,2),
+            "P&L": round(pnl_adjusted,2),
+            "Theta": round(greek_theta,2),
+            "IV": round(option_iv,2),
+            "Trailing SL": round(trailing_sl,2),
+            "Status": status,
+            "Time": now.strftime("%H:%M:%S")
+        }])
+        def color_pnl(v): return "color: green" if v>0 else "color: red"
+        def color_status(v):
+            if "LIVE" in v: return "color: blue"
+            if "SL" in v or "EXIT" in v: return "color: red"
+            return "color: orange"
+
+        styled = df.style.applymap(color_pnl, subset=["P&L"]).applymap(color_status, subset=["Status"])
+        with placeholder.container():
+            st.subheader("📊 Live Option Monitor")
+            st.dataframe(styled, use_container_width=True, hide_index=True)
+
+        tm.sleep(check_interval)
 
 def monitor_position_live_with_theta_table_and_exit1(
     kite,
@@ -770,8 +978,10 @@ def monitor_position_live_with_theta_table_and_exit1(
     import time as tm 
     ist = pytz.timezone("Asia/Kolkata")
     placeholder = st.empty()
-    trailing_sl = entry_price * 0.30
-     
+    #trailing_sl = entry_price * 0.30
+    # Every iteration in your while loop
+    trailing_sl = calculate_trailing_sl(df_option, option_type, buffer=0.2)  # small buffer
+ 
     status = "LIVE"
     amount=entry_price*qty
     fund=get_fund_status(kite)

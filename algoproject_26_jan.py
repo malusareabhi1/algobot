@@ -28,9 +28,10 @@ from config import QTY_PER_LOT
 from config import NIFTY_TOKEN
 #from greeks  import  send_greeks_to_telegram
 #from greeks  import  df_to_telegram_table
-from db import create_tables, insert_trade_signal, fetch_trade_signals
+from db import create_tables, insert_trade_signal, fetch_trade_signals,create_signal_log_table,insert_signal_log,fetch_signal_log
 
 create_tables()   # run once
+create_signal_log_table()
 # Auto-refresh every 30 seconds
 # Market hours condition
 #import pytz
@@ -12570,7 +12571,19 @@ elif MENU =="LIVE TRADE 3":
                          use_container_width=True,
                          hide_index=True
                      )
-              
+                  opt_type=df_sig1["option_type"] 
+                  expry=df_sig1["expiry"] 
+                  # Insert a new trade signal
+                  insert_trade_signal(
+                      option_type=opt_type,
+                      spot=SPOT,
+                      signal_time=signal_entry_time,
+                      trending_symbol="NIFTY",
+                      expiry=expry,
+                      ltp=S
+                  )
+                  
+                  st.write("Trade signal inserted successfully!")
              st.divider()                   
 #======================================================================================================================
 

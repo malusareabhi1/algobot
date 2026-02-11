@@ -12571,8 +12571,8 @@ elif MENU =="LIVE TRADE 3":
                          use_container_width=True,
                          hide_index=True
                      )
-                  opt_type=df_sig1["option_type"] 
-                  expry=df_sig1["expiry"] 
+                  opt_type=last_signal["option_type"] 
+                  expry=last_signal["expiry"] 
                   # Insert a new trade signal
                   insert_trade_signal(
                       option_type=opt_type,

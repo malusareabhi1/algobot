@@ -1,18 +1,19 @@
+import streamlit as st
 import sqlite3
 from datetime import datetime
+import pandas as pd
 
 DB_NAME = "trading.db"
 
-# -------------------------------
-# CONNECT DATABASE
-# -------------------------------
+# -------------------------
+# DATABASE CONNECTION
+# -------------------------
 def get_connection():
-    return sqlite3.connect(DB_NAME)
+    return sqlite3.connect(DB_NAME, check_same_thread=False)
 
-
-# -------------------------------
+# -------------------------
 # CREATE TABLE
-# -------------------------------
+# -------------------------
 def create_table():
     conn = get_connection()
     cur = conn.cursor()
@@ -30,113 +31,114 @@ def create_table():
 
     conn.commit()
     conn.close()
-    print("✅ Table Ready")
 
-
-# -------------------------------
-# CREATE (INSERT)
-# -------------------------------
-def insert_trade(symbol, price, quantity, side):
+# -------------------------
+# INSERT
+# -------------------------
+def insert_trade(symbol, price, qty, side):
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
-    INSERT INTO trades(symbol,price,quantity,side,time)
-    VALUES (?,?,?,?,?)
-    """, (symbol, price, quantity, side, datetime.now()))
+        INSERT INTO trades(symbol,price,quantity,side,time)
+        VALUES (?,?,?,?,?)
+    """, (symbol, price, qty, side, datetime.now()))
 
     conn.commit()
     conn.close()
-    print("✅ Trade Inserted")
 
-
-# -------------------------------
-# READ (FETCH)
-# -------------------------------
+# -------------------------
+# READ
+# -------------------------
 def fetch_trades():
     conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("SELECT * FROM trades")
-    rows = cur.fetchall()
-
+    df = pd.read_sql("SELECT * FROM trades ORDER BY id DESC", conn)
     conn.close()
-    return rows
+    return df
 
-
-# -------------------------------
+# -------------------------
 # UPDATE
-# -------------------------------
-def update_trade(trade_id, new_price):
+# -------------------------
+def update_trade(trade_id, price):
     conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
-    UPDATE trades
-    SET price = ?
-    WHERE id = ?
-    """, (new_price, trade_id))
+        UPDATE trades
+        SET price=?
+        WHERE id=?
+    """, (price, trade_id))
 
     conn.commit()
     conn.close()
-    print("✅ Trade Updated")
 
-
-# -------------------------------
+# -------------------------
 # DELETE
-# -------------------------------
+# -------------------------
 def delete_trade(trade_id):
     conn = get_connection()
     cur = conn.cursor()
-
-    cur.execute("DELETE FROM trades WHERE id = ?", (trade_id,))
+    cur.execute("DELETE FROM trades WHERE id=?", (trade_id,))
     conn.commit()
     conn.close()
-    print("✅ Trade Deleted")
 
+# -------------------------
+# STREAMLIT UI
+# -------------------------
+st.set_page_config(page_title="SQLite CRUD", layout="wide")
+st.title("📊 Algo Trading Logs - CRUD App")
 
-# -------------------------------
-# MAIN PROGRAM
-# -------------------------------
-if __name__ == "__main__":
+create_table()
 
-    create_table()
+menu = st.sidebar.radio(
+    "Menu",
+    ["Create Trade", "View Trades", "Update Trade", "Delete Trade"]
+)
 
-    while True:
-        print("\n--- MENU ---")
-        print("1. Insert Trade")
-        print("2. View Trades")
-        print("3. Update Trade Price")
-        print("4. Delete Trade")
-        print("5. Exit")
+# -------------------------
+# CREATE
+# -------------------------
+if menu == "Create Trade":
+    st.subheader("➕ Insert New Trade")
 
-        choice = input("Enter choice: ")
+    symbol = st.text_input("Symbol")
+    price = st.number_input("Price", min_value=0.0)
+    qty = st.number_input("Quantity", min_value=1, step=1)
+    side = st.selectbox("Side", ["BUY", "SELL"])
 
-        if choice == "1":
-            sym = input("Symbol: ")
-            price = float(input("Price: "))
-            qty = int(input("Quantity: "))
-            side = input("Side (BUY/SELL): ")
-            insert_trade(sym, price, qty, side)
+    if st.button("Save Trade"):
+        insert_trade(symbol, price, qty, side)
+        st.success("Trade Saved!")
 
-        elif choice == "2":
-            trades = fetch_trades()
-            print("\n--- Trades ---")
-            for t in trades:
-                print(t)
+# -------------------------
+# READ
+# -------------------------
+elif menu == "View Trades":
+    st.subheader("📄 All Trades")
+    df = fetch_trades()
+    st.dataframe(df, use_container_width=True)
 
-        elif choice == "3":
-            tid = int(input("Trade ID: "))
-            new_price = float(input("New Price: "))
-            update_trade(tid, new_price)
+# -------------------------
+# UPDATE
+# -------------------------
+elif menu == "Update Trade":
+    st.subheader("✏️ Update Trade Price")
 
-        elif choice == "4":
-            tid = int(input("Trade ID: "))
-            delete_trade(tid)
+    trade_id = st.number_input("Trade ID", step=1)
+    new_price = st.number_input("New Price", min_value=0.0)
 
-        elif choice == "5":
-            print("👋 Exit")
-            break
+    if st.button("Update"):
+        update_trade(trade_id, new_price)
+        st.success("Trade Updated!")
 
-        else:
-            print("❌ Invalid Choice")
+# -------------------------
+# DELETE
+# -------------------------
+elif menu == "Delete Trade":
+    st.subheader("🗑 Delete Trade")
+
+    trade_id = st.number_input("Trade ID", step=1)
+
+    if st.button("Delete"):
+        delete_trade(trade_id)
+        st.warning("Trade Deleted!")

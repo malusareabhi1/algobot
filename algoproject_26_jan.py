@@ -12562,7 +12562,7 @@ elif MENU =="LIVE TRADE 3":
              #with colA:
              with st.container():     
                   st.subheader("📊 Signal Log")
-                  #st.write(df_sig1) 
+                  st.write(df_sig1) 
                   #st.dataframe(df_sig1, use_container_width=True, hide_index=True)
                   cols = ["option_type", "buy_price", "entry_time"]
                   st.dataframe(

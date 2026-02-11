@@ -12441,7 +12441,8 @@ elif MENU =="LIVE TRADE 3":
               strike=get_strike_from_instruments(symbol)
               instrument_type=get_instrument_type_from_instruments(symbol)
               
-              monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type)      
+              #monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type) 
+              monitor_position_live_with_theta_table_and_exit2( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type)
        else:
               st.info("No open position")
 

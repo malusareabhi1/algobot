@@ -28,7 +28,9 @@ from config import QTY_PER_LOT
 from config import NIFTY_TOKEN
 #from greeks  import  send_greeks_to_telegram
 #from greeks  import  df_to_telegram_table
+from db import create_tables, insert_trade_signal, fetch_trade_signals
 
+create_tables()   # run once
 # Auto-refresh every 30 seconds
 # Market hours condition
 #import pytz

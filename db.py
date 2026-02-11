@@ -46,3 +46,70 @@ def fetch_trade_signals(limit=100):
     """,(limit,)).fetchall()
     conn.close()
     return rows
+
+def create_signal_log_table():
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS signal_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        condition TEXT,
+        option_type TEXT,
+        buy_price REAL,
+        stoploss REAL,
+        quantity INTEGER,
+        expiry TEXT,
+        entry_time TEXT,
+        message TEXT,
+        exit_price REAL,
+        status TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+def insert_signal_log(
+        condition,
+        option_type,
+        buy_price,
+        stoploss,
+        quantity,
+        expiry,
+        entry_time,
+        message,
+        exit_price,
+        status
+    ):
+
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+
+    cur.execute("""
+        INSERT INTO signal_log
+        (condition,option_type,buy_price,stoploss,quantity,expiry,entry_time,message,exit_price,status)
+        VALUES (?,?,?,?,?,?,?,?,?,?)
+    """,(
+        condition,
+        option_type,
+        buy_price,
+        stoploss,
+        quantity,
+        expiry,
+        entry_time,
+        message,
+        exit_price,
+        status
+    ))
+
+    conn.commit()
+    conn.close()
+import pandas as pd
+
+def fetch_signal_log():
+    conn = sqlite3.connect(DB_NAME)
+    df = pd.read_sql("SELECT * FROM signal_log ORDER BY id DESC", conn)
+    conn.close()
+    return df
+

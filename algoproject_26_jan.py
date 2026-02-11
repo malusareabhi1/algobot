@@ -12573,6 +12573,7 @@ elif MENU =="LIVE TRADE 3":
                      )
                   opt_type=last_signal["option_type"] 
                   expry=last_signal["expiry"] 
+                  SPOT=float(SPOT)
                   # Insert a new trade signal
                   insert_trade_signal(
                       option_type=opt_type,

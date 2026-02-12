@@ -110,7 +110,34 @@ if "option_log" not in st.session_state:
 from datetime import datetime
 
 from datetime import datetime, date
+#========================================================================================================
 
+def fetch_zerodha_data():
+                kite = st.session_state.kite
+                # IMPORTANT: make kite available everywhere below
+     
+            
+                try:
+                    funds = kite.margins()["equity"]["available"]["cash"]
+                    holdings = kite.holdings()
+                    positions = kite.positions()["net"]
+                    orders = kite.orders()
+                    profile = kite.profile()
+                    user_name = profile["user_name"]
+                    #message = f"💰 Available Funds: ₹{funds}"
+                    #send_telegram_signal(message)
+                    message = f"""
+                    👤 User: {user_name}
+                    💰 Funds: ₹{funds}
+                    🚀 Algo Status: Running
+                    """
+                    
+                    send_telegram_signal(message)
+                    return funds, holdings, positions, orders
+            
+                except Exception as e:
+                    st.error(f"Error fetching Zerodha data: {e}")
+                    return 0, [], [], 
 
 
 #===============================================================TSL===================================

@@ -12370,88 +12370,89 @@ elif MENU =="LIVE TRADE 3":
     if  has_open_position(kite,product="MIS"):
        if os.path.exists(IMAGE_PATH):
          st.image(IMAGE_PATH, caption="Latest Error", use_container_width=True)
-       #st.warning("⚠️ Open position exists. New trade not allowed.")
-       st.session_state.order_executed=True
-       send_telegram_signal("▶️ Algo Have Open Position !")
-       #show_open_positions(kite)
-       #==================================================================================================
-       st.subheader("📊 Open Positions")
-       REFRESH_SEC = 1  # do NOT go below 1–2 sec (Zerodha rate limits)
-
-       if "last_pos_refresh" not in st.session_state:
-           st.session_state.last_pos_refresh = 0
-       
-       now = time.time()
-       
-       if now - st.session_state.last_pos_refresh >= REFRESH_SEC:         
-          try:
-                          positions = kite.positions()
-                  
-                          # Combine day + net positions
-                          df_positions = pd.DataFrame(
-                              positions.get("net", [])
-                          )
-                  
-                          if not df_positions.empty:
-                              # Optional: select useful columns only
-                              display_cols = [
-                                  "tradingsymbol",
-                                  "exchange",
-                                  "product",
-                                  "quantity",
-                                  "average_price",
-                                  "last_price",
-                                  "pnl",
-                                  "unrealised",
-                                  "realised"
-                              ]
-                  
-                              df_positions = df_positions[display_cols]
-                  
-                              st.dataframe(
-                                  df_positions,
-                                  use_container_width=True
-                              )
-                          else:
-                              st.info("No open positions.")
-                  
-          except Exception as e:
-                          st.error(f"Error fetching positions: {e}")
-       #================================================================================================
-       nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")
-       
-       #symbol="NIFTY26FEB24900CE"
-       #newdt=get_expiry_from_symbol(symbol)
-       #expiry_date=get_expiry_from_instruments(symbol)
-       #strike=get_strike_from_instruments(symbol)
-       #instrument_type=get_instrument_type_from_instruments(symbol)
-      
-       #strike=parsed_symb["strike"] 
-       #option_type=parsed_symb["option_type"]
-       #qty=130
-       #spot = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
-       #entry_price=423
-       #st.write("option-NIFTY26FEB24900CE-exp-", expiry_date) 
-       #monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type)   
-       if nifty_positions:
-              #send_nifty_positions_to_telegram(nifty_positions) 
-              pos = nifty_positions[0]
-              qty = pos["qty"]
-              entry_price = pos["avg_price"]
-              pnl = pos["pnl"]
-              symbol=pos["symbol"]
-              option_type=pos["instrument_type"]
-              send_nifty_positions_to_telegram(pos) 
-              expiry_date=get_expiry_from_instruments(symbol)
-              strike=get_strike_from_instruments(symbol)
-              instrument_type=get_instrument_type_from_instruments(symbol)
-              
-              #monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type) 
-              monitor_position_live_with_theta_table_and_exit2( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type)
-       else:
-              st.info("No open position")
-
-       st.stop()
+       else: 
+         #st.warning("⚠️ Open position exists. New trade not allowed.")
+         st.session_state.order_executed=True
+         send_telegram_signal("▶️ Algo Have Open Position !")
+         #show_open_positions(kite)
+         #==================================================================================================
+         st.subheader("📊 Open Positions")
+         REFRESH_SEC = 1  # do NOT go below 1–2 sec (Zerodha rate limits)
+  
+         if "last_pos_refresh" not in st.session_state:
+             st.session_state.last_pos_refresh = 0
+         
+         now = time.time()
+         
+         if now - st.session_state.last_pos_refresh >= REFRESH_SEC:         
+            try:
+                            positions = kite.positions()
+                    
+                            # Combine day + net positions
+                            df_positions = pd.DataFrame(
+                                positions.get("net", [])
+                            )
+                    
+                            if not df_positions.empty:
+                                # Optional: select useful columns only
+                                display_cols = [
+                                    "tradingsymbol",
+                                    "exchange",
+                                    "product",
+                                    "quantity",
+                                    "average_price",
+                                    "last_price",
+                                    "pnl",
+                                    "unrealised",
+                                    "realised"
+                                ]
+                    
+                                df_positions = df_positions[display_cols]
+                    
+                                st.dataframe(
+                                    df_positions,
+                                    use_container_width=True
+                                )
+                            else:
+                                st.info("No open positions.")
+                    
+            except Exception as e:
+                            st.error(f"Error fetching positions: {e}")
+         #================================================================================================
+         nifty_positions = find_open_position_any(kite,symbol_contains="NIFTY",exchange="NFO")
+         
+         #symbol="NIFTY26FEB24900CE"
+         #newdt=get_expiry_from_symbol(symbol)
+         #expiry_date=get_expiry_from_instruments(symbol)
+         #strike=get_strike_from_instruments(symbol)
+         #instrument_type=get_instrument_type_from_instruments(symbol)
+        
+         #strike=parsed_symb["strike"] 
+         #option_type=parsed_symb["option_type"]
+         #qty=130
+         #spot = kite.ltp("NSE:NIFTY 50")["NSE:NIFTY 50"]["last_price"]
+         #entry_price=423
+         #st.write("option-NIFTY26FEB24900CE-exp-", expiry_date) 
+         #monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type)   
+         if nifty_positions:
+                #send_nifty_positions_to_telegram(nifty_positions) 
+                pos = nifty_positions[0]
+                qty = pos["qty"]
+                entry_price = pos["avg_price"]
+                pnl = pos["pnl"]
+                symbol=pos["symbol"]
+                option_type=pos["instrument_type"]
+                send_nifty_positions_to_telegram(pos) 
+                expiry_date=get_expiry_from_instruments(symbol)
+                strike=get_strike_from_instruments(symbol)
+                instrument_type=get_instrument_type_from_instruments(symbol)
+                
+                #monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type) 
+                monitor_position_live_with_theta_table_and_exit2( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type)
+         else:
+                st.info("No open position")
+  
+         st.stop()
 
        #===================================================================================================    
     else:

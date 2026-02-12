@@ -62,6 +62,9 @@ if start <= now <= end:
 if "paper_trades" not in st.session_state:
     st.session_state["paper_trades"] = []
 
+if "executed_signals" not in st.session_state:
+    st.session_state.executed_signals = set()
+
 if "last_executed_signal_time" not in st.session_state:
     st.session_state.last_executed_signal_time = None
 
@@ -13329,6 +13332,9 @@ elif MENU =="LIVE TRADE 3":
             #order_id1=1212454554
             #send_trade_placed_to_telegram(trending_symbol, qty,order_id1, entry_time)
             if is_valid_signal_time(entry_time):
+                 # ---------------- UNIQUE SIGNAL KEY ----------------
+                 signal_key = f"{trending_symbol}_{signal_time.strftime('%Y%m%d_%H%M')}"
+
                  st.warning("Signal time  match today's date .") 
                  if start_time <= now <= end_time:
                  
@@ -13409,6 +13415,16 @@ elif MENU =="LIVE TRADE 3":
                                     if signal_time == st.session_state.last_signal_time:
                                      st.write("signal time and session time ",signal_time,st.session_state.last_signal_time)
                                      if not st.session_state.order_executed:
+                                          # ---------------- UNIQUE SIGNAL CHECK ----------------
+                                         if signal_key in st.session_state.executed_signals:
+                                             st.info("✅ Trade already executed for this signal")
+                                             st.stop()
+                                         
+                                         # ---------------- OPEN POSITION CHECK ----------------
+                                         if has_open_position(kite):
+                                             st.warning("⚠️ Open position exists. No new trade allowed.")
+                                             st.stop()
+
                                          try:
                                              st.write("Placing Trade-") 
                                              order_id = kite.place_order(

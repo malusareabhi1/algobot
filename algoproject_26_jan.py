@@ -645,6 +645,7 @@ def find_open_position_any(
             "instrument_type": p.get("instrument_type"),
             "qty": qty,
             "avg_price": p.get("average_price"),
+            "ltp": p.get("last_price"),   # ✅ added
             "pnl": p.get("pnl"),
             "buy_qty": p.get("buy_quantity"),
             "sell_qty": p.get("sell_quantity"),

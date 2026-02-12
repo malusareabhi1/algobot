@@ -12711,8 +12711,11 @@ elif MENU =="LIVE TRADE 3":
          
         #st.write("15 MIn Data")
         #st.write(df_plot1)
-        #==============================send chart to telegram================================================================= 
-        
+        #==============================send chart to telegram=================================================================
+        #signal_time != st.session_state.last_signal_time
+        st.write("signal_time",signal_time)
+        st.write("st.session_state.last_signal_time",st.session_state.last_signal_time)
+        #==================================================================================================================
 
         df_plot1["Datetime"] = pd.to_datetime(df_plot1["Datetime"])
         latest_candle_time = df_plot1["Datetime"].iloc[-1]

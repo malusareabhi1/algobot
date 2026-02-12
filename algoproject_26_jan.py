@@ -12795,13 +12795,14 @@ elif MENU =="LIVE TRADE 3":
                   )
                   
                   st.write("Trade signal inserted successfully!")
+                  st.write("signal_time",signal_time)
+                  st.write("st.session_state.last_signal_time",st.session_state.last_signal_time)
              st.divider()                   
 #======================================================================================================================
 
               #==============================send chart to telegram=================================================================
            #signal_time != st.session_state.last_signal_time
-            st.write("signal_time",signal_time)
-            st.write("st.session_state.last_signal_time",st.session_state.last_signal_time)
+             
            #==================================================================================================================
                
 #========================================================================================================================             

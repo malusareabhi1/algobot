@@ -13360,7 +13360,7 @@ elif MENU =="LIVE TRADE 3":
                     IST = pytz.timezone("Asia/Kolkata")
 
                     now = datetime.now(IST)
-                    MAX_DELAY_MINUTES = 15  # or 10 if you want
+                    MAX_DELAY_MINUTES = 5  # or 10 if you want
                     # CLEAN signal_time
                     signal_time = signal_time.replace(tzinfo=None)
                     signal_time = IST.localize(signal_time)
@@ -13395,8 +13395,8 @@ elif MENU =="LIVE TRADE 3":
                         st.session_state.diff_minutes=diff_minutes  
                     order_status=st.session_state.order_executed
                     st.write("order_status",order_status)     
-                    #if diff_minutes > MAX_DELAY_MINUTES:
-                    if diff_minutes > 20: 
+                    if diff_minutes > MAX_DELAY_MINUTES:
+                    #if diff_minutes > 20: 
                         st.warning(
                             f"⏰ Old Signal Skipped | Signal Age: {diff_minutes:.1f} min"
                         )
@@ -13411,7 +13411,7 @@ elif MENU =="LIVE TRADE 3":
                                     st.session_state.order_executed=False 
                                     order_status=st.session_state.order_executed
                                     st.write("order_status",order_status)
-                                    st.write("signal time and session time ",signal_time,st.session_state.last_signal_time)
+                                    #st.write("signal time and session time ",signal_time,st.session_state.last_signal_time)
                                     if signal_time == st.session_state.last_signal_time:
                                      st.write("signal time and session time ",signal_time,st.session_state.last_signal_time)
                                      if not st.session_state.order_executed:

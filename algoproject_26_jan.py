@@ -12429,14 +12429,14 @@ elif MENU =="LIVE TRADE 3":
        #st.write("option-NIFTY26FEB24900CE-exp-", expiry_date) 
        #monitor_position_live_with_theta_table_and_exit1( kite,symbol,qty,entry_price,strike,expiry_date,instrument_type)   
        if nifty_positions:
-              send_nifty_positions_to_telegram(nifty_positions) 
+              #send_nifty_positions_to_telegram(nifty_positions) 
               pos = nifty_positions[0]
               qty = pos["qty"]
               entry_price = pos["avg_price"]
               pnl = pos["pnl"]
               symbol=pos["symbol"]
               option_type=pos["instrument_type"]
-             
+              send_nifty_positions_to_telegram(pos) 
               expiry_date=get_expiry_from_instruments(symbol)
               strike=get_strike_from_instruments(symbol)
               instrument_type=get_instrument_type_from_instruments(symbol)

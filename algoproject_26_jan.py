@@ -319,7 +319,7 @@ def send_nifty_positions_to_telegram(nifty_positions):
 🧾 Symbol : {pos.get('symbol')}
 📦 Qty    : {pos.get('qty')}
 💰 Avg    : {pos.get('avg_price')}
-📈 LTP    : {pos.get('last_price')}
+📈 LTP    : {pos.get('ltp')}
 📊 PnL    : {round(pos.get('pnl', 0), 2)}
 """
         msgs.append(msg)

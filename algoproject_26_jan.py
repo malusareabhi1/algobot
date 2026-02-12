@@ -54,8 +54,7 @@ if "kill_switch" not in st.session_state:
 
 if start <= now <= end:
      st_autorefresh(interval=30000, key="refresh")  # 1 minute refresh
-     if os.path.exists(IMAGE_PATH):
-       st.image(IMAGE_PATH, caption="Latest Error", use_container_width=True)
+     
 #else:
     #st.info("Auto-refresh is paused — Outside market hours (9:30 AM to 3:25 PM).")
 
@@ -12368,6 +12367,8 @@ elif MENU =="LIVE TRADE 3":
         st.session_state.order_executed = False
         
     if  has_open_position(kite,product="MIS"):
+       if os.path.exists(IMAGE_PATH):
+       st.image(IMAGE_PATH, caption="Latest Error", use_container_width=True)
        #st.warning("⚠️ Open position exists. New trade not allowed.")
        st.session_state.order_executed=True
        send_telegram_signal("▶️ Algo Have Open Position !")

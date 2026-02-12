@@ -9455,7 +9455,7 @@ elif MENU == "Login Zerodha  API":
 
             st.success("🎉 Zerodha Connected Successfully!")
             send_telegram_signal("🟢 *ALGO STATUS: LIVE* !")
-
+            fetch_zerodha_data()
             #st.info("Downloading latest instruments.csv…")
 
 

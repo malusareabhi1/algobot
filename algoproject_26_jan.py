@@ -12368,7 +12368,7 @@ elif MENU =="LIVE TRADE 3":
         
     if  has_open_position(kite,product="MIS"):
        if os.path.exists(IMAGE_PATH):
-       st.image(IMAGE_PATH, caption="Latest Error", use_container_width=True)
+         st.image(IMAGE_PATH, caption="Latest Error", use_container_width=True)
        #st.warning("⚠️ Open position exists. New trade not allowed.")
        st.session_state.order_executed=True
        send_telegram_signal("▶️ Algo Have Open Position !")

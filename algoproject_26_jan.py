@@ -29,7 +29,7 @@ from config import NIFTY_TOKEN
 #from greeks  import  send_greeks_to_telegram
 #from greeks  import  df_to_telegram_table
 from db import create_tables, insert_trade_signal, fetch_trade_signals,create_signal_log_table,insert_signal_log,fetch_signal_log
-IMAGE_PATH = "errorz.jpeg"   # your jpeg file
+#IMAGE_PATH = "errorz.jpeg"   # your jpeg file
 create_tables()   # run once
 create_signal_log_table()
 # Auto-refresh every 30 seconds

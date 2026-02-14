@@ -13033,7 +13033,7 @@ elif MENU =="LIVE TRADE 3":
             #st.write("nearest_itm",nearest_itm)
             #st.write("spot",spot) 
             result = compute_option_iv_details(nearest_itm, spot)
-            st.write("Result IV new",result) 
+            #st.write("Result IV new",result) 
             new_iv_result= result["iv"]
             #st.session_state.GREEKtheta=new_iv_result 
             st.session_state.option_iv=new_iv_result 

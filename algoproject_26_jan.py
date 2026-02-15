@@ -13406,6 +13406,7 @@ elif MENU =="LIVE TRADE 3":
                               if has_open_position(kite):
                                   st.warning("⚠️ Open position exists. New trade not allowed.")
                                   st.session_state.order_executed=True 
+                                  st.stop()
                               else:
                                     st.warning(" No Open position exists. New trade allowed.")
                                     st.session_state.order_executed=False 
@@ -13418,13 +13419,7 @@ elif MENU =="LIVE TRADE 3":
                                           # ---------------- UNIQUE SIGNAL CHECK ----------------
                                          if signal_key in st.session_state.executed_signals:
                                              st.info("✅ Trade already executed for this signal")
-                                             st.stop()
-                                         
-                                         # ---------------- OPEN POSITION CHECK ----------------
-                                         if has_open_position(kite):
-                                             st.warning("⚠️ Open position exists. No new trade allowed.")
-                                             st.stop()
-
+                                             st.stop() 
                                          try:
                                              st.write("Placing Trade-") 
                                              order_id = kite.place_order(

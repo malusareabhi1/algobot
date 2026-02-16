@@ -4285,6 +4285,7 @@ def has_open_position(kite, tradingsymbol=None, product=None):
 
     try:
         positions = kite.positions()["net"]
+        st.write("positions",positions)
     except Exception as e:
         print(f"Kite error: {e}")
         return False
@@ -12401,7 +12402,7 @@ elif MENU =="LIVE TRADE 3":
        #if os.path.exists(IMAGE_PATH):
          #st.image(IMAGE_PATH, caption="Latest Error", use_container_width=True)
        #else: 
-         #st.warning("⚠️ Open position exists. New trade not allowed.")
+         st.warning("⚠️ Open position exists. New trade not allowed.")
          st.session_state.order_executed=True
          send_telegram_signal("▶️ Algo Have Open Position !")
          #show_open_positions(kite)

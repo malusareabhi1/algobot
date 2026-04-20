@@ -10554,7 +10554,7 @@ elif MENU =="LIVE TRADE 3":
      > This is a **professional gap-and-base breakout strategy** with **dynamic trailing SL and time-based exits** — built for intraday NIFTY options trading.
      """)
     # STEP 1: Check kite object existence
-		kite = st.session_state.get("kite")
+	kite = st.session_state.get("kite")
 	
 	if kite is None:
 	    st.warning("Please login to access Algo Trading.")
